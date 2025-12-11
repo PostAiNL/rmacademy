@@ -240,7 +240,7 @@ if "user" not in st.session_state:
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
         st.markdown("""
-            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=2070&auto=format&fit=crop" 
+            <img src="https://img.freepik.com/free-photo/contemporary-room-workplace-office-supplies-concept_53876-165288.jpg?semt=ais_hybrid&w=740&q=80" 
                  style="width: 100%; height: 450px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
         """, unsafe_allow_html=True)
         st.markdown("""
@@ -665,7 +665,7 @@ elif pg == "Instellingen":
         with st.container(border=True):
             st.markdown("#### Support")
             st.link_button("💬 Discord Community", "https://discord.com", use_container_width=True)
-            st.link_button("📧 Email Support", "mailto:support@rmecom.nl", use_container_width=True)
+            st.link_button("📧 Email Support", "mailto:info@rmacademy.nl", use_container_width=True)
         
         with st.expander("Veelgestelde Vragen"):
             st.write("**V: Hoe werkt de XP?**")
