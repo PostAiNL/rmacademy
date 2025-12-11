@@ -87,11 +87,11 @@ def get_real_activity():
         
         # Willekeurige echte lijkende berichten
         msgs = [
-            f"🔥 **{email_name}** is net gestegen in rang!",
-            f"🚀 **{email_name}** heeft +50 XP verdiend.",
-            f"💎 **{email_name}** is druk bezig in Fase 2.",
-            f"👀 **{email_name}** gebruikt de Spy Tool.",
-            f"📝 **{email_name}** is bezig met KVK inschrijving."
+            f" {email_name} is net gestegen in rang!",
+            f" {email_name} heeft +50 XP verdiend.",
+            f" {email_name} is druk bezig in Fase 2.",
+            f" {email_name} gebruikt de Spy Tool.",
+            f" {email_name} is bezig met KVK inschrijving."
         ]
         return random.choice(msgs)
     except:
@@ -249,3 +249,13 @@ def get_affiliate_stats():
         pro = sum(1 for u in res.data if u['is_pro'])
         return total, pro, pro * 5
     except: return 0, 0, 0
+
+def get_user_by_email(email):
+    """Haalt gebruiker op basis van email op zonder nieuwe login flow."""
+    try:
+        res = supabase.table('users').select("*").eq('email', email).execute()
+        if res.data:
+            return res.data[0]
+    except:
+        return None
+    return None
