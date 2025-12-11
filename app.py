@@ -207,7 +207,7 @@ if "user" not in st.session_state:
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["🚀 Nieuw Account", "💎 Inloggen"])
+            tab_free, tab_pro = st.tabs(["🚀 Nieuw Account", "💎 Studenten inloggen"])
 
             with tab_free:
                 st.markdown("<small style='color:#64748b'>Geen creditcard nodig. Direct toegang.</small>", unsafe_allow_html=True)
@@ -248,7 +248,7 @@ if "user" not in st.session_state:
         ✅ **Stap-voor-stap Roadmap** - Geen chaos meer.  
         🧠 **AI Assistentie** - Laat AI je teksten schrijven.  
         🏆 **Gamification** - Verdien XP en level up.  
-        💸 **Verdien Geld** - Nodig vrienden uit (€5/mnd).
+        💸 **Verdien Geld** - Nodig vrienden uit (€100 beloning).
         """)
         
     st.stop()
@@ -317,15 +317,6 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-# --- FAB (SUPPORT) ---
-st.markdown(f"""
-<a href="{COMMUNITY_URL}" target="_blank" class="fab-container">
-    <div class="fab-button" title="Vraag hulp in de Community">
-        💬
-    </div>
-</a>
-""", unsafe_allow_html=True)
-
 # --- LOCK SCREEN COMPONENT ---
 def render_pro_lock(title, desc):
     st.markdown(f"""
@@ -362,7 +353,6 @@ if pg == "Dashboard":
     st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom: 20px;">
         <div>
-            <div style="font-size: 0.85rem; color: #64748B; font-weight:500; text-transform:uppercase; letter-spacing:0.5px;">Vandaag</div>
             <h1 style="margin:0; line-height:1.2;">{get_greeting()}, {name}</h1>
         </div>
     </div>
@@ -416,20 +406,24 @@ if pg == "Dashboard":
         done_count = len(completed_steps)
         pct = int(done_count/total_steps*100) if total_steps > 0 else 0
 
-        # GECORRIGEERDE BANNER MET ACTIE KNOP
+        # GECORRIGEERDE BANNER: GEEN INSPRINGING IN DE HTML STRING
         st.markdown(f"""
-        <div style="background: linear-gradient(120deg, #2563EB, #1E40AF); padding: 24px; border-radius: 16px; color: white; margin-bottom: 25px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);">
-            <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">🚀 Huidige Missie</div>
-            <h2 style="margin: 0; font-size: 1.4rem; color: white; font-weight: 700;">{next_step_title}</h2>
-            <div style="margin-top: 20px; background: rgba(255,255,255,0.2); height: 6px; border-radius: 4px; overflow: hidden;">
-                <div style="background: white; width: {pct}%; height: 100%;"></div>
+<div style="background: linear-gradient(120deg, #2563EB, #1E40AF); padding: 24px; border-radius: 16px; color: white; margin-bottom: 25px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">🚀 Huidige Missie</div>
+    <h2 style="margin: 0; font-size: 1.4rem; color: white; font-weight: 700;">{next_step_title}</h2>
+    <div style="margin-top: 20px; background: rgba(255,255,255,0.2); height: 6px; border-radius: 4px; overflow: hidden;">
+        <div style="background: white; width: {pct}%; height: 100%;"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px;">
+        <span style="font-size: 0.85rem; opacity: 0.9;">{done_count}/{total_steps} stappen</span>
+        <a href="#mission" target="_self" style="text-decoration:none;">
+            <div style="background: white; color: #2563EB; padding: 8px 16px; border-radius: 8px; font-weight: bold; font-size: 0.85rem; cursor: pointer; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                ▶ Start Opdracht
             </div>
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
-                <span style="font-size: 0.85rem; opacity: 0.9;">{done_count}/{total_steps} voltooid</span>
-                <div style="background:white; color:#2563EB; padding:8px 16px; border-radius:8px; font-weight:bold; font-size:0.85rem;">▶ Start Opdracht</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        </a>
+    </div>
+</div>
+""", unsafe_allow_html=True)
         
         for fase_key, fase in full_map.items():
             steps = fase['steps']
@@ -443,6 +437,10 @@ if pg == "Dashboard":
                 for step in steps:
                     is_done = step['id'] in completed_steps
                     is_active = step['id'] == next_step_id
+                    
+                    if is_active:
+                        st.markdown("<div id='mission'></div>", unsafe_allow_html=True)
+                    
                     just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_active)
                     if just_completed_id:
                         auth.mark_step_complete(just_completed_id, xp)
@@ -653,7 +651,7 @@ elif pg == "Instellingen":
         
         with st.container(border=True):
             st.markdown("#### Jouw Unieke Code")
-            st.caption("Deel deze code. Vrienden krijgen korting, jij krijgt €5/maand per actief lid.")
+            st.caption("Deel deze code. Vrienden krijgen korting, jij krijgt €250 per aangemeld lid.")
             st.code(user['referral_code'], language="text")
 
     with tab3:
@@ -674,12 +672,3 @@ elif pg == "Instellingen":
             st.caption("A: Je krijgt XP voor elke stap die je afrondt.")
             st.write("**V: Wanneer krijg ik uitbetaald?**")
             st.caption("A: Elke 1e van de maand.")
-
-    # Admin Debugger
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    with st.expander("🔧 Admin Debugger"):
-        if st.button("🔴 TEST AI VERBINDING"):
-            if "OPENAI_API_KEY" not in st.secrets:
-                st.error("❌ Geen API Key!")
-            else:
-                st.success("✅ Verbonden")
