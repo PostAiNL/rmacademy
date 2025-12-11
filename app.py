@@ -205,16 +205,8 @@ if "user" not in st.session_state:
         <h3 style='margin-bottom: 10px; font-weight: 600; color: #1E293B;'>
             Bouw in 7 dagen een serieuze webshop basis.
         </h3>
-        <p style='color: #64748B; font-size: 1.05rem; margin-bottom: 18px; line-height: 1.6;'>
-            Geen eindeloze YouTube rabbit hole meer. Eén omgeving met een duidelijk stappenplan en tools die het voor je uitwerken.
-        </p>
-        <ul style='color:#64748B; font-size:0.95rem; padding-left:18px; margin-top:0;'>
-            <li>Dag 1–2: KVK, bank en basis geregeld.</li>
-            <li>Dag 3–4: Naam, merk en Shopify klaar.</li>
-            <li>Dag 5–7: Producten, teksten en eerste bezoekers.</li>
-        </ul>
         <p style='color:#0F172A; font-size:0.95rem; margin-top:10px;'>
-            Start nu met het <b>gratis stappenplan</b>. Later kun je altijd doorgroeien naar Student.
+            Start nu met het <b>gratis stappenplan</b>.
         </p>
         """, unsafe_allow_html=True)
 
@@ -222,8 +214,12 @@ if "user" not in st.session_state:
             tab_free, tab_pro = st.tabs(["🚀 Nieuw Account", "💎 Studenten inloggen"])
 
             with tab_free:
-                st.markdown("<small style='color:#64748b'>Geen betaalgegevens nodig. Direct toegang tot het gratis stappenplan.</small>", unsafe_allow_html=True)
-                email = st.text_input("Vul hier je e-mailadres in:", placeholder="naam@voorbeeld.nl")
+                st.markdown("<small style='color:#64748b'>Geen betaalgegevens nodig, direct gratis toegang.</small>", unsafe_allow_html=True)
+                email = st.text_input(
+    "",
+    placeholder="Vul hier je emailadres in...",
+    label_visibility="collapsed"
+)
                 with st.expander("Heb je een vrienden-code? (Optioneel)"):
                     ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482")
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -253,10 +249,6 @@ if "user" not in st.session_state:
 
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        st.markdown("""
-            <img src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=2070&auto=format&fit=crop" 
-                 style="width: 100%; height: 450px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
-        """, unsafe_allow_html=True)
         st.markdown("""
         ### Wat je in deze app doet
         ✅ Duidelijke roadmap van nul tot eerste sales  
