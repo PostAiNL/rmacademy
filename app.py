@@ -9,7 +9,7 @@ from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap
 
 # --- 0. CONFIGURATIE ---
 STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min" 
-COMMUNITY_URL = "https://discord.com" # Of je eigen community link
+COMMUNITY_URL = "https://discord.com"
 
 st.set_page_config(
     page_title="RM Ecom App", 
@@ -18,15 +18,12 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (10/10 APP FEEL) ---
+# --- 1. PREMIUM CSS ENGINE (10/10 STYLE) ---
 st.markdown("""
     <style>
-        /* [FONTS & GLOBAL] */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-        
+        /* [GLOBAL VARIABLES] */
         :root {
             --primary: #2563EB;
-            --primary-dark: #1E40AF;
             --bg-light: #F8FAFC;
             --text-dark: #0F172A;
             --text-gray: #64748B;
@@ -34,9 +31,10 @@ st.markdown("""
             --border: #E2E8F0;
         }
 
+        /* [APP BACKGROUND] */
         .stApp {
             background-color: var(--bg-light);
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
             color: var(--text-dark);
         }
         
@@ -45,7 +43,7 @@ st.markdown("""
         [data-testid="stDecoration"] {display: none;}
         [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
         
-        /* [SIDEBAR - COMPACT] */
+        /* [SIDEBAR - CLEAN] */
         section[data-testid="stSidebar"] {
             background-color: var(--white);
             border-right: 1px solid var(--border);
@@ -60,8 +58,9 @@ st.markdown("""
             flex-direction: column;
             gap: 6px;
         }
-        div[role="radiogroup"] > label > div:first-child { display: None; }
-        
+        div[role="radiogroup"] > label > div:first-child {
+            display: None;
+        }
         div[role="radiogroup"] label {
             width: 100%;
             padding: 10px 14px;
@@ -74,13 +73,12 @@ st.markdown("""
             display: flex;
             align-items: center;
             cursor: pointer;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); /* Soepelere animatie */
+            transition: all 0.2s ease;
         }
         
         div[role="radiogroup"] label:hover {
             background-color: #F1F5F9;
             color: var(--text-dark);
-            transform: translateX(4px); /* Klein app-like effectje */
         }
         
         div[role="radiogroup"] label[data-checked="true"] {
@@ -88,13 +86,13 @@ st.markdown("""
             color: #2563EB !important;
             font-weight: 600;
             border: 1px solid #DBEAFE;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
         }
 
         /* [MAIN CONTENT] */
         .block-container {
             padding-top: 2rem; 
-            padding-bottom: 6rem; /* Extra ruimte voor FAB */
+            padding-bottom: 5rem; 
             max-width: 1100px;
         }
 
@@ -103,7 +101,7 @@ st.markdown("""
             border-radius: 16px;
             background: var(--white);
             border: 1px solid var(--border);
-            box-shadow: 0 2px 8px -2px rgba(0,0,0,0.03);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.03);
             padding: 24px;
             margin-bottom: 20px;
         }
@@ -117,7 +115,9 @@ st.markdown("""
             transition: transform 0.1s;
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
         }
-        .stButton button:hover { transform: translateY(-2px); }
+        .stButton button:hover {
+            transform: translateY(-1px);
+        }
         .stButton button[kind="primary"] {
             background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
             box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
@@ -140,45 +140,35 @@ st.markdown("""
             align-items: center;
             text-align: center;
             box-shadow: 0 2px 6px rgba(0,0,0,0.01);
-            transition: border-color 0.2s;
         }
-        .metric-card:hover { border-color: #CBD5E1; }
         .metric-label { font-size: 0.7rem; color: #94A3B8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .metric-value { font-size: 1.6rem; font-weight: 800; color: var(--text-dark); }
         .metric-sub { font-size: 0.75rem; color: #10B981; font-weight: 600; margin-top: 2px; }
 
         /* [LOCK SCREEN] */
         .lock-container {
-            text-align: center; padding: 60px 20px; background: white; 
-            border-radius: 16px; border: 1px solid #E2E8F0;
+            text-align: center; 
+            padding: 60px 20px; 
+            background: white; 
+            border-radius: 16px; 
+            border: 1px solid #E2E8F0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
-        /* [FLOATING ACTION BUTTON (FAB)] - 10/10 Feature */
+        /* [FAB] */
         .fab-container {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 9999;
+            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
         }
         .fab-button {
             background: linear-gradient(135deg, #2563EB, #1D4ED8);
-            color: white;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
-            cursor: pointer;
-            text-decoration: none;
-            transition: transform 0.2s;
+            color: white; width: 60px; height: 60px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 24px; box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+            cursor: pointer; text-decoration: none; transition: transform 0.2s;
         }
         .fab-button:hover { transform: scale(1.1); }
 
-        /* Responsive */
+        /* Responsive Mobile */
         @media (max-width: 600px) {
             .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
             .metric-card { padding: 10px; }
@@ -199,19 +189,20 @@ if "user" not in st.session_state:
         try: auth.login_or_register(cookie_email) 
         except: pass
 
-# --- 3. LOGIN SCHERM (SPLIT LAYOUT) ---
+# --- 3. LOGIN SCHERM ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
 
     col_left, col_right = st.columns([1, 1.2], gap="large")
 
     with col_left:
-        st.markdown("<div style='height: 60px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
         st.markdown("# RM Academy") 
         st.markdown("""
         <h3 style='margin-bottom: 10px; font-weight: 600; color: #1E293B;'>Start je webshop.</h3>
         <p style='color: #64748B; font-size: 1.1rem; margin-bottom: 30px; line-height: 1.6;'>
-        Geen gedoe. Gewoon een helder stappenplan van A tot Z.
+        Geen gedoe. Gewoon een helder stappenplan van A tot Z. 
+        Start direct met het <b>gratis stappenplan</b>.
         </p>
         """, unsafe_allow_html=True)
 
@@ -219,23 +210,24 @@ if "user" not in st.session_state:
             tab_free, tab_pro = st.tabs(["🚀 Nieuw Account", "💎 Inloggen"])
 
             with tab_free:
-                st.markdown("<small style='color:#64748b'>Start direct gratis (geen creditcard).</small>", unsafe_allow_html=True)
-                email = st.text_input("Jouw e-mailadres:", placeholder="naam@voorbeeld.nl")
-                with st.expander("Heb je een code?"):
-                    ref_code = st.text_input("Code", placeholder="bv. JAN-482")
+                st.markdown("<small style='color:#64748b'>Geen creditcard nodig. Direct toegang.</small>", unsafe_allow_html=True)
+                email = st.text_input("Vul hier je e-mailadres in:", placeholder="naam@voorbeeld.nl")
+                with st.expander("Heb je een vrienden-code? (Optioneel)"):
+                    ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                if st.button("🚀 Start Nu", type="primary", use_container_width=True):
+                if st.button("🚀 Start Direct (Gratis)", type="primary", use_container_width=True):
                     if email and "@" in email:
-                        with st.spinner("Je account wordt aangemaakt..."):
+                        with st.spinner("Account aanmaken..."):
                             auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() else None)
                             cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
                             st.rerun()
                     else: st.warning("Vul een geldig e-mailadres in.")
 
             with tab_pro:
-                pro_email = st.text_input("E-mailadres", key="log_mail")
-                lic_key = st.text_input("Licentie Code", type="password")
+                st.markdown("<small style='color:#64748b'>Vul je licentiecode in.</small>", unsafe_allow_html=True)
+                pro_email = st.text_input("Jouw Email", key="log_mail")
+                lic_key = st.text_input("Licentie Code", placeholder="PRO-XXXX-XXXX")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
                 if st.button("💎 Inloggen", type="primary", use_container_width=True):
@@ -247,15 +239,21 @@ if "user" not in st.session_state:
 
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        # Gebruik een abstracte of inspirerende afbeelding
         st.markdown("""
             <img src="https://images.unsplash.com/photo-1556742049-0cfed4f7a07d?q=80&w=2070&auto=format&fit=crop" 
-                 style="width: 100%; height: 450px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 20px 40px -10px rgba(0,0,0,0.1);">
+                 style="width: 100%; height: 450px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
         """, unsafe_allow_html=True)
+        st.markdown("""
+        ### Waarom deze app?
+        ✅ **Stap-voor-stap Roadmap** - Geen chaos meer.  
+        🧠 **AI Assistentie** - Laat AI je teksten schrijven.  
+        🏆 **Gamification** - Verdien XP en level up.  
+        💸 **Verdien Geld** - Nodig vrienden uit (€5/mnd).
+        """)
         
     st.stop()
 
-# --- 4. INGELOGDE OMGEVING ---
+# --- 4. INGELOGDE DATA ---
 user = st.session_state.user
 is_pro = user['is_pro']
 
@@ -265,7 +263,7 @@ def get_greeting():
     elif hour < 18: return "Goedemiddag"
     else: return "Goedenavond"
 
-# --- SIDEBAR (COMPACT) ---
+# --- SIDEBAR ---
 with st.sidebar:
     st.markdown(f"""
     <div style="margin-bottom: 5px; padding-left: 2px;">
@@ -311,13 +309,22 @@ with st.sidebar:
     if not is_pro:
         st.markdown("<div style='margin-top:auto;'></div>", unsafe_allow_html=True)
         st.markdown(f"""
-        <div style="margin-top: 10px; padding: 12px; background: #F8FAFC; border-radius: 12px; border: 1px dashed #CBD5E1; text-align: center;">
+        <div style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px; border: 1px dashed #CBD5E1; text-align: center;">
             <p style="font-size:0.75rem; margin-bottom:5px; color:#64748B;">Klaar voor de volgende stap?</p>
             <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none; color: #2563EB; font-weight: 700; font-size: 0.85rem;">
-                🚀Word student 
+                🚀 Word Student
             </a>
         </div>
         """, unsafe_allow_html=True)
+
+# --- FAB (SUPPORT) ---
+st.markdown(f"""
+<a href="{COMMUNITY_URL}" target="_blank" class="fab-container">
+    <div class="fab-button" title="Vraag hulp in de Community">
+        💬
+    </div>
+</a>
+""", unsafe_allow_html=True)
 
 # --- LOCK SCREEN COMPONENT ---
 def render_pro_lock(title, desc):
@@ -327,7 +334,7 @@ def render_pro_lock(title, desc):
         <h3 style="margin-bottom: 10px; color: #1E293B;">{title}</h3>
         <p style="color: #64748B; font-size: 0.95rem; margin-bottom: 25px; max-width: 500px; margin-left: auto; margin-right: auto; line-height: 1.6;">
             {desc}<br>
-            <b>Upgrade naar student voor onbeperkte toegang.</b>
+            <b>Upgrade naar student voor onbeperkte toegang en coaching.</b>
         </p>
         <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
             <div style="
@@ -352,7 +359,6 @@ def render_pro_lock(title, desc):
 if pg == "Dashboard":
     name = user['email'].split('@')[0].capitalize()
     
-    # Header met datum en groet
     st.markdown(f"""
     <div style="display:flex; justify-content:space-between; align-items:end; margin-bottom: 20px;">
         <div>
@@ -362,11 +368,9 @@ if pg == "Dashboard":
     </div>
     """, unsafe_allow_html=True)
 
-    # Ticker
     if "ticker_msg" not in st.session_state: st.session_state.ticker_msg = auth.get_real_activity()
     st.info(f"⚡ {st.session_state.ticker_msg}")
 
-    # Metrics Grid
     next_reward = "Spy Tool" if user['level'] < 2 else "Scripts"
     st.markdown(f"""
     <div class="metric-container">
@@ -388,7 +392,6 @@ if pg == "Dashboard":
     </div>
     """, unsafe_allow_html=True)
 
-    # Roadmap Tabs
     tab_road, tab_leader = st.tabs(["📍 Mijn Roadmap", "🏆 Toplijst"])
 
     with tab_road:
@@ -413,7 +416,7 @@ if pg == "Dashboard":
         done_count = len(completed_steps)
         pct = int(done_count/total_steps*100) if total_steps > 0 else 0
 
-        # "Current Mission" Banner (Actiegericht)
+        # GECORRIGEERDE BANNER MET ACTIE KNOP
         st.markdown(f"""
         <div style="background: linear-gradient(120deg, #2563EB, #1E40AF); padding: 24px; border-radius: 16px; color: white; margin-bottom: 25px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);">
             <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">🚀 Huidige Missie</div>
@@ -421,7 +424,10 @@ if pg == "Dashboard":
             <div style="margin-top: 20px; background: rgba(255,255,255,0.2); height: 6px; border-radius: 4px; overflow: hidden;">
                 <div style="background: white; width: {pct}%; height: 100%;"></div>
             </div>
-            <div style="text-align: right; font-size: 0.8rem; margin-top: 8px; opacity: 0.9;">{pct}% Voltooid</div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:15px;">
+                <span style="font-size: 0.85rem; opacity: 0.9;">{done_count}/{total_steps} voltooid</span>
+                <div style="background:white; color:#2563EB; padding:8px 16px; border-radius:8px; font-weight:bold; font-size:0.85rem;">▶ Start Opdracht</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
         
@@ -430,10 +436,9 @@ if pg == "Dashboard":
             fase_done = sum(1 for s in steps if s['id'] in completed_steps)
             fase_pct = fase_done / len(steps)
             
-            # Toon alleen relevante fases
             if fase_pct < 1.0 or fase_key == list(full_map.keys())[-1]:
                 st.markdown(f"#### {fase['title']}")
-                st.caption(fase['desc']) # Hulptekst voor beginners
+                st.caption(fase['desc'])
                 
                 for step in steps:
                     is_done = step['id'] in completed_steps
@@ -471,8 +476,8 @@ if pg == "Dashboard":
                 """, unsafe_allow_html=True)
 
 elif pg == "Gratis Mini Training":
-    st.title("🎓 Gratis Mini Cursus")
-    st.caption("Bekijk de lessen direct en pas ze toe.")
+    st.markdown("<h1>🎁 Gratis Mini Cursus</h1>", unsafe_allow_html=True)
+    st.caption("Bekijk de lessen direct en pas ze toe. Geen kosten, puur waarde.")
     
     t1, t2, t3, t4 = st.tabs(["1. Mindset", "2. Product", "3. Sales", "4. Scale"])
     
@@ -480,19 +485,19 @@ elif pg == "Gratis Mini Training":
         st.markdown("### 🧠 De Mindset van een Winnaar")
         with st.container(border=True):
              st.markdown('<iframe src="https://drive.google.com/file/d/17H4ioDVVGqTxcz3zQS4lIHtbe4HbCeCI/preview" width="100%" height="400" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.info("💡 De meeste mensen falen omdat ze opgeven bij de eerste tegenslag.")
+        st.info("💡 De meeste mensen falen omdat ze opgeven bij de eerste tegenslag. Bekijk hoe jij dat voorkomt.")
 
     with t2:
         st.markdown("### 📦 Winnende Producten Vinden")
         with st.container(border=True):
              st.markdown('<iframe src="https://drive.google.com/file/d/134ghHGlE-cK671n6fk1NgmbLPIR_HkXe/preview" width="100%" height="400" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.markdown("👉 **Actie:** Gebruik de **Product Finder** in het menu om dit toe te passen.")
+        st.markdown("👉 **Actie:** Gebruik de **Product Finder** in het menu om direct je eerste winnaar te vinden.")
 
     with t3:
         st.markdown("### 💸 Je Eerste Sale Genereren")
         with st.container(border=True):
              st.markdown('<iframe src="https://drive.google.com/file/d/1xyM_9q2i5FJBF__HvmhDrHTBueBoBstv/preview" width="100%" height="400" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.success("Het hoeft niet perfect te zijn om te verkopen.")
+        st.success("Het hoeft niet perfect te zijn om te verkopen. Lanceer snel.")
 
     with t4:
         st.markdown("### 📈 Van 1 naar 100 Sales")
@@ -500,9 +505,10 @@ elif pg == "Gratis Mini Training":
              st.markdown('<iframe src="https://drive.google.com/file/d/1O4fa0FUA10MnCE4QqNNDe3XSLwLfkb_F/preview" width="100%" height="400" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""
-        <div style="background: #F0F9FF; padding: 20px; border-radius: 12px; border: 1px solid #BAE6FD;">
-            <h4>🚀 Klaar voor het echte werk?</h4>
-            <p>Je hebt de basis gezien. Wil je persoonlijke begeleiding en toegang tot alle tools?</p>
+        <div style="background: #F0F9FF; padding: 25px; border-radius: 12px; border: 1px solid #BAE6FD; text-align: center;">
+            <h4 style="color:#0369A1;">🚀 Klaar voor het echte werk?</h4>
+            <p style="color:#0C4A6E;">Je hebt de basis gezien. Wil je dat wij je persoonlijk helpen om dit <b>gegarandeerd</b> te laten slagen?</p>
+            <br>
         </div>
         """, unsafe_allow_html=True)
         st.link_button("📞 Plan Gratis Strategie Call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
@@ -511,8 +517,8 @@ elif pg == "Product Finder":
     st.title("🔎 Product Finder")
     if not is_pro:
         render_pro_lock(
-            "Vind Winnende Producten", 
-            "Onze AI scant de markt en vindt producten met hoge marges en viral potentie."
+            "Ontgrendel de Database", 
+            "Krijg toegang tot winnende producten, inclusief marges en leveranciers. Onze studenten vinden hiermee dagelijks winnaars."
         )
     else:
         with st.container(border=True):
@@ -647,7 +653,7 @@ elif pg == "Instellingen":
         
         with st.container(border=True):
             st.markdown("#### Jouw Unieke Code")
-            st.caption("Verdien €5/maand per pro lid.")
+            st.caption("Deel deze code. Vrienden krijgen korting, jij krijgt €5/maand per actief lid.")
             st.code(user['referral_code'], language="text")
 
     with tab3:
@@ -661,10 +667,19 @@ elif pg == "Instellingen":
         with st.container(border=True):
             st.markdown("#### Support")
             st.link_button("💬 Discord Community", "https://discord.com", use_container_width=True)
-            st.link_button("📧 Email Support", "mailto:info@rmacademy.nl", use_container_width=True)
+            st.link_button("📧 Email Support", "mailto:support@rmecom.nl", use_container_width=True)
         
         with st.expander("Veelgestelde Vragen"):
             st.write("**V: Hoe werkt de XP?**")
             st.caption("A: Je krijgt XP voor elke stap die je afrondt.")
             st.write("**V: Wanneer krijg ik uitbetaald?**")
             st.caption("A: Elke 1e van de maand.")
+
+    # Admin Debugger
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    with st.expander("🔧 Admin Debugger"):
+        if st.button("🔴 TEST AI VERBINDING"):
+            if "OPENAI_API_KEY" not in st.secrets:
+                st.error("❌ Geen API Key!")
+            else:
+                st.success("✅ Verbonden")
