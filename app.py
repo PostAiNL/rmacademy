@@ -241,7 +241,7 @@ if "user" not in st.session_state:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
         st.markdown("""
             <img src="https://img.freepik.com/free-photo/contemporary-room-workplace-office-supplies-concept_53876-165288.jpg?semt=ais_hybrid&w=740&q=80" 
-                 style="width: 100%; height: 450px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
+                 style="width: 100%; height: 350px; object-fit: cover; border-radius: 16px; margin-bottom: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.1);">
         """, unsafe_allow_html=True)
         st.markdown("""
         ### Waarom deze app?
