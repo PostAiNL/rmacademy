@@ -3,7 +3,8 @@ import time
 import urllib.parse
 import random
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timedelta
+import extra_streamlit_components as stx 
 from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap
 
 # --- 0. CONFIGURATIE ---
@@ -16,7 +17,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (CLEAN & STACKED) ---
+# --- 1. PREMIUM CSS ENGINE (COMPACT & CLEAN) ---
 st.markdown("""
     <style>
         /* [GLOBAL VARIABLES] */
@@ -36,42 +37,47 @@ st.markdown("""
             color: var(--text-dark);
         }
         
-        /* [HEADER WEG MAAR TOGGLE BEHOUDEN] */
+        /* [HEADER WEG] */
         [data-testid="stHeader"] {background: transparent;}
         [data-testid="stDecoration"] {display: none;}
         [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
         
-        /* [SIDEBAR - STACKED & CLEAN] */
+        /* [SIDEBAR - COMPACT & NO SCROLL] */
         section[data-testid="stSidebar"] {
             background-color: var(--white);
             border-right: 1px solid var(--border);
         }
+        /* Minimale padding om scroll te voorkomen */
         section[data-testid="stSidebar"] .block-container {
-            padding: 1.5rem 1rem !important;
+            padding-top: 1rem !important;
+            padding-bottom: 1rem !important;
+            padding-left: 0.75rem !important;
+            padding-right: 0.75rem !important;
         }
         
-        /* [NAVIGATIE MENU - PREMIUM KNOPPEN] */
+        /* [NAVIGATIE MENU - COMPACT] */
         div[role="radiogroup"] {
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 4px; /* Strak op elkaar */
         }
         div[role="radiogroup"] > label > div:first-child {
             display: None;
         }
         div[role="radiogroup"] label {
             width: 100%;
-            padding: 12px 16px;
-            border-radius: 12px;
+            padding: 8px 12px; /* Compacte padding */
+            border-radius: 8px;
             border: 1px solid transparent;
             background-color: transparent;
             color: var(--text-gray);
             font-weight: 500;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
             display: flex;
             align-items: center;
             cursor: pointer;
             transition: all 0.2s ease;
+            min-height: 40px; /* Vaste compacte hoogte */
         }
         
         /* Hover Effect */
@@ -86,7 +92,7 @@ st.markdown("""
             color: #2563EB !important;
             font-weight: 600;
             border: 1px solid #DBEAFE;
-            box-shadow: 0 2px 4px rgba(37, 99, 235, 0.05);
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
         }
 
         /* [MAIN CONTENT] */
@@ -163,13 +169,25 @@ st.markdown("""
             .metric-label { font-size: 0.6rem; }
             h1 { font-size: 1.6rem !important; }
         }
-        
-        /* Toggle Zichtbaar */
-        [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LOGIN SCHERM (SPLIT LAYOUT) ---
+# --- 2. COOKIE MANAGER (AUTO LOGIN) ---
+cookie_manager = stx.CookieManager()
+
+# Auto-login logica
+if "user" not in st.session_state:
+    cookie_email = cookie_manager.get("rmecom_user_email")
+    if cookie_email:
+        # Hier zou je normaal auth.get_user_by_email() aanroepen
+        # Voor nu simuleren we de login als de functie in auth.py bestaat, anders via register flow
+        try:
+            # We gebruiken de bestaande functie 'login_or_register' die de user ophaalt
+            auth.login_or_register(cookie_email) 
+        except:
+            pass
+
+# --- 3. LOGIN SCHERM (SPLIT LAYOUT) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
 
@@ -200,6 +218,7 @@ if "user" not in st.session_state:
                     if email and "@" in email:
                         with st.spinner("Account aanmaken..."):
                             auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() else None)
+                            cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
                             st.rerun()
                     else: st.warning("Vul een geldig e-mailadres in.")
 
@@ -212,6 +231,7 @@ if "user" not in st.session_state:
                 if st.button("💎 Inloggen", type="primary", use_container_width=True):
                     if pro_email and lic_key:
                         auth.login_or_register(pro_email, license_input=lic_key)
+                        cookie_manager.set("rmecom_user_email", pro_email, expires_at=datetime.now() + timedelta(days=30))
                         st.rerun()
                     else: st.warning("Vul alles in.")
 
@@ -230,7 +250,7 @@ if "user" not in st.session_state:
         
     st.stop()
 
-# --- 3. INGELOGDE DATA ---
+# --- 4. INGELOGDE DATA ---
 user = st.session_state.user
 is_pro = user['is_pro']
 
@@ -240,17 +260,17 @@ def get_greeting():
     elif hour < 18: return "Goedemiddag"
     else: return "Goedenavond"
 
-# --- SIDEBAR (CLEAN, NO SCROLL) ---
+# --- SIDEBAR (COMPACT & NO SCROLL) ---
 with st.sidebar:
-    # 1. Header
+    # 1. Header (Compact)
     st.markdown(f"""
-    <div style="margin-bottom: 8px; padding-left: 4px;">
-        <h3 style="margin:0; font-size:1.1rem; color:#0F172A;">👋 {user['email'].split('@')[0].title()}</h3>
-        <p style="margin:0; font-size: 0.8rem; color: #64748B;">{auth.get_rank_info(user['xp'])[0]}</p>
+    <div style="margin-bottom: 5px; padding-left: 2px;">
+        <h3 style="margin:0; font-size:1rem; color:#0F172A;">👋 {user['email'].split('@')[0].title()}</h3>
+        <p style="margin:0; font-size: 0.75rem; color: #64748B;">{auth.get_rank_info(user['xp'])[0]}</p>
     </div>
     """, unsafe_allow_html=True)
 
-    # 2. XP Balkje
+    # 2. XP Balkje (Ultra dun)
     current_title, next_xp_goal = auth.get_rank_info(user['xp'])
     prev_threshold = 0
     for t in [0, 200, 500, 1000]:
@@ -259,9 +279,9 @@ with st.sidebar:
     xp_pct = min((user['xp'] - prev_threshold) / (next_xp_goal - prev_threshold), 1.0) if next_xp_goal > prev_threshold else 1.0
     st.progress(xp_pct)
     
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+    st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # 3. Navigatie Menu (ZONDER PARTNER, die zit nu bij instellingen)
+    # 3. Navigatie Menu (Compacte lijst, geen partner)
     menu_options = {
         "🏠 Dashboard": "Dashboard",
         "🎓 Training (Gratis)": "Gratis Mini Training",
@@ -287,11 +307,11 @@ with st.sidebar:
             pg = val
             break
 
-    # 4. CTA
+    # 4. CTA (Zeer compact)
     if not is_pro:
         st.markdown("<div style='margin-top:auto;'></div>", unsafe_allow_html=True)
         st.markdown(f"""
-        <div style="margin-top: 15px; padding: 12px; background: #F8FAFC; border-radius: 12px; border: 1px dashed #CBD5E1; text-align: center;">
+        <div style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px; border: 1px dashed #CBD5E1; text-align: center;">
             <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none; color: #2563EB; font-weight: bold; font-size: 0.85rem;">
                 🚀 Word Student
             </a>
@@ -360,7 +380,7 @@ if pg == "Dashboard":
     """, unsafe_allow_html=True)
 
     # Roadmap
-    tab_road, tab_leader = st.tabs(["📍 Mijn Roadmap", "🏆 Top 10"])
+    tab_road, tab_leader = st.tabs(["📍 Mijn Roadmap", "🏆 Toplijst"])
 
     with tab_road:
         completed_steps = auth.get_progress()
@@ -599,6 +619,7 @@ elif pg == "Instellingen":
             """, unsafe_allow_html=True)
             
             if st.button("Uitloggen", use_container_width=True):
+                cookie_manager.delete("rmecom_user_email")
                 st.session_state.clear()
                 st.rerun()
 
@@ -624,7 +645,7 @@ elif pg == "Instellingen":
         
         with st.container(border=True):
             st.markdown("#### Jouw Unieke Code")
-            st.caption("Deel deze code. Vrienden krijgen korting, jij krijgt €100 per actief lid van onze community.")
+            st.caption("Deel deze code. Vrienden krijgen korting, jij krijgt €5/maand per actief lid.")
             st.code(user['referral_code'], language="text")
 
     with tab3:
@@ -646,18 +667,3 @@ elif pg == "Instellingen":
             st.caption("A: Je krijgt XP voor elke stap die je afrondt in het dashboard.")
             st.write("**V: Wanneer krijg ik uitbetaald?**")
             st.caption("A: Elke 1e van de maand maken we je affiliate inkomsten over.")
-
-    # RESTORED: Admin Debugger
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    with st.expander("🔧 Admin Debugger"):
-        if st.button("🔴 TEST AI VERBINDING NU"):
-            if "OPENAI_API_KEY" not in st.secrets:
-                st.error("❌ Geen API Key!")
-            else:
-                try:
-                    from openai import OpenAI
-                    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-                    response = client.chat.completions.create(model="gpt-4o-mini", messages=[{"role": "user", "content": "Ping"}])
-                    st.success(f"✅ HET WERKT! Antwoord: {response.choices[0].message.content}")
-                except Exception as e:
-                    st.error(f"❌ AI Fout: {e}")
