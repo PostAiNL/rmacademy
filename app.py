@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (SAMSUNG DARK MODE FIX) ---
+# --- 1. PREMIUM CSS ENGINE (SAMSUNG, IPHONE & ALL FEATURES FIXED) ---
 st.markdown("""
     <style>
         /* [GLOBAL VARIABLES] */
@@ -32,12 +32,26 @@ st.markdown("""
             --border: #CBD5E1;
         }
 
-        /* [SAMSUNG/ANDROID TAP HIGHLIGHT FIX] */
-        * {
-            -webkit-tap-highlight-color: transparent !important;
+        /* [SAMSUNG/ANDROID SYSTEM OVERRIDES] */
+        /* Verwijdert de grijze highlight bij klikken */
+        * { -webkit-tap-highlight-color: transparent !important; }
+        
+        /* Forceer Checkboxes naar Blauw */
+        input[type="checkbox"] {
+            accent-color: #2563EB !important;
+            filter: none !important;
         }
+        
+        /* Forceer Dropdown Menu's naar Wit met Donkere tekst */
+        div[data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border-color: #CBD5E1 !important;
+        }
+        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+        li[data-baseweb="option"] { color: #0F172A !important; }
 
-        /* [APP BACKGROUND - FORCEER WIT/LICHTGRIJS] */
+        /* [APP BACKGROUND] */
         .stApp {
             background-color: var(--bg-light) !important;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -102,7 +116,7 @@ st.markdown("""
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* --- [EXPANDER / ROADMAP KAARTEN FIX - SAMSUNG PROOF] --- */
+        /* --- [EXPANDER / ROADMAP KAARTEN FIX] --- */
         .streamlit-expander, div[data-testid="stExpander"] {
             background-color: #FFFFFF !important;
             border: 1px solid #CBD5E1 !important;
@@ -112,16 +126,10 @@ st.markdown("""
             overflow: hidden;
         }
         
-        /* CRUCIAAL: Forceer de binnenkant van de expander naar wit */
-        div[data-testid="stExpander"] details {
-            background-color: #FFFFFF !important;
-        }
-        div[data-testid="stExpander"] div[role="group"] {
-            background-color: #FFFFFF !important;
-        }
-        div[data-testid="stExpander"] p {
-            color: #0F172A !important; /* Tekst altijd donker */
-        }
+        /* Forceer de binnenkant van de expander naar wit */
+        div[data-testid="stExpander"] details { background-color: #FFFFFF !important; }
+        div[data-testid="stExpander"] div[role="group"] { background-color: #FFFFFF !important; }
+        div[data-testid="stExpander"] p { color: #0F172A !important; }
         
         /* Header van de expander */
         .streamlit-expanderHeader {
@@ -163,35 +171,22 @@ st.markdown("""
         }
 
         /* --- [TABS] --- */
-        button[data-baseweb="tab"] {
-            background-color: transparent !important;
-        }
-        button[data-baseweb="tab"] div p {
-            color: #64748B !important;
-            font-weight: 500;
-        }
-        button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #2563EB !important;
-            font-weight: 700;
-        }
-        div[data-baseweb="tab-highlight"] {
-            background-color: #2563EB !important;
-        }
+        button[data-baseweb="tab"] { background-color: transparent !important; }
+        button[data-baseweb="tab"] div p { color: #64748B !important; font-weight: 500; }
+        button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; font-weight: 700; }
+        div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
 
         /* [SIDEBAR] */
         section[data-testid="stSidebar"] { background-color: var(--white); border-right: 1px solid var(--border); }
         section[data-testid="stSidebar"] .block-container { padding: 1.5rem 1rem !important; }
 
         /* [NAVIGATIE MENU - GEEN BOLLETJES] */
-        div[role="radiogroup"] > label > div:first-child {
-            display: none !important;
-        }
+        div[role="radiogroup"] > label > div:first-child { display: none !important; }
         div[role="radiogroup"] label {
             width: 100%; padding: 10px 14px; border-radius: 10px;
             color: var(--text-gray); font-weight: 500;
             cursor: pointer; transition: all 0.2s ease;
-            margin-bottom: 4px;
-            border: 1px solid transparent;
+            margin-bottom: 4px; border: 1px solid transparent;
         }
         div[role="radiogroup"] label:hover { background-color: #F1F5F9; color: var(--text-dark); }
         div[role="radiogroup"] label[data-checked="true"] {
@@ -272,7 +267,7 @@ if "user" not in st.session_state:
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["🚀 Start Challenge", "💎 Student Login"])
+            tab_free, tab_pro = st.tabs(["Start Challenge", "Student Login"])
 
             with tab_free:
                 email = st.text_input("Email", placeholder="Vul hier je emailadres in...", label_visibility="collapsed", key="login_email_free")
@@ -389,7 +384,7 @@ with st.sidebar:
     
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # AANGEPASTE MENU LABELS VOOR BEGINNERS
+    # MENU
     menu_options = {
         "🏠 Dashboard": "Dashboard",
         "🎓 Gratis training": "Gratis Mini Training",
