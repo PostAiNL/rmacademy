@@ -407,7 +407,7 @@ if "user" not in st.session_state:
             tab_free, tab_pro = st.tabs(["🚀 Start Challenge", "💎 Student Login"])
 
             with tab_free:
-                email = st.text_input("Email", placeholder="jouw@email.com", label_visibility="collapsed", key="login_email_free")
+                email = st.text_input("Email", placeholder="Vul hier je emailadres in...", label_visibility="collapsed", key="login_email_free")
                 
                 # De expander is prima zo: subtiel maar beschikbaar
                 with st.expander("Heb je een vriendencode? (Optioneel)"):
@@ -444,8 +444,8 @@ if "user" not in st.session_state:
 
             with tab_pro:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
-                pro_email = st.text_input("Jouw Email", key="log_mail")
-                lic_key = st.text_input("Licentie Code", type="password", placeholder="PRO-XXXX-XXXX")
+                pro_email = st.text_input("Jouw Email:", key="log_mail")
+                lic_key = st.text_input("Licentie Code:", type="password", placeholder="PRO-XXXX-XXXX")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
                 if st.button("💎 Inloggen", type="secondary", use_container_width=True):
