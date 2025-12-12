@@ -52,7 +52,12 @@ st.markdown("""
         }
 
         /* [TITEL & LOGO] */
-        .stMarkdown h1 a { display: none !important; pointer-events: none; }
+        /* Verberg link-icoontjes bij ALLE koppen (H1 t/m H6) */
+.stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
+.stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { 
+    display: none !important; 
+    pointer-events: none; 
+}
         h1 {
             font-size: 2.2rem !important; font-weight: 800 !important;
             letter-spacing: -1px !important; color: #0F172A !important;
