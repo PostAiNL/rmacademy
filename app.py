@@ -19,7 +19,7 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (SAMSUNG & IPHONE FIXED) ---
+# --- 1. PREMIUM CSS ENGINE (SAMSUNG DARK MODE FIX) ---
 st.markdown("""
     <style>
         /* [GLOBAL VARIABLES] */
@@ -32,6 +32,11 @@ st.markdown("""
             --border: #CBD5E1;
         }
 
+        /* [SAMSUNG/ANDROID TAP HIGHLIGHT FIX] */
+        * {
+            -webkit-tap-highlight-color: transparent !important;
+        }
+
         /* [APP BACKGROUND - FORCEER WIT/LICHTGRIJS] */
         .stApp {
             background-color: var(--bg-light) !important;
@@ -42,7 +47,16 @@ st.markdown("""
         /* [HEADER WEG] */
         [data-testid="stHeader"] {background: transparent;}
         [data-testid="stDecoration"] {display: none;}
-        [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
+        
+        /* [SIDEBAR KNOP BLAUW] */
+        [data-testid="stSidebarCollapseButton"] { 
+            display: block !important; 
+            color: #2563EB !important;
+        }
+        [data-testid="stSidebarCollapseButton"] svg {
+            fill: #2563EB !important;
+            stroke: #2563EB !important;
+        }
         
         /* [MAIN CONTENT LAYOUT] */
         .block-container {
@@ -52,7 +66,6 @@ st.markdown("""
         }
 
         /* [TITEL & LOGO] */
-        /* Verberg link icoontjes bij alle headers */
         .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
         .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { 
             display: none !important; pointer-events: none; 
@@ -68,7 +81,6 @@ st.markdown("""
         }
 
         /* --- [BUTTON FIX VOOR SAMSUNG/ANDROID] --- */
-        /* Dit voorkomt dat knoppen zwart worden bij klikken */
         .stButton button {
             border-radius: 8px !important;
             font-weight: 600 !important;
@@ -76,22 +88,21 @@ st.markdown("""
             color: white !important;
             background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
             box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
-            transition: all 0.2s ease !important;
+            transition: transform 0.1s ease !important;
         }
         
-        /* De :active en :focus status forceert blauw, ook op Android */
+        /* Forceer blauw bij indrukken (voorkomt zwart op Samsung) */
         .stButton button:active, 
         .stButton button:focus, 
-        .stButton button:active:focus {
-            background: #1E40AF !important; /* Iets donkerder blauw */
+        .stButton button:focus-visible {
+            background: #1E40AF !important;
             color: white !important;
             border: none !important;
             outline: none !important;
             box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* --- [EXPANDER / ROADMAP KAARTEN FIX] --- */
-        /* Zorgt dat de vakken goed zichtbaar zijn op lichte schermen */
+        /* --- [EXPANDER / ROADMAP KAARTEN FIX - SAMSUNG PROOF] --- */
         .streamlit-expander, div[data-testid="stExpander"] {
             background-color: #FFFFFF !important;
             border: 1px solid #CBD5E1 !important;
@@ -101,27 +112,40 @@ st.markdown("""
             overflow: hidden;
         }
         
-        /* De tekst in de header van de expander */
+        /* CRUCIAAL: Forceer de binnenkant van de expander naar wit */
+        div[data-testid="stExpander"] details {
+            background-color: #FFFFFF !important;
+        }
+        div[data-testid="stExpander"] div[role="group"] {
+            background-color: #FFFFFF !important;
+        }
+        div[data-testid="stExpander"] p {
+            color: #0F172A !important; /* Tekst altijd donker */
+        }
+        
+        /* Header van de expander */
+        .streamlit-expanderHeader {
+            background-color: #FFFFFF !important;
+            color: #1E293B !important;
+        }
         .streamlit-expanderHeader p {
             font-size: 1rem !important;
             color: #1E293B !important;
             font-weight: 600 !important;
         }
-        .streamlit-expanderHeader svg {
-            fill: #64748B !important;
-        }
         .streamlit-expanderHeader:hover {
             background-color: #F8FAFC !important;
             color: #2563EB !important;
         }
+        .streamlit-expanderHeader svg {
+            fill: #64748B !important;
+        }
 
         /* --- [INPUT VELDEN & LABELS] --- */
-        /* Labels */
         div[data-testid="stWidgetLabel"] p, label p {
             color: #0F172A !important;
             font-weight: 600 !important;
         }
-        /* Input vak zelf */
         .stTextInput input {
             background-color: #FFFFFF !important;
             border: 1px solid #CBD5E1 !important;
@@ -365,7 +389,7 @@ with st.sidebar:
     
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # MENU
+    # AANGEPASTE MENU LABELS VOOR BEGINNERS
     menu_options = {
         "🏠 Dashboard": "Dashboard",
         "🎓 Gratis training": "Gratis Mini Training",
