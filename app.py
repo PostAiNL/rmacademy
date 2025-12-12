@@ -3,6 +3,7 @@ import time
 import urllib.parse
 import random
 import pandas as pd
+import textwrap
 from datetime import datetime, timedelta, timezone
 import extra_streamlit_components as stx
 from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap
@@ -177,6 +178,44 @@ st.markdown("""
             h1 { font-size: 1.6rem !important; }
             .fab-container { bottom: 20px; right: 20px; }
         }
+
+/* --- 10/10 OPTIMALISATIE CSS --- */
+
+/* Verberg de lelijke link-ketting naast titels */
+.stMarkdown h1 a {
+    display: none !important;
+    pointer-events: none;
+}
+
+/* Mobiele optimalisatie voor de H1 Titel */
+@media (max-width: 600px) {
+    h1 span {
+        font-size: 1.8rem !important; /* Kleiner op mobiel */
+    }
+    p {
+        font-size: 0.95rem !important;
+    }
+    /* Minder witruimte aan de zijkanten op mobiel */
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+    }
+}
+
+/* Verberg de standaard Streamlit Header (Deploy knop etc voor bezoekers) */
+header[data-testid="stHeader"] {
+    display: none !important;
+}
+
+/* Logo styling */
+.logo-text {
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #0F172A;
+    letter-spacing: -0.5px;
+    margin-bottom: 0px;
+}
+
     </style>
 """, unsafe_allow_html=True)
 
@@ -191,72 +230,112 @@ if "user" not in st.session_state:
         except:
             pass
 
-# --- 3. LOGIN SCHERM ---
+# ... (Bestaande imports en CSS)
+
+# --- 3. LOGIN SCHERM (FINAL 10/10 VERSION) ---
 if "user" not in st.session_state:
     if "status" in st.query_params:
         st.query_params.clear()
 
-    col_left, col_right = st.columns([1, 1.2], gap="large")
+    # Vertical alignment center zorgt dat desktop layout strakker oogt
+    # Als je streamlit versie oud is en dit een error geeft, haal 'vertical_alignment' weg.
+    col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
 
     with col_left:
-        st.markdown("<div style='height: 40px;'></div>", unsafe_allow_html=True)
-        st.markdown("# RM Academy")
+        # Logo in plaats van saaie tekst
+        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("<div class='logo-text'>⚡ RM Ecom Academy</div>", unsafe_allow_html=True)
+        
+        # Header tekst met responsive font-size via CSS (zie boven)
         st.markdown("""
-        <h3 style='margin-bottom: 10px; font-weight: 600; color: #1E293B;'>
-            Bouw in 7 dagen een serieuze webshop basis.
-        </h3>
-        <p style='color:#0F172A; font-size:0.95rem; margin-top:10px;'>
-            Start nu met het <b>gratis stappenplan</b>.
+        <h1 style='margin-bottom: 10px; line-height: 1.1; color: #0F172A;'>
+            Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met jouw eigen webshop.
+        </h1>
+        <p style='color:#64748B; font-size:1.05rem; margin-bottom: 25px; line-height: 1.5;'>
+            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag met de eerste 7 dagen <b>gratis</b>.
         </p>
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["🚀 Nieuw Account", "💎 Studenten inloggen"])
+            tab_free, tab_pro = st.tabs(["🚀 Start Challenge", "💎 Student Login"])
 
             with tab_free:
-                st.markdown("<small style='color:#64748b'>Geen betaalgegevens nodig, direct gratis toegang.</small>", unsafe_allow_html=True)
-                email = st.text_input(
-    "",
-    placeholder="Vul hier je emailadres in...",
-    label_visibility="collapsed"
-)
-                with st.expander("Heb je een vrienden-code? (Optioneel)"):
-                    ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482")
-                st.markdown("<br>", unsafe_allow_html=True)
+                email = st.text_input("Email", placeholder="jouw@email.com", label_visibility="collapsed", key="login_email_free")
+                
+                with st.expander("Heb je een invite-code? (Optioneel)"):
+                    ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482", key="ref_code_input")
+                
+                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
                 
                 if st.button("🚀 Start Direct (Gratis)", type="primary", use_container_width=True):
                     if email and "@" in email:
                         with st.spinner("Account aanmaken..."):
-                            auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() else None)
+                            auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None)
                             cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
                             st.rerun()
                     else:
                         st.warning("Vul een geldig e-mailadres in.")
+                
+                st.markdown("<div style='text-align:center; margin-top:12px; font-size:0.75rem; color:#94A3B8;'>⭐️ Al <b>500+ starters</b> gingen je voor deze maand.</div>", unsafe_allow_html=True)
 
             with tab_pro:
-                st.markdown("<small style='color:#64748b'>Ben je al Student? Vul je licentiecode in.</small>", unsafe_allow_html=True)
+                st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
                 pro_email = st.text_input("Jouw Email", key="log_mail")
-                lic_key = st.text_input("Licentie Code", placeholder="PRO-XXXX-XXXX")
+                lic_key = st.text_input("Licentie Code", type="password", placeholder="PRO-XXXX-XXXX")
                 st.markdown("<br>", unsafe_allow_html=True)
                 
-                if st.button("💎 Inloggen", type="primary", use_container_width=True):
+                if st.button("💎 Inloggen", type="secondary", use_container_width=True):
                     if pro_email and lic_key:
                         auth.login_or_register(pro_email, license_input=lic_key)
                         cookie_manager.set("rmecom_user_email", pro_email, expires_at=datetime.now() + timedelta(days=30))
                         st.rerun()
                     else:
-                        st.warning("Vul alles in.")
+                        st.warning("Vul al je gegevens in.")
 
     with col_right:
+        # Op desktop duwen we hem iets omlaag voor perfecte centrering, op mobiel verbergen we dit
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        st.markdown("""
-        ### Wat je in deze app doet
-        ✅ Duidelijke roadmap van nul tot eerste sales  
-        🧠 AI die namen, teksten en scripts voor je maakt  
-        🏆 XP en levels zodat je precies ziet waar je staat  
-        💸 Vrienden uitnodigen kan je extra commissie opleveren
-        """)
         
+        raw_html = """
+        <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
+            <h3 style="margin-top:0; color:#0F172A; font-size:1.2rem;">Dit krijg je gratis:</h3>
+            
+            <!-- FEATURE 1 -->
+            <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
+                <div style="width:45px; height:45px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+                    🗺️
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar Sales' Roadmap</h4>
+                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Precies weten wat je vandaag moet doen.</p>
+                </div>
+            </div>
+
+            <!-- FEATURE 2 -->
+            <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
+                <div style="width:45px; height:45px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+                    🤖
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI Coach</h4>
+                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Laat AI je teksten en scripts schrijven.</p>
+                </div>
+            </div>
+
+            <!-- FEATURE 3 -->
+            <div style="display:flex; gap:15px; align-items:center;">
+                <div style="width:45px; height:45px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+                    🏆
+                </div>
+                <div>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
+                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Level up en unlock tools terwijl je bouwt.</p>
+                </div>
+            </div>
+        </div>
+        """
+        st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
+
     st.stop()
 
 # --- 4. INGELOGDE DATA ---
