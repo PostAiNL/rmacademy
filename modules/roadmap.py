@@ -172,7 +172,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         elif step['content'] == "TOOL_BRAND_NAME":
             st.write("Laat AI 5 unieke namen bedenken.")
             with st.form(key=f"brand_{step['id']}"):
-                niche = st.text_input("Niche", placeholder="Huisdieren")
+                niche = st.text_input("Niche/onderwerp:", placeholder="Huisdieren")
                 vibe = st.selectbox("Stijl", ["Modern", "Luxe", "Speels"])
                 if st.form_submit_button("✨ Genereer namen", type="primary"):
                     st.session_state[usage_key] = True

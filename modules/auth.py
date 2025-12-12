@@ -51,7 +51,6 @@ def get_leaderboard_data():
         
         leaderboard = []
         for i, u in enumerate(data):
-            # Probeer voornaam, anders email fallback
             if u.get('first_name'):
                 display_name = u['first_name']
             else:
@@ -75,8 +74,7 @@ def get_leaderboard_data():
         return []
 
 def get_real_activity():
-    """Geeft realistische 'fake' activiteit (Social Proof) - AANGEPAST VOOR PUNT 3"""
-    # Lijst met realistische namen zodat het niet 'Info' of de user zelf lijkt
+    """Geeft realistische 'fake' activiteit (Social Proof)"""
     names = ["Sophie", "Mark", "Jeroen", "Lisa", "Kevin", "Sanne", "Mohammed", "Tom", "Eva"]
     activities = [
         "heeft net het eerste product gevonden!",
@@ -92,7 +90,7 @@ def get_real_activity():
     
     return f"{random_name} {random_act}"
 
-# --- ECHTE EMAIL FUNCTIE ---
+# --- MAIL FUNCTIE 1: WELKOM (MET FOOTER UPDATE) ---
 def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
     try:
         smtp_server = st.secrets["email"]["smtp_server"]
@@ -114,7 +112,7 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
                 </div>
                 <div style="padding: 40px 30px; color: #334155; line-height: 1.6;">
                     <h2 style="color: #0F172A; margin-top: 0;">Hi {first_name}! 🚀</h2>
-                    <p>Je account is succesvol aangemaakt. Je kunt nu direct starten.</p>
+                    <p>Je account is succesvol aangemaakt. Je kunt nu direct starten met de roadmap.</p>
                     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
                     <h3 style="color: #0F172A;">💰 Verdien €250 per Student</h3>
                     <p>Jouw Vrienden Code:</p>
@@ -124,6 +122,11 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
                     <a href="{referral_link}" style="display: block; background-color: #2563EB; color: #ffffff; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px;">
                         🔗 Kopieer Jouw Link
                     </a>
+                </div>
+                <!-- ADVIES C: UNSUBSCRIBE FOOTER -->
+                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                    <p>Wil je geen updates meer? Antwoord op deze mail met 'STOP'.</p>
+                    <p>&copy; 2024 RM Ecom Academy.</p>
                 </div>
             </div>
           </body>
@@ -136,8 +139,9 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
 
-        server = smtplib.SMTP(smtp_server, smtp_port)
-        server.starttls()
+# NIEUWE VERSIE (Strato SSL Fix)
+        # Let op: SMTP_SSL gebruiken en GEEN starttls()
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
         server.login(smtp_user, smtp_password)
         text = msg.as_string()
         server.sendmail(sender_email, to_email, text)
@@ -147,12 +151,72 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
         print(f"Mail Fout: {e}")
         return False
 
+# --- MAIL FUNCTIE 2: LEVEL UP (NIEUW TOEGEVOEGD) ---
+def send_levelup_email(to_email, first_name, new_rank):
+    try:
+        smtp_server = st.secrets["email"]["smtp_server"]
+        smtp_port = st.secrets["email"]["smtp_port"]
+        smtp_user = st.secrets["email"]["smtp_user"]
+        smtp_password = st.secrets["email"]["smtp_password"]
+        sender_email = st.secrets["email"]["sender_email"]
+
+        subject = f"🏆 Gefeliciteerd {first_name}! Je bent nu een {new_rank}"
+        
+        body = f"""
+        <html>
+          <body style="font-family: 'Helvetica', 'Arial', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                <div style="background-color: #10B981; padding: 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">LEVEL UP! 🚀</h1>
+                </div>
+                <div style="padding: 40px 30px; color: #334155; line-height: 1.6;">
+                    <h2 style="color: #0F172A; margin-top: 0;">Lekker bezig, {first_name}!</h2>
+                    <p>Je hebt hard gewerkt aan je webshop. Je bent zojuist gepromoveerd naar de rang:</p>
+                    
+                    <div style="text-align: center; margin: 30px 0;">
+                        <span style="font-size: 28px; font-weight: 800; color: #10B981; background: #ECFDF5; padding: 10px 20px; border-radius: 50px; border: 2px solid #10B981;">
+                            {new_rank}
+                        </span>
+                    </div>
+
+                    <p>Met deze rang heb je mogelijk nieuwe tools of functies ontgrendeld. Ga snel naar de app om te kijken.</p>
+                    
+                    <a href="{APP_URL}" style="display: block; background-color: #10B981; color: #ffffff; text-decoration: none; text-align: center; padding: 14px; border-radius: 8px; font-weight: bold; margin-top: 25px;">
+                        👉 Ga naar Dashboard
+                    </a>
+                </div>
+                <!-- ADVIES C: UNSUBSCRIBE FOOTER -->
+                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                    <p>Wil je geen updates meer? Antwoord op deze mail met 'STOP'.</p>
+                </div>
+            </div>
+          </body>
+        </html>
+        """
+
+        msg = MIMEMultipart()
+        msg['From'] = f"RM Ecom Academy <{sender_email}>"
+        msg['To'] = to_email
+        msg['Subject'] = subject
+        msg.attach(MIMEText(body, 'html'))
+
+# NIEUWE VERSIE (Strato SSL Fix)
+        # Let op: SMTP_SSL gebruiken en GEEN starttls()
+        server = smtplib.SMTP_SSL(smtp_server, smtp_port)
+        server.login(smtp_user, smtp_password)
+        text = msg.as_string()
+        server.sendmail(sender_email, to_email, text)
+        server.quit()
+        return True
+    except Exception as e:
+        print(f"LevelMail Fout: {e}")
+        return False
+
 def generate_referral_code(name):
     prefix = name[:3].upper() if len(name) >=3 else "USER"
     suffix = ''.join(random.choices(string.digits, k=3))
     return f"{prefix}-{suffix}"
 
-# AANGEPAST: login_or_register accepteert nu ook 'name_input'
 def login_or_register(email, license_input=None, ref_code_input=None, name_input=None):
     email = email.lower().strip()
     try:
@@ -167,12 +231,11 @@ def login_or_register(email, license_input=None, ref_code_input=None, name_input
             ref_res = supabase.table('users').select("id").eq('referral_code', ref_code_input).execute()
             if ref_res.data: referrer_id = ref_res.data[0]['id']
 
-        # Fallback naam als er niks is ingevuld
         clean_name = name_input.strip() if name_input else email.split('@')[0].capitalize()
 
         new_data = {
             "email": email,
-            "first_name": clean_name, # PUNT 1: Voornaam opslaan
+            "first_name": clean_name,
             "referral_code": generate_referral_code(clean_name),
             "role": "student",
             "is_pro": False,
@@ -212,6 +275,7 @@ def get_progress():
         return [r['step_id'] for r in res.data]
     except: return []
 
+# --- PROGRESSIE MET AUTOMATISCHE LEVEL-UP MAIL ---
 def mark_step_complete(step_id, xp_reward):
     uid = st.session_state.user['id']
     try:
@@ -244,9 +308,18 @@ def mark_step_complete(step_id, xp_reward):
             st.success("Video Scripts Tool Ontgrendeld!")
             time.sleep(4)
         
+        # PUNT 4: STUUR MAIL BIJ PROMOTIE
         elif new_title != old_title:
             st.toast(f"🆙 PROMOTIE! Je bent nu: {new_title}", icon="⭐")
             st.balloons()
+            
+            # Hier wordt de mail gestuurd!
+            user_email = st.session_state.user.get('email')
+            user_name = st.session_state.user.get('first_name') or "Topper"
+            
+            if user_email:
+                send_levelup_email(user_email, user_name, new_title)
+            
             time.sleep(2)
             
         supabase.table('users').update(update_data).eq('id', uid).execute()
