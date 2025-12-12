@@ -13,13 +13,13 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 
 st.set_page_config(
-    page_title="RM Ecom App",
+    page_title="RM Academy App",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (COMPLETE FIX) ---
+# --- 1. PREMIUM CSS ENGINE (FIXED SIDEBAR & MOBILE) ---
 st.markdown("""
     <style>
         /* [GLOBAL VARIABLES] */
@@ -39,9 +39,9 @@ st.markdown("""
             color: var(--text-dark);
         }
         
-        /* [HEADER WEG] */
+        /* [HEADER WEG - SCHOON SCHERM] */
         [data-testid="stHeader"] {background: transparent;}
-        [data-testid="stDecoration"] {display: none;}
+        [data-testid="stDecoration"] {display: none;} /* Verbergt de gekleurde balk bovenaan */
         [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
         
         /* [MAIN CONTENT LAYOUT] */
@@ -60,6 +60,48 @@ st.markdown("""
         .logo-text {
             font-weight: 800; font-size: 1.1rem; color: #0F172A;
             display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
+        }
+
+        /* --- [SIDEBAR & MENU FIX] --- */
+        section[data-testid="stSidebar"] {
+            background-color: var(--white);
+            border-right: 1px solid var(--border);
+        }
+        section[data-testid="stSidebar"] .block-container {
+            padding: 1.5rem 1rem !important;
+        }
+        
+        /* Verbergt het radio-bolletje (het rondje) */
+        div[role="radiogroup"] > label > div:first-child {
+            display: none !important;
+        }
+        
+        /* Styling van de menu items als knoppen */
+        div[role="radiogroup"] label {
+            width: 100%;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid transparent;
+            background-color: transparent;
+            color: var(--text-gray);
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            margin-bottom: 4px;
+        }
+        div[role="radiogroup"] label:hover {
+            background-color: #F1F5F9;
+            color: var(--text-dark);
+        }
+        div[role="radiogroup"] label[data-checked="true"] {
+            background-color: #EFF6FF !important;
+            color: #2563EB !important;
+            font-weight: 600;
+            border: 1px solid #DBEAFE;
+            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
         }
 
         /* --- [CRUCIALE MOBIELE KLEUR FIXES] --- */
@@ -127,22 +169,6 @@ st.markdown("""
         button[data-baseweb="tab"][aria-selected="true"] div p {
             color: #2563EB !important;
             font-weight: 700;
-        }
-
-        /* [SIDEBAR] */
-        section[data-testid="stSidebar"] { background-color: var(--white); border-right: 1px solid var(--border); }
-        section[data-testid="stSidebar"] .block-container { padding: 1.5rem 1rem !important; }
-
-        /* [NAVIGATIE] */
-        div[role="radiogroup"] label {
-            width: 100%; padding: 10px 14px; border-radius: 10px;
-            color: var(--text-gray); font-weight: 500;
-            cursor: pointer; transition: all 0.2s ease;
-        }
-        div[role="radiogroup"] label:hover { background-color: #F1F5F9; color: var(--text-dark); }
-        div[role="radiogroup"] label[data-checked="true"] {
-            background-color: #EFF6FF !important; color: #2563EB !important;
-            font-weight: 600; border: 1px solid #DBEAFE;
         }
 
         /* [CARDS & METRICS] */
@@ -218,12 +244,11 @@ if "user" not in st.session_state:
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["🚀 Start Challenge", "💎 Student Login"])
+            tab_free, tab_pro = st.tabs(["Start Challenge", "Student Login"])
 
             with tab_free:
                 email = st.text_input("Email", placeholder="Vul hier je emailadres in...", label_visibility="collapsed", key="login_email_free")
                 
-                # Expander met vriendencode
                 with st.expander("Heb je een vriendencode? (Optioneel)"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 
@@ -257,7 +282,7 @@ if "user" not in st.session_state:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
                 
                 # Labels zijn zichtbaar gemaakt door de CSS fix
-                pro_email = st.text_input("Jouw Email", placeholder="jouw@email.com", key="log_mail")
+                pro_email = st.text_input("Jouw Email:", placeholder="Vul hier je emailadres in...", key="log_mail")
                 
                 # Label is verborgen, placeholder aangepast
                 lic_key = st.text_input("Licentie Code", placeholder="Vul hier je code in...", type="password", label_visibility="collapsed", key="log_lic")
@@ -294,7 +319,7 @@ if "user" not in st.session_state:
             <div style="display:flex; gap:16px; align-items:center;">
                 <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🏆</div>
                 <div>
-                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Level-based Groei</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Level up en unlock tools terwijl je bouwt.</p>
                 </div>
             </div>
@@ -377,49 +402,42 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-# --- CONTENT PAGES (VANAF HIER JE BESTAANDE TOOLS LATEN STAAN) ---
-if pg == "Gratis Mini Training":
-    st.title("🎓 Gratis Mini Training")
-    st.caption("Korte training om je eerste stappen als e-commerce starter snel helder te krijgen.")
-
-    t1, t2 = st.columns(2)
-    t3, t4 = st.columns(2)
-
-    with t1:
-        st.markdown("### 1. Mindset & Realistische Verwachtingen")
-        with st.container(border=True):
-            st.markdown('<iframe src="https://drive.google.com/file/d/1xyM_9q2i5FJBF__HvmhDrHTBueBoBstv/preview" width="100%" height="300" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.info("Noteer na deze video in 3 bulletpoints waarom je deze webshop wilt. Dat helpt je bij tegenslag.")
-
-    with t2:
-        st.markdown("### 2. Hoe werkt een winstgevende webshop echt")
-        with st.container(border=True):
-            st.markdown('<iframe src="https://drive.google.com/file/d/1O4fa0FUA10MnCE4QqNNDe3XSLwLfkb_F/preview" width="100%" height="300" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.info("Let extra op: verkeer, conversie en marge. Schrijf 1 actie op per blok.")
-
-    with t3:
-        st.markdown("### 3. Je eerste sale neerzetten")
-        with st.container(border=True):
-            st.markdown('<iframe src="https://drive.google.com/file/d/1xyM_9q2i5FJBF__HvmhDrHTBueBoBstv/preview" width="100%" height="300" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.success("Na deze video kies je één product en één kanaal. Niet alles tegelijk.")
-
-    with t4:
-        st.markdown("### 4. Van 1 naar 100 sales")
-        with st.container(border=True):
-            st.markdown('<iframe src="https://drive.google.com/file/d/1O4fa0FUA10MnCE4QqNNDe3XSLwLfkb_F/preview" width="100%" height="300" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background: #F0F9FF; padding: 25px; border-radius: 12px; border: 1px solid #BAE6FD; text-align: center;">
-            <h4 style="color:#0369A1; margin-bottom:6px;">🚀 Klaar voor het echte werk?</h4>
-            <p style="color:#0C4A6E; margin:0;">Je hebt de basis gezien. Wil je dat we meekijken zodat dit ook echt gaat draaien?</p>
+# --- LOCK SCREEN COMPONENT ---
+def render_pro_lock(title, desc):
+    st.markdown(f"""
+    <div class="lock-container">
+        <div style="font-size: 40px; margin-bottom: 15px; opacity: 0.5;">🔒</div>
+        <h3 style="margin-bottom: 10px; color: #1E293B;">{title}</h3>
+        <p style="color: #64748B; font-size: 0.95rem; margin-bottom: 18px; max-width: 520px; margin-left: auto; margin-right: auto; line-height: 1.6;">
+            {desc}
+        </p>
+        <div style="max-width:520px; margin:0 auto 20px auto; text-align:left; font-size:0.9rem; color:#0F172A;">
+            <p style="margin:0 0 4px 0; font-weight:600;">Als Student krijg je onder andere:</p>
+            <ul style="margin:0 0 6px 18px; padding:0;">
+                <li>Volledige toegang tot alle AI tools.</li>
+                <li>Extra uitlegvideo's per fase.</li>
+                <li>Persoonlijke hulp via community en calls.</li>
+                <li>Tijdelijke unlocks zoals Spy Tool verlopen niet.</li>
+            </ul>
+            <p style="margin:0; font-size:0.8rem; color:#64748B;">De meeste studenten zitten rond €75–€175 per maand afhankelijk van het niveau.</p>
         </div>
-        """, unsafe_allow_html=True)
-        st.link_button("📞 Plan Gratis Strategie Call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
-
-# ... (Hieronder de rest van je pagina's: Product Finder, Spy Tool etc. die je al had)
-# Voor de volledigheid kopieer ik hier de rest van je originele bestand niet om het overzichtelijk te houden, 
-# maar dit bestand vervangt alles tot aan regel ~600 in je oude bestand.
-# Zorg dat de rest van je 'if pg == ...' blokken hieronder blijven staan.
+        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
+            <div style="
+                background: linear-gradient(135deg, #2563EB, #1D4ED8); 
+                color: white; 
+                padding: 12px 28px; 
+                border-radius: 50px; 
+                font-weight: 600; 
+                font-size: 1rem; 
+                display: inline-block;
+                box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+                transition: transform 0.2s;
+            ">
+                📞 Plan Gratis Unlock Call
+            </div>
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
 
 # --- CONTENT PAGES ---
 
@@ -455,7 +473,7 @@ if pg == "Dashboard":
         <div class="metric-card">
             <div class="metric-label">JOUW XP</div>
             <div class="metric-value">{user['xp']}</div>
-            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende rang</div>
+            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende level</div>
         </div>
         <div class="metric-card">
             <div class="metric-label">VOLGENDE BELONING</div>
