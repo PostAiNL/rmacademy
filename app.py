@@ -817,18 +817,25 @@ elif pg == "Winst Calculator":
 elif pg == "Spy Tool":
     st.title("📊 Concurrenten analyseren")
 
+    # 1. Check Toegang (Student OF Tijdelijke Unlock)
     has_access = is_pro
-    if not has_access and user.get('spy_unlock_until'):
+    unlock_time = user.get('spy_unlock_until')
+    
+    if not has_access and unlock_time:
         try:
-            if datetime.fromisoformat(user['spy_unlock_until']) > datetime.now(timezone.utc):
+            # Check of de tijd nog niet voorbij is
+            if datetime.fromisoformat(unlock_time) > datetime.now(timezone.utc):
                 has_access = True
+                # Bereken resterende tijd voor display
+                end_dt = datetime.fromisoformat(unlock_time)
+                diff = end_dt - datetime.now(timezone.utc)
+                hours_left = int(diff.total_seconds() / 3600)
+                st.info(f"🔓 Je hebt nog **{hours_left} uur** toegang tot deze tool!")
         except Exception:
-            has_access = has_access
+            has_access = False
 
     if has_access:
-        if not is_pro:
-            st.info("🕒 Tijdelijke toegang actief (24u).")
-            
+        # --- HIER DE NORMALE SPY TOOL CODE ---
         with st.container(border=True):
             st.markdown("#### 🕵️‍♀️ Store Hunter")
             st.caption("Vul de URL in. Wij sorteren automatisch op hun **Best Verkopende** producten.")
@@ -840,46 +847,65 @@ elif pg == "Spy Tool":
                     
                     if products:
                         st.success(f"BINGO! {len(products)} Producten gevonden. Gesorteerd op populariteit.")
-                        
                         for p in products:
                             with st.container(border=True):
                                 c1, c2, c3 = st.columns([1, 2, 1])
-                                
                                 with c1:
-                                    if p['image_url']:
-                                        st.image(p['image_url'], use_container_width=True)
-                                        if p['rank'] == 1:
-                                            st.caption("🔥 #1 BESTSELLER")
-                                    else:
-                                        st.write("🖼️")
-                                
+                                    if p['image_url']: st.image(p['image_url'], use_container_width=True)
+                                    if p['rank'] == 1: st.caption("🔥 #1 BESTSELLER")
                                 with c2:
                                     st.markdown(f"**{p['title']}**")
-                                    st.caption(f"Prijs: €{p['price']} | Online sinds: {p['published_at']}")
+                                    st.caption(f"Prijs: €{p['price']}")
                                     st.markdown(f"[Bekijk op hun site]({p['original_url']})")
-                                    
-                                    if "2024" in p['published_at'] or "2025" in p['published_at']:
-                                        st.markdown(":new: *Dit is een recent product!*")
-                                
                                 with c3:
-                                    if st.button("📥 Importeer", key=f"imp_{p['handle']}", type="primary", use_container_width=True):
-                                        my_shop = st.session_state.get("sh_url")
-                                        my_token = st.session_state.get("sh_token")
-                                        
-                                        if my_shop and my_token:
-                                            with st.spinner("Kopiëren naar jouw shop..."):
-                                                res = shopify_client.push_product_to_shopify(my_shop, my_token, p)
-                                                if res['success']:
-                                                    st.toast("✅ Geïmporteerd! Check je Shopify admin.", icon="✅")
-                                                else:
-                                                    st.error(res['msg'])
-                                        else:
-                                            st.warning("⚠️ Koppel eerst je eigen Shopify store bij 'Instellingen'!")
+                                    st.button("📥 Importeer", key=f"imp_{p['handle']}", disabled=True, help="Alleen voor volledige studenten")
                     else:
-                        st.error("Kon geen producten vinden. Deze shop heeft hun beveiliging goed dichtgetimmerd.")
-                        
+                        st.warning("🕵️‍♀️ Helaas, deze shop is goed beveiligd.")
+                        st.link_button("Bekijk hun Ads in FB Library", f"https://www.facebook.com/ads/library/?active_status=all&ad_type=all&q={url}", use_container_width=True)
+
     else:
+        # --- HET SLOTJE + DE FEEDBACK UNLOCK ---
         render_pro_lock("Concurrenten professioneel analyseren", "Zie de bestsellers van andere shops en importeer ze direct.")
+        
+        st.markdown("---")
+        st.subheader("🎁 Wil je deze tool 24u gratis proberen?")
+        st.write("Wij leren graag. Vertel ons wat je tot nu toe van de app vindt (eerlijk!), dan krijg je direct toegang. (AI checkt jouw feedback😉")
+        
+        with st.form("feedback_unlock_form"):
+            fb_text = st.text_area("Jouw feedback:", placeholder="Ik vind de roadmap fijn, maar ik mis uitleg over...", height=100)
+            submit_fb = st.form_submit_button("🚀 Verstuur & Unlock Spy Tool", type="primary", use_container_width=True)
+            
+            if submit_fb:
+                if len(fb_text) < 10:
+                    st.error("Iets meer moeite graag 😉 (minimaal 10 tekens).")
+                else:
+                    with st.spinner("AI checkt je feedback..."):
+                        is_valid = ai_coach.validate_feedback(fb_text)
+                        
+                        if is_valid:
+                            # 1. Opslaan in Supabase (zodat jij het kan lezen)
+                            try:
+                                auth.supabase.table('feedback').insert({
+                                    "user_email": user['email'],
+                                    "content": fb_text
+                                }).execute()
+                            except: pass # Niet crashen als dit faalt
+                            
+                            # 2. User unlocken
+                            now = datetime.now(timezone.utc)
+                            end_time = now + timedelta(hours=24)
+                            auth.supabase.table('users').update({
+                                "spy_unlock_until": end_time.isoformat()
+                            }).eq('id', user['id']).execute()
+                            
+                            # 3. Session state updaten en reloaden
+                            st.session_state.user['spy_unlock_until'] = end_time.isoformat()
+                            st.balloons()
+                            st.success("✅ Feedback ontvangen! De tool is nu 24 uur open voor jou.")
+                            time.sleep(2)
+                            st.rerun()
+                        else:
+                            st.error("🤖 De AI denkt dat dit geen serieuze feedback is. Probeer het nog eens.")
 
 elif pg == "Video Scripts":
     st.title("🎬 Video ideeën en scripts")
