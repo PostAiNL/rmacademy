@@ -216,6 +216,117 @@ header[data-testid="stHeader"] {
     margin-bottom: 0px;
 }
 
+/* [INPUT FIELDS - MODERN LOOK] */
+/* Maak invoervelden wit met een randje ipv grijs */
+.stTextInput input {
+    background-color: #FFFFFF !important;
+    border: 1px solid #E2E8F0 !important;
+    color: #0F172A !important;
+    border-radius: 8px !important;
+}
+.stTextInput input:focus {
+    border-color: #2563EB !important;
+    box-shadow: 0 0 0 2px rgba(37,99,235,0.2) !important;
+}
+
+/* [EXPANDER CLEANUP] */
+/* Maak de expander (invite code) iets rustiger */
+.streamlit-expanderHeader {
+    background-color: transparent !important;
+    font-size: 0.9rem !important;
+    color: #64748B !important;
+}
+
+/* [MOBIELE OPTIMALISATIES] */
+@media (max-width: 600px) {
+    /* Titel iets compacter op mobiel */
+    h1 { font-size: 2rem !important; }
+    h1 span { font-size: 2rem !important; }
+    
+    /* Zorg dat de features (rechts) niet te ver wegvallen */
+    .block-container { padding-bottom: 2rem !important; }
+}
+
+        /* [GLOBAL VARIABLES] */
+        :root {
+            --primary: #2563EB;
+            --bg-light: #F8FAFC;
+            --text-dark: #0F172A;
+            --text-gray: #64748B;
+            --white: #FFFFFF;
+            --border: #E2E8F0;
+        }
+
+        /* [APP BACKGROUND] */
+        .stApp {
+            background-color: var(--bg-light);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--text-dark);
+        }
+        
+        /* [LAYOUT OPTIMALISATIE - MINDER WITRUIMTE] */
+        .block-container {
+            padding-top: 2rem !important;     /* Was veel groter */
+            padding-bottom: 3rem !important;
+            max-width: 1000px;                /* Iets smaller voor betere leesbaarheid */
+        }
+        
+        /* [HEADER WEG] */
+        [data-testid="stHeader"] {display: none;}
+        [data-testid="stDecoration"] {display: none;}
+        
+        /* [TITEL AANPASSING] */
+        h1 {
+            font-size: 2.2rem !important;     /* Iets kleiner en eleganter */
+            font-weight: 800 !important;
+            letter-spacing: -1px !important;
+        }
+        
+        /* [INPUT FIELDS - MODERN WIT] */
+        .stTextInput input {
+            background-color: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            color: #0F172A !important;
+            border-radius: 8px !important;
+            padding: 10px 12px !important;
+        }
+        .stTextInput input:focus {
+            border-color: #2563EB !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+        }
+
+        /* [BUTTONS] */
+        .stButton button {
+            border-radius: 8px !important;
+            font-weight: 600;
+            border: none;
+            padding: 0.7rem 1.2rem;
+            transition: transform 0.1s;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
+        }
+        .stButton button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
+        }
+
+        /* [LOGO TEXT] */
+        .logo-text {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: #0F172A;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px; /* Minder afstand tot titel */
+        }
+
+        /* [MOBIELE AANPASSINGEN] */
+        @media (max-width: 600px) {
+            .block-container { padding-top: 1rem !important; }
+            h1 { font-size: 1.8rem !important; line-height: 1.2 !important; }
+            .logo-text { margin-bottom: 10px; }
+        }
+
     </style>
 """, unsafe_allow_html=True)
 
@@ -232,26 +343,24 @@ if "user" not in st.session_state:
 
 # ... (Bestaande imports en CSS)
 
-# --- 3. LOGIN SCHERM (FINAL 10/10 VERSION) ---
+# --- 3. LOGIN SCHERM (10/10 FINAL POLISH) ---
 if "user" not in st.session_state:
     if "status" in st.query_params:
         st.query_params.clear()
 
-    # Vertical alignment center zorgt dat desktop layout strakker oogt
-    # Als je streamlit versie oud is en dit een error geeft, haal 'vertical_alignment' weg.
+    # Vertical alignment center is cruciaal voor de balans
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
 
     with col_left:
-        # Logo in plaats van saaie tekst
-        st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+        # Logo (Witruimte erboven weggehaald, CSS regelt padding)
         st.markdown("<div class='logo-text'>⚡ RM Ecom Academy</div>", unsafe_allow_html=True)
         
-        # Header tekst met responsive font-size via CSS (zie boven)
+        # Header - Font size wordt nu door CSS geregeld (2.2rem)
         st.markdown("""
-        <h1 style='margin-bottom: 10px; line-height: 1.1; color: #0F172A;'>
+        <h1 style='margin-bottom: 12px; line-height: 1.15; color: #0F172A;'>
             Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met jouw eigen webshop.
         </h1>
-        <p style='color:#64748B; font-size:1.05rem; margin-bottom: 25px; line-height: 1.5;'>
+        <p style='color:#64748B; font-size:1.05rem; margin-bottom: 30px; line-height: 1.6;'>
             De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag met de eerste 7 dagen <b>gratis</b>.
         </p>
         """, unsafe_allow_html=True)
@@ -265,7 +374,7 @@ if "user" not in st.session_state:
                 with st.expander("Heb je een invite-code? (Optioneel)"):
                     ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482", key="ref_code_input")
                 
-                st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
                 
                 if st.button("🚀 Start Direct (Gratis)", type="primary", use_container_width=True):
                     if email and "@" in email:
@@ -276,7 +385,17 @@ if "user" not in st.session_state:
                     else:
                         st.warning("Vul een geldig e-mailadres in.")
                 
-                st.markdown("<div style='text-align:center; margin-top:12px; font-size:0.75rem; color:#94A3B8;'>⭐️ Al <b>500+ starters</b> gingen je voor deze maand.</div>", unsafe_allow_html=True)
+                # Trust signals - Iets groter en duidelijker
+                st.markdown("""
+                <div style='text-align:center; margin-top:14px;'>
+                    <div style='font-size:0.8rem; color:#64748B; font-weight:500; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;'>
+                        <span>🔒 Geen creditcard nodig</span> • <span>Direct toegang</span>
+                    </div>
+                    <div style='font-size:0.75rem; color:#94A3B8;'>
+                        ⭐️ Al <b>500+ starters</b> gingen je voor.
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
 
             with tab_pro:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
@@ -293,43 +412,39 @@ if "user" not in st.session_state:
                         st.warning("Vul al je gegevens in.")
 
     with col_right:
-        # Op desktop duwen we hem iets omlaag voor perfecte centrering, op mobiel verbergen we dit
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
         
         raw_html = """
         <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
-            <h3 style="margin-top:0; color:#0F172A; font-size:1.2rem;">Dit krijg je gratis:</h3>
+            <h3 style="margin-top:0; color:#0F172A; font-size:1.15rem; font-weight: 700;">Dit krijg je gratis:</h3>
             
-            <!-- FEATURE 1 -->
-            <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
-                <div style="width:45px; height:45px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
+                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
                     🗺️
                 </div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar Sales' Roadmap</h4>
-                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Precies weten wat je vandaag moet doen.</p>
+                    <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Precies weten wat je vandaag moet doen.</p>
                 </div>
             </div>
 
-            <!-- FEATURE 2 -->
-            <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center;">
-                <div style="width:45px; height:45px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
+                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
                     🤖
                 </div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI Coach</h4>
-                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Laat AI je teksten en scripts schrijven.</p>
+                    <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Laat AI je teksten en scripts schrijven.</p>
                 </div>
             </div>
 
-            <!-- FEATURE 3 -->
-            <div style="display:flex; gap:15px; align-items:center;">
-                <div style="width:45px; height:45px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
+            <div style="display:flex; gap:16px; align-items:center;">
+                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
                     🏆
                 </div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
-                    <p style="margin:2px 0 0 0; font-size:0.85rem; color:#64748B; line-height:1.3;">Level up en unlock tools terwijl je bouwt.</p>
+                    <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Level up en unlock tools terwijl je bouwt.</p>
                 </div>
             </div>
         </div>
