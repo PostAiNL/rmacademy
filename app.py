@@ -76,12 +76,10 @@ st.markdown("""
             cursor: pointer;
             transition: all 0.2s ease;
         }
-        
         div[role="radiogroup"] label:hover {
             background-color: #F1F5F9;
             color: var(--text-dark);
         }
-        
         div[role="radiogroup"] label[data-checked="true"] {
             background-color: #EFF6FF !important;
             color: #2563EB !important;
@@ -90,11 +88,11 @@ st.markdown("""
             box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
         }
 
-        /* [MAIN CONTENT] */
+        /* [MAIN CONTENT LAYOUT] */
         .block-container {
-            padding-top: 2rem;
-            padding-bottom: 5rem;
-            max-width: 1100px;
+            padding-top: 2rem !important;
+            padding-bottom: 3rem !important;
+            max-width: 1000px;
         }
 
         /* [CARDS] */
@@ -109,38 +107,29 @@ st.markdown("""
         
         /* [BUTTONS] */
         .stButton button {
-            border-radius: 10px !important;
+            border-radius: 8px !important;
             font-weight: 600;
             border: none;
-            padding: 0.6rem 1.2rem;
+            padding: 0.7rem 1.2rem;
             transition: transform 0.1s;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2);
         }
         .stButton button:hover {
             transform: translateY(-1px);
+            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
         }
         .stButton button[kind="primary"] {
             background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
-            box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
         }
 
         /* [METRICS GRID] */
         .metric-container {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 25px;
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px;
         }
         .metric-card {
-            background: var(--white);
-            border: 1px solid var(--border);
-            border-radius: 14px;
-            padding: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.01);
+            background: var(--white); border: 1px solid var(--border); border-radius: 14px;
+            padding: 16px; display: flex; flex-direction: column; align-items: center;
+            text-align: center; box-shadow: 0 2px 6px rgba(0,0,0,0.01);
         }
         .metric-label { font-size: 0.7rem; color: #94A3B8; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
         .metric-value { font-size: 1.6rem; font-weight: 800; color: var(--text-dark); }
@@ -148,18 +137,13 @@ st.markdown("""
 
         /* [LOCK SCREEN] */
         .lock-container {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 16px;
-            border: 1px solid #E2E8F0;
+            text-align: center; padding: 60px 20px; background: white;
+            border-radius: 16px; border: 1px solid #E2E8F0;
             box-shadow: 0 4px 20px rgba(0,0,0,0.02);
         }
 
         /* [FAB] */
-        .fab-container {
-            position: fixed; bottom: 30px; right: 30px; z-index: 9999;
-        }
+        .fab-container { position: fixed; bottom: 30px; right: 30px; z-index: 9999; }
         .fab-button {
             background: linear-gradient(135deg, #2563EB, #1D4ED8);
             color: white; width: 60px; height: 60px; border-radius: 50%;
@@ -169,13 +153,68 @@ st.markdown("""
         }
         .fab-button:hover { transform: scale(1.1); }
 
-        /* Responsive Mobile */
+        /* [TITEL & LOGO] */
+        .stMarkdown h1 a { display: none !important; pointer-events: none; }
+        h1 {
+            font-size: 2.2rem !important; font-weight: 800 !important;
+            letter-spacing: -1px !important;
+        }
+        .logo-text {
+            font-weight: 800; font-size: 1.1rem; color: #0F172A;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
+        }
+        header[data-testid="stHeader"] { display: none !important; }
+
+        /* --- [MOBIELE ZICHTBAARHEID FIX] --- */
+        
+        /* 1. Forceer labels (Email, Licentie Code) naar donkerblauw */
+        div[data-testid="stWidgetLabel"] p {
+            color: #0F172A !important;
+            font-weight: 600 !important;
+        }
+        
+        /* 2. Tabs Zichtbaarheid (Actief & Inactief) */
+        button[data-baseweb="tab"] div p {
+            color: #64748B !important; /* Inactieve tab: grijs */
+            font-weight: 500;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #2563EB !important; /* Actieve tab: blauw */
+            font-weight: 700;
+        }
+        
+        /* 3. Input Velden: Tekst & Placeholder Kleuren */
+        .stTextInput input {
+            background-color: #FFFFFF !important;
+            border: 1px solid #E2E8F0 !important;
+            color: #0F172A !important; /* Tekst die je typt: Donker */
+            border-radius: 8px !important;
+            padding: 10px 12px !important;
+        }
+        .stTextInput input::placeholder {
+            color: #94A3B8 !important; /* Placeholder: Zichtbaar grijs */
+            opacity: 1 !important;
+        }
+        .stTextInput input:focus {
+            border-color: #2563EB !important;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
+        }
+
+        /* 4. Expander Header (Invite Code) */
+        .streamlit-expanderHeader p {
+            color: #64748B !important;
+            font-size: 0.9rem !important;
+        }
+
+        /* [MOBIELE AANPASSINGEN] */
         @media (max-width: 600px) {
             .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
             .metric-card { padding: 10px; }
             .metric-value { font-size: 1.2rem; }
             .metric-label { font-size: 0.6rem; }
-            h1 { font-size: 1.6rem !important; }
+            h1 { font-size: 1.8rem !important; line-height: 1.2 !important; }
+            .logo-text { margin-bottom: 10px; }
+            .block-container { padding-top: 1rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
             .fab-container { bottom: 20px; right: 20px; }
         }
 
