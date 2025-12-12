@@ -8,54 +8,54 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 def get_roadmap():
     return {
         "fase_1": {
-            "title": "Fase 1: De Fundering 🏗️",
+            "title": "Fase 1: De Fundering",
             "desc": "Zonder fundering stort je huis in. Regel dit administratieve werk eerst.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK Inschrijving (Cheat Sheet)", "icon": "📝", "locked": False,
+                    "id": "step_kvk", "title": "KVK Inschrijving (Cheat Sheet)", "icon": "", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
                 {
-                    "id": "step_bank", "title": "Bank & Creditcard Wizard", "icon": "💳", "locked": False,
+                    "id": "step_bank", "title": "Bank & Creditcard Wizard", "icon": "", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/financieel"
                 }
             ]
         },
         "fase_2": {
-            "title": "Fase 2: Identiteit & Merk 🎨", 
+            "title": "Fase 2: Identiteit & Merk", 
             "desc": "Geef je winkel een gezicht en een naam die blijft hangen.",
             "steps": [
                 {
-                    "id": "step_brand_name", "title": "Naam & Slogan Generator", "icon": "🧠", "locked": False,
+                    "id": "step_brand_name", "title": "Naam & Slogan Generator", "icon": "", "locked": False,
                     "content": "TOOL_BRAND_NAME", "xp_reward": 125,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/branding"
                 },
                 {
-                    "id": "step_shopify_setup", "title": "Shopify Opzetten", "icon": "🛍️", "locked": False,
+                    "id": "step_shopify_setup", "title": "Shopify Opzetten", "icon": "", "locked": False,
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 }
             ]
         },
         "fase_3": {
-            "title": "Fase 3: Winst & Content 💰",
+            "title": "Fase 3: Winst & Content",
             "desc": "Bereken je prijzen en vul je shop met professionele teksten.",
             "steps": [
                 {
-                    "id": "step_pricing", "title": "Winst Calculator", "icon": "🧮", "locked": False,
+                    "id": "step_pricing", "title": "Winst Calculator", "icon": "", "locked": False,
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
                 },
                 {
-                    "id": "step_about_us", "title": "'Over Ons' Pagina", "icon": "📜", "locked": True, 
+                    "id": "step_about_us", "title": "'Over Ons' Pagina", "icon": "", "locked": True, 
                     "content": "TOOL_ABOUT_US", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/copywriting",
                     "teaser": "Laat AI je merkverhaal schrijven in 1 klik."
                 },
                 {
-                    "id": "step_legal", "title": "Juridische Pagina's", "icon": "⚖️", "locked": True, 
+                    "id": "step_legal", "title": "Juridische Pagina's", "icon": "", "locked": True, 
                     "content": "TOOL_LEGAL_GEN", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/legal",
                     "teaser": "Genereer waterdichte juridische teksten."
@@ -76,7 +76,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         border_color = "#E2E8F0"
         bg_color = "#FFFFFF"
     else:
-        badge = "<span style='background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #DBEAFE;'>🚀 START</span>"
+        badge = "<span style='background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #DBEAFE;'>START</span>"
         border_color = "#2563EB" if expanded else "#E2E8F0"
         bg_color = "#FFFFFF"
 
@@ -104,7 +104,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     <p style="font-size: 0.9rem; color: #64748B; margin: 0 auto 20px auto; max-width: 400px;">{teaser_text}</p>
     <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
         <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); transition: transform 0.2s;">
-            📞 Plan Gratis Unlock Call
+            📞 Plan gratis unlock call
         </div>
     </a>
 </div>
@@ -112,7 +112,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         return None, 0
 
     # --- OPEN STATE ---
-    expander_label = "👇 Open Opdracht & Tools"
+    expander_label = "Open Opdracht & Tools"
     
     with st.expander(expander_label, expanded=expanded):
         
@@ -121,7 +121,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 st.markdown(f"""
                 <a href="{step['video_url']}" target="_blank" style="text-decoration:none;">
                     <div style="margin-bottom: 20px; padding: 12px; background: #EFF6FF; border-radius: 10px; border: 1px solid #DBEAFE; display: flex; align-items: center; gap: 10px; transition: background 0.2s;">
-                        <span style="font-size: 1.2rem;">🎥</span>
+                        <span style="font-size: 1.2rem;"></span>
                         <span style="color: #1E40AF; font-weight: 600; font-size: 0.9rem;">Bekijk de video instructie</span>
                         <span style="margin-left:auto; color:#2563EB;">&rarr;</span>
                     </div>
@@ -130,7 +130,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             else:
                 st.markdown(f"""
                 <div style="margin-bottom: 20px; padding: 12px; background: #F8FAFC; border-radius: 10px; border: 1px dashed #CBD5E1; display: flex; align-items: center; gap: 10px; opacity: 0.7;">
-                    <span style="font-size: 1.2rem;">🎥</span>
+                    <span style="font-size: 1.2rem;"></span>
                     <span style="color: #64748B; font-weight: 600; font-size: 0.9rem;">Video Instructie (Student Only)</span>
                     <span style="margin-left:auto;">🔒</span>
                 </div>
@@ -158,8 +158,8 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         elif step['content'] == "TOOL_BANK_WIZARD":
             st.write("Een zakelijke rekening en creditcard zijn verplicht.")
             c1, c2 = st.columns(2)
-            c1.link_button("🏦 Knab (Bank)", "https://knab.nl", use_container_width=True)
-            c2.link_button("💳 N26 (Creditcard)", "https://n26.com", use_container_width=True)
+            c1.link_button("Knab (Bank)", "https://knab.nl", use_container_width=True)
+            c2.link_button("N26 (Creditcard)", "https://n26.com", use_container_width=True)
             st.markdown("<br>", unsafe_allow_html=True)
             if st.checkbox("✅ Ik heb dit geregeld"): st.session_state[usage_key] = True
 
@@ -178,7 +178,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     st.info(f"**{item['name']}** - {item['slogan']}")
 
         elif step['content'] == "TOOL_SHOPIFY_GUIDE":
-            st.info("💰 **Actie:** Krijg Shopify de eerste 3 maanden voor €1/maand.")
+            st.info("**Actie:** Krijg Shopify de eerste 3 maanden voor €1/maand.")
             st.link_button("🚀 Claim €1 Shopify Deal", "https://shopify.com", type="primary", use_container_width=True)
             st.markdown("<br>", unsafe_allow_html=True)
             if st.checkbox("✅ Ik heb een account aangemaakt"): st.session_state[usage_key] = True
