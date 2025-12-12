@@ -32,7 +32,7 @@ def init_ai():
 
 def call_llm(system_prompt, user_prompt, model="gpt-4o-mini", json_mode=False):
     """Stuurt een bericht naar de AI en geeft tekst terug."""
-    init_ai() # <--- CRUCIALE FIX: Altijd eerst verbinden!
+    init_ai()
     
     if not HAS_OPENAI or not client: 
         return None
@@ -56,15 +56,13 @@ def generate_fallback_products(niche):
     return [{"original_title": f"Viral {niche} Gadget", "image_url": "https://via.placeholder.com/300", "price": 29.95, "cost": 8.00, "hook": "Wow factor!"}]
 
 def find_real_winning_products(niche, filter_type="Viral"):
-    # (Ingekorte versie voor overzicht, voeg je DDGS logica hier toe indien nodig)
     return generate_fallback_products(niche)
 
-# --- 2. BRANDING TOOLS (GEFIXT) ---
+# --- 2. BRANDING TOOLS ---
 
 def generate_brand_names(niche, vibe):
     init_ai()
     
-    # Fallback (Als AI stuk is)
     if not HAS_OPENAI or not client: 
         n = niche.replace(" ", "").capitalize()
         return [
@@ -75,7 +73,6 @@ def generate_brand_names(niche, vibe):
             {"name": f"{vibe}{n}", "slogan": f"{vibe} en vertrouwd."}
         ]
     
-    # De Nieuwe Prompt (Vraagt om Naam EN Slogan)
     prompt = f"""
     Verzin 5 unieke webshop concepten voor de niche: '{niche}'. 
     Vibe: '{vibe}'.
@@ -94,17 +91,17 @@ def generate_brand_names(niche, vibe):
         try: return json.loads(res).get('suggestions', [])
         except: pass
         
-    return [] # Leeg als het faalt
+    return [] 
 
 def generate_slogan(brand_name, niche):
-    init_ai() # <--- FIX
+    init_ai()
     if not HAS_OPENAI or not client: return f"{brand_name}: De beste keuze voor {niche}."
     
     prompt = f"Verzin een korte, krachtige Nederlandse slogan voor webshop '{brand_name}' in niche '{niche}'. Max 6 woorden. Geen aanhalingstekens."
     return call_llm("Je bent een top Copywriter.", prompt) or "Kwaliteit voorop."
 
 def generate_about_us(brand_name, niche):
-    init_ai() # <--- FIX
+    init_ai()
     if not HAS_OPENAI or not client: return f"Welkom bij {brand_name}. Wij zijn experts in {niche}!"
     
     prompt = f"""
@@ -118,3 +115,68 @@ def generate_about_us(brand_name, niche):
     Toon: Persoonlijk, warm en professioneel. Gebruik ongeveer 120 woorden.
     """
     return call_llm("Je bent een Storytelling Expert.", prompt) or "Tekst kon niet gegenereerd worden."
+
+# --- 3. VIDEO TOOLS ---
+
+def generate_viral_scripts(product, benefits, platform="TikTok"):
+    init_ai()
+    if not HAS_OPENAI or not client: 
+        return {
+            "hooks": ["Wacht tot je dit ziet!", "Dit verandert alles.", "Stop met scrollen!"],
+            "full_script": "Demo script: Introductie, Probleem, Oplossing (Jouw Product), Call to Action.",
+            "creator_brief": "Maak een video van 15-30 seconden. Goede belichting."
+        }
+
+    prompt = f"""
+    Schrijf een viral {platform} script voor het product: '{product}'.
+    Voordelen: {benefits}
+    
+    Ik wil JSON output met:
+    1. 'hooks': Lijst met 3 scroll-stopping openingszinnen.
+    2. 'full_script': Een volledig script met visuele instructies [tussen haken] en gesproken tekst.
+    3. 'creator_brief': Korte instructie voor de content creator (UGC).
+    """
+    
+    res = call_llm("Je bent een Viral Video Expert.", prompt, json_mode=True)
+    if res:
+        try: return json.loads(res)
+        except: pass
+        
+    return {"hooks": [], "full_script": "", "creator_brief": ""}
+
+# --- 4. LOGO GENERATOR (100% FLAT VECTOR FIX) ---
+
+def generate_logo(brand_name, niche, style, colors):
+    """Genereert een logo URL via DALL-E 3 - GEFORCEERD PLAT DESIGN."""
+    init_ai()
+    
+    if not HAS_OPENAI or not client:
+        return f"https://placehold.co/1024x1024/2563EB/FFFFFF/png?text={brand_name}+Logo"
+
+    # We gebruiken een technische prompt die DALL-E dwingt om een "digitaal bestand" te maken
+    # in plaats van een "foto van een product".
+    prompt = f"""
+    A single, centered, 2D vector graphic logo symbol for the brand '{brand_name}'.
+    Style context: {style} ({niche}).
+    Color palette: {colors}.
+    
+    CRITICAL VISUAL RULES:
+    1. IMAGE TYPE: Flat Vector Art / Clip Art. NOT a photo.
+    2. BACKGROUND: Pure white (#FFFFFF) void. No shadows on the background.
+    3. CONTENT: Only the graphic symbol and the text '{brand_name}'.
+    4. FORBIDDEN: Do NOT render bags, business cards, walls, 3D mockups, office supplies, or realistic textures.
+    5. STYLE: Minimalist, clean lines, solid colors, flat design (like an App Icon).
+    """
+
+    try:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1024",
+            quality="standard",
+            n=1,
+        )
+        return response.data[0].url
+    except Exception as e:
+        print(f"DALL-E Error: {e}")
+        return None
