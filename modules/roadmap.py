@@ -12,12 +12,12 @@ def get_roadmap():
             "desc": "Zonder fundering stort je huis in. Regel dit administratieve werk eerst.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK inschrijving (cheat sheet)", "icon": "📝", "locked": False,
+                    "id": "step_kvk", "title": "KVK inschrijving)", "icon": "", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
                 {
-                    "id": "step_bank", "title": "Bank & creditcard wizard", "icon": "💳", "locked": False,
+                    "id": "step_bank", "title": "Bank & creditcard wizard", "icon": "", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/financieel"
                 }
@@ -28,18 +28,18 @@ def get_roadmap():
             "desc": "Geef je winkel een gezicht en een naam die blijft hangen.",
             "steps": [
                 {
-                    "id": "step_brand_name", "title": "Naam & slogan generator", "icon": "🧠", "locked": False,
+                    "id": "step_brand_name", "title": "Naam & slogan generator", "icon": "", "locked": False,
                     "content": "TOOL_BRAND_NAME", "xp_reward": 125,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/branding"
                 },
                 # NIEUWE STAP: LOGO MAKER
                 {
-                    "id": "step_logo_maker", "title": "Logo maker (AI)", "icon": "🎨", "locked": False,
+                    "id": "step_logo_maker", "title": "Logo maker (AI)", "icon": "", "locked": False,
                     "content": "TOOL_LOGO_MAKER", "xp_reward": 150,
                     "teaser": "Ontwerp je eigen professionele logo in seconden."
                 },
                 {
-                    "id": "step_shopify_setup", "title": "Shopify opzetten", "icon": "🛍️", "locked": False,
+                    "id": "step_shopify_setup", "title": "Shopify opzetten", "icon": "", "locked": False,
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 }
@@ -50,18 +50,18 @@ def get_roadmap():
             "desc": "Bereken je prijzen en vul je shop met professionele teksten.",
             "steps": [
                 {
-                    "id": "step_pricing", "title": "Winst calculator", "icon": "🧮", "locked": False,
+                    "id": "step_pricing", "title": "Winst calculator", "icon": "", "locked": False,
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
                 },
                 {
-                    "id": "step_about_us", "title": "'Over ons' pagina", "icon": "📜", "locked": True, 
+                    "id": "step_about_us", "title": "'Over ons' pagina", "icon": "", "locked": True, 
                     "content": "TOOL_ABOUT_US", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/copywriting",
                     "teaser": "Laat AI je merkverhaal schrijven in 1 klik."
                 },
                 {
-                    "id": "step_legal", "title": "Juridische pagina's", "icon": "⚖️", "locked": True, 
+                    "id": "step_legal", "title": "Juridische pagina's", "icon": "", "locked": True, 
                     "content": "TOOL_LEGAL_GEN", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/legal",
                     "teaser": "Genereer waterdichte juridische teksten."
@@ -127,7 +127,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 st.markdown(f"""
                 <a href="{step['video_url']}" target="_blank" style="text-decoration:none;">
                     <div style="margin-bottom: 20px; padding: 12px; background: #EFF6FF; border-radius: 10px; border: 1px solid #DBEAFE; display: flex; align-items: center; gap: 10px; transition: background 0.2s;">
-                        <span style="font-size: 1.2rem;">🎥</span>
+                        <span style="font-size: 1.2rem;"></span>
                         <span style="color: #1E40AF; font-weight: 600; font-size: 0.9rem;">Bekijk de video instructie</span>
                         <span style="margin-left:auto; color:#2563EB;">&rarr;</span>
                     </div>
@@ -136,7 +136,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             else:
                 st.markdown(f"""
                 <div style="margin-bottom: 20px; padding: 12px; background: #F8FAFC; border-radius: 10px; border: 1px dashed #CBD5E1; display: flex; align-items: center; gap: 10px; opacity: 0.7;">
-                    <span style="font-size: 1.2rem;">🎥</span>
+                    <span style="font-size: 1.2rem;"></span>
                     <span style="color: #64748B; font-weight: 600; font-size: 0.9rem;">Video instructie (Student only)</span>
                     <span style="margin-left:auto;">🔒</span>
                 </div>
@@ -164,8 +164,8 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         elif step['content'] == "TOOL_BANK_WIZARD":
             st.write("Een zakelijke rekening en creditcard zijn verplicht.")
             c1, c2 = st.columns(2)
-            c1.link_button("🏦 Knab (Bank)", "https://knab.nl", use_container_width=True)
-            c2.link_button("💳 N26 (Creditcard)", "https://n26.com", use_container_width=True)
+            c1.link_button("Knab (Bank)", "https://knab.nl", use_container_width=True)
+            c2.link_button("N26 (Creditcard)", "https://n26.com", use_container_width=True)
             st.markdown("<br>", unsafe_allow_html=True)
             if st.checkbox("✅ Ik heb dit geregeld"): st.session_state[usage_key] = True
 
