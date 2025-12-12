@@ -224,3 +224,25 @@ def generate_logo(brand_name, niche, style, colors):
     except Exception as e:
         print(f"DALL-E Error: {e}")
         return None
+
+# --- IN ai_coach.py ---
+
+def validate_feedback(text):
+    """Checkt of feedback nuttig/echt is."""
+    init_ai()
+    if not HAS_OPENAI or not client: return True # Fallback: altijd goedkeuren als AI uit staat
+    
+    prompt = f"""
+    Beoordeel de volgende feedback van een gebruiker over een e-commerce app.
+    Is dit serieuze, leesbare feedback (Nederlands of Engels)? 
+    Of is het onzin/spam (zoals 'asdf', 'test', 'bla bla')?
+    
+    Feedback: "{text}"
+    
+    Antwoord ALLEEN met 'TRUE' (als het serieus is) of 'FALSE' (als het onzin is).
+    """
+    
+    res = call_llm("Je bent een spam filter.", prompt)
+    if res and "TRUE" in res.upper():
+        return True
+    return False
