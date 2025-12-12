@@ -371,8 +371,8 @@ if "user" not in st.session_state:
                 email = st.text_input("Email", placeholder="jouw@email.com", label_visibility="collapsed", key="login_email_free")
                 
                 # De expander is prima zo: subtiel maar beschikbaar
-                with st.expander("Heb je een Vrienden-code? (Optioneel)"):
-                    ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482", key="ref_code_input")
+                with st.expander("Heb je een vriendencode? (Optioneel)"):
+                    ref_code = st.text_input("Vriendencode:", placeholder="bv. JAN-482", key="ref_code_input")
                 
                 # Witruimte boven de knop iets kleiner gemaakt (van 8px naar 5px)
                 st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
