@@ -55,8 +55,52 @@ def call_llm(system_prompt, user_prompt, model="gpt-4o-mini", json_mode=False):
 def generate_fallback_products(niche):
     return [{"original_title": f"Viral {niche} Gadget", "image_url": "https://via.placeholder.com/300", "price": 29.95, "cost": 8.00, "hook": "Wow factor!"}]
 
+# --- IN ai_coach.py ---
+
 def find_real_winning_products(niche, filter_type="Viral"):
-    return generate_fallback_products(niche)
+    """
+    Genereert concepten en zoekopdrachten in plaats van fake data.
+    """
+    init_ai()
+    
+    # Directe links voor de gebruiker om ZELF te kijken (dit is veel waardevoller)
+    tiktok_url = f"https://www.tiktok.com/search?q={niche.replace(' ', '+')}+must+have"
+    aliexpress_url = f"https://www.aliexpress.com/wholesale?SearchText={niche.replace(' ', '+')}+gadget&SortType=total_tranpro_desc"
+    
+    if not HAS_OPENAI or not client: 
+        # Fallback zonder AI
+        return [{
+            "title": f"Viral {niche} Concept", 
+            "price": 29.95, 
+            "hook": "De AI kan nu even geen concepten bedenken, maar gebruik de knoppen hieronder om live te zoeken.",
+            "search_links": {"tiktok": tiktok_url, "ali": aliexpress_url}
+        }]
+
+    prompt = f"""
+    Ik ben een beginner in dropshipping. Geef mij 3 unieke, 'viral-waardige' productideeën voor de niche: '{niche}'.
+    Verzin geen bestaande merken, maar beschrijf het soort product.
+    
+    Voor elk product wil ik:
+    1. Een pakkende productnaam.
+    2. Een realistische verkoopprijs (tussen 20 en 60 euro).
+    3. Eén zin waarom dit 'viral' zou kunnen gaan (de 'Wow-factor').
+    
+    Output JSON: {{ "suggestions": [ {{"title": "Naam", "price": 29.95, "hook": "Uitleg"}} ] }}
+    """
+    
+    res = call_llm("Je bent een E-commerce Product Researcher.", prompt, json_mode=True)
+    
+    results = []
+    if res:
+        try: 
+            data = json.loads(res).get('suggestions', [])
+            for item in data:
+                # Voeg de zoeklinks toe aan elk AI resultaat
+                item["search_links"] = {"tiktok": tiktok_url, "ali": aliexpress_url}
+                results.append(item)
+        except: pass
+        
+    return results
 
 # --- 2. BRANDING TOOLS ---
 

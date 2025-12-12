@@ -9,7 +9,6 @@ from email.mime.multipart import MIMEMultipart
 from supabase import create_client
 
 # --- CONFIGURATIE ---
-# [BELANGRIJK] Vul hier de link in naar jouw live app, zodat de link in de email werkt.
 APP_URL = "https://rmacademy.onrender.com" 
 
 RANKS = {
@@ -47,17 +46,19 @@ def get_leaderboard_data():
     """Haalt de top 10 users op uit Supabase."""
     if not supabase: return []
     try:
-        # Haal users op, gesorteerd op XP
-        response = supabase.table('users').select('email, xp, level, is_pro').order('xp', desc=True).limit(10).execute()
+        response = supabase.table('users').select('email, first_name, xp, level, is_pro').order('xp', desc=True).limit(10).execute()
         data = response.data
         
         leaderboard = []
         for i, u in enumerate(data):
-            # Email anonimiseren (bv. mark@gmail.com -> Mark G.)
-            email_parts = u['email'].split('@')
-            name_part = email_parts[0].capitalize()
-            domain_char = email_parts[1][0].upper() if len(email_parts) > 1 else "X"
-            display_name = f"{name_part} {domain_char}."
+            # Probeer voornaam, anders email fallback
+            if u.get('first_name'):
+                display_name = u['first_name']
+            else:
+                email_parts = u['email'].split('@')
+                name_part = email_parts[0].capitalize()
+                domain_char = email_parts[1][0].upper() if len(email_parts) > 1 else "X"
+                display_name = f"{name_part} {domain_char}."
             
             title, _ = get_rank_info(u['xp'])
             
@@ -74,31 +75,25 @@ def get_leaderboard_data():
         return []
 
 def get_real_activity():
-    """Haalt recente activiteit op (of simuleert dit op basis van echte users)."""
-    if not supabase: return "⚡ Live: Systeem wordt opgestart..."
+    """Geeft realistische 'fake' activiteit (Social Proof) - AANGEPAST VOOR PUNT 3"""
+    # Lijst met realistische namen zodat het niet 'Info' of de user zelf lijkt
+    names = ["Sophie", "Mark", "Jeroen", "Lisa", "Kevin", "Sanne", "Mohammed", "Tom", "Eva"]
+    activities = [
+        "heeft net het eerste product gevonden!",
+        "is gestegen naar level 'Bouwer'.",
+        "heeft +50 XP verdiend.",
+        "is bezig met de winst calculator.",
+        "heeft een video script gegenereerd.",
+        "is net ingeschreven bij de KVK."
+    ]
     
-    try:
-        response = supabase.table('users').select('email, xp').gt('xp', 0).limit(20).execute()
-        users = response.data
-        
-        if not users: return "⚡ Live: Wachten op eerste studenten..."
-        
-        user = random.choice(users)
-        email_name = user['email'].split('@')[0].capitalize()
-        
-        msgs = [
-            f" {email_name} is net gestegen in rang!",
-            f" {email_name} heeft +50 XP verdiend.",
-            f" {email_name} is druk bezig in Fase 2.",
-            f" {email_name} gebruikt de Spy Tool.",
-            f" {email_name} is bezig met KVK inschrijving."
-        ]
-        return random.choice(msgs)
-    except:
-        return "⚡ Live: Druk bezig in de community..."
+    random_name = random.choice(names)
+    random_act = random.choice(activities)
+    
+    return f"{random_name} {random_act}"
 
-# --- ECHTE EMAIL FUNCTIE (MOOI OPGEMAAKT) ---
-def send_welcome_email(to_email, referral_code):
+# --- ECHTE EMAIL FUNCTIE ---
+def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
     try:
         smtp_server = st.secrets["email"]["smtp_server"]
         smtp_port = st.secrets["email"]["smtp_port"]
@@ -106,48 +101,29 @@ def send_welcome_email(to_email, referral_code):
         smtp_password = st.secrets["email"]["smtp_password"]
         sender_email = st.secrets["email"]["sender_email"]
 
-        # Maak de directe link aan (zorg dat je app dit leest uit query params)
         referral_link = f"{APP_URL}?ref_code={referral_code}"
 
         subject = "🚀 Welkom bij RM Ecom Academy - Start & Verdien"
         
-        # HTML Email Design
         body = f"""
         <html>
           <body style="font-family: 'Helvetica', 'Arial', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0;">
             <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
-                
-                <!-- HEADER -->
                 <div style="background-color: #2563EB; padding: 30px; text-align: center;">
                     <h1 style="color: #ffffff; margin: 0; font-size: 24px;">RM Ecom Academy</h1>
                 </div>
-
-                <!-- CONTENT -->
                 <div style="padding: 40px 30px; color: #334155; line-height: 1.6;">
-                    <h2 style="color: #0F172A; margin-top: 0;">Welkom aan boord! 🚀</h2>
-                    <p>Je account is succesvol aangemaakt. Je kunt nu direct starten met de gratis roadmap om je eerste sales te genereren.</p>
-                    
+                    <h2 style="color: #0F172A; margin-top: 0;">Hi {first_name}! 🚀</h2>
+                    <p>Je account is succesvol aangemaakt. Je kunt nu direct starten.</p>
                     <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
-
                     <h3 style="color: #0F172A;">💰 Verdien €250 per Student</h3>
-                    <p>Ken jij iemand anders die ook een webshop wil starten? Nodig ze uit en ontvang <strong>€250 commissie</strong> zodra zij Student worden.</p>
-
-                    <p style="margin-bottom: 5px; font-weight: bold;">Jouw Vrienden Code:</p>
+                    <p>Jouw Vrienden Code:</p>
                     <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; text-align: center; margin-bottom: 20px;">
                         <span style="font-size: 24px; color: #2563EB; font-weight: 800; letter-spacing: 1px;">{referral_code}</span>
                     </div>
-
-                    <p style="margin-bottom: 5px; font-weight: bold;">Jouw Directe Link:</p>
-                    <p style="font-size: 14px; color: #64748b; margin-top: 0;">Deel deze link, dan wordt jouw code automatisch ingevuld:</p>
                     <a href="{referral_link}" style="display: block; background-color: #2563EB; color: #ffffff; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px;">
                         🔗 Kopieer Jouw Link
                     </a>
-                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 5px;">{referral_link}</p>
-                </div>
-
-                <!-- FOOTER -->
-                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                    <p>&copy; 2024 RM Ecom Academy. Alle rechten voorbehouden.</p>
                 </div>
             </div>
           </body>
@@ -176,7 +152,8 @@ def generate_referral_code(name):
     suffix = ''.join(random.choices(string.digits, k=3))
     return f"{prefix}-{suffix}"
 
-def login_or_register(email, license_input=None, ref_code_input=None):
+# AANGEPAST: login_or_register accepteert nu ook 'name_input'
+def login_or_register(email, license_input=None, ref_code_input=None, name_input=None):
     email = email.lower().strip()
     try:
         res = supabase.table('users').select("*").eq('email', email).execute()
@@ -186,15 +163,17 @@ def login_or_register(email, license_input=None, ref_code_input=None):
     if not user:
         # --- NIEUWE GEBRUIKER REGISTREREN ---
         referrer_id = None
-        
-        # Check of er een referral code is ingevuld
         if ref_code_input:
             ref_res = supabase.table('users').select("id").eq('referral_code', ref_code_input).execute()
             if ref_res.data: referrer_id = ref_res.data[0]['id']
 
+        # Fallback naam als er niks is ingevuld
+        clean_name = name_input.strip() if name_input else email.split('@')[0].capitalize()
+
         new_data = {
             "email": email,
-            "referral_code": generate_referral_code(email),
+            "first_name": clean_name, # PUNT 1: Voornaam opslaan
+            "referral_code": generate_referral_code(clean_name),
             "role": "student",
             "is_pro": False,
             "level": 1,
@@ -202,7 +181,6 @@ def login_or_register(email, license_input=None, ref_code_input=None):
             "referred_by": referrer_id
         }
         
-        # Check of er direct PRO licentie is ingevuld
         if license_input and license_input.startswith("PRO-"):
             new_data['is_pro'] = True
             new_data['license_key'] = license_input
@@ -212,15 +190,11 @@ def login_or_register(email, license_input=None, ref_code_input=None):
         user = res.data[0]
         
         st.toast(f"🎉 Account aangemaakt!", icon="📧")
-        
-        # --- EMAIL VERSTUREN (INGESCHAKELD) ---
-        # Stuurt de welkomstmail met de referral code en link
-        send_welcome_email(email, user['referral_code'])
+        send_welcome_email(email, user['referral_code'], clean_name)
 
     st.session_state.user = user
     st.session_state.is_pro = user['is_pro']
     
-    # Check of bestaande user nu PRO code invult
     if license_input and not user['is_pro']:
         if license_input.startswith("PRO-"):
             supabase.table('users').update({"is_pro": True, "license_key": license_input}).eq('id', user['id']).execute()
@@ -250,7 +224,6 @@ def mark_step_complete(step_id, xp_reward):
         old_title, _ = get_rank_info(current_xp)
         new_title, _ = get_rank_info(new_xp)
         
-        # Unlock logica
         if current_xp < 500 and new_xp >= 500:
             update_data["level"] = 2
             st.session_state.user['level'] = 2
@@ -289,13 +262,10 @@ def get_affiliate_stats():
         res = supabase.table('users').select("is_pro").eq('referred_by', uid).execute()
         total = len(res.data)
         pro = sum(1 for u in res.data if u['is_pro'])
-        
-        # AANGEPAST: 250 EURO PER STUDENT
         return total, pro, pro * 250
     except: return 0, 0, 0
 
 def get_user_by_email(email):
-    """Haalt gebruiker op basis van email op zonder nieuwe login flow."""
     try:
         res = supabase.table('users').select("*").eq('email', email).execute()
         if res.data:

@@ -12,7 +12,7 @@ def get_roadmap():
             "desc": "Zonder fundering stort je huis in. Regel dit administratieve werk eerst.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK inschrijving)", "icon": "", "locked": False,
+                    "id": "step_kvk", "title": "KVK inschrijving", "icon": "", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
