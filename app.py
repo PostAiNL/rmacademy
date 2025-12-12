@@ -13,13 +13,13 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 
 st.set_page_config(
-    page_title="RM Academy App",
+    page_title="RM Ecom App",
     page_icon="🚀",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# --- 1. PREMIUM CSS ENGINE (FIXED SIDEBAR & MOBILE) ---
+# --- 1. PREMIUM CSS ENGINE (SAMSUNG & IPHONE FIXED) ---
 st.markdown("""
     <style>
         /* [GLOBAL VARIABLES] */
@@ -29,19 +29,19 @@ st.markdown("""
             --text-dark: #0F172A;
             --text-gray: #64748B;
             --white: #FFFFFF;
-            --border: #E2E8F0;
+            --border: #CBD5E1;
         }
 
-        /* [APP BACKGROUND] */
+        /* [APP BACKGROUND - FORCEER WIT/LICHTGRIJS] */
         .stApp {
-            background-color: var(--bg-light);
+            background-color: var(--bg-light) !important;
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-            color: var(--text-dark);
+            color: var(--text-dark) !important;
         }
         
-        /* [HEADER WEG - SCHOON SCHERM] */
+        /* [HEADER WEG] */
         [data-testid="stHeader"] {background: transparent;}
-        [data-testid="stDecoration"] {display: none;} /* Verbergt de gekleurde balk bovenaan */
+        [data-testid="stDecoration"] {display: none;}
         [data-testid="stSidebarCollapseButton"] { display: block !important; color: var(--text-dark); }
         
         /* [MAIN CONTENT LAYOUT] */
@@ -52,12 +52,12 @@ st.markdown("""
         }
 
         /* [TITEL & LOGO] */
-        /* Verberg link-icoontjes bij ALLE koppen (H1 t/m H6) */
-.stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
-.stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { 
-    display: none !important; 
-    pointer-events: none; 
-}
+        /* Verberg link icoontjes bij alle headers */
+        .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
+        .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { 
+            display: none !important; pointer-events: none; 
+        }
+        
         h1 {
             font-size: 2.2rem !important; font-weight: 800 !important;
             letter-spacing: -1px !important; color: #0F172A !important;
@@ -67,81 +67,67 @@ st.markdown("""
             display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
         }
 
-        /* --- [SIDEBAR & MENU FIX] --- */
-        section[data-testid="stSidebar"] {
-            background-color: var(--white);
-            border-right: 1px solid var(--border);
-        }
-        section[data-testid="stSidebar"] .block-container {
-            padding: 1.5rem 1rem !important;
-        }
-        
-        /* Verbergt het radio-bolletje (het rondje) */
-        div[role="radiogroup"] > label > div:first-child {
-            display: none !important;
+        /* --- [BUTTON FIX VOOR SAMSUNG/ANDROID] --- */
+        /* Dit voorkomt dat knoppen zwart worden bij klikken */
+        .stButton button {
+            border-radius: 8px !important;
+            font-weight: 600 !important;
+            border: none !important;
+            color: white !important;
+            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
+            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+            transition: all 0.2s ease !important;
         }
         
-        /* Styling van de menu items als knoppen */
-        div[role="radiogroup"] label {
-            width: 100%;
-            padding: 10px 14px;
-            border-radius: 10px;
-            border: 1px solid transparent;
-            background-color: transparent;
-            color: var(--text-gray);
-            font-weight: 500;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            margin-bottom: 4px;
-        }
-        div[role="radiogroup"] label:hover {
-            background-color: #F1F5F9;
-            color: var(--text-dark);
-        }
-        div[role="radiogroup"] label[data-checked="true"] {
-            background-color: #EFF6FF !important;
-            color: #2563EB !important;
-            font-weight: 600;
-            border: 1px solid #DBEAFE;
-            box-shadow: 0 1px 2px rgba(37, 99, 235, 0.05);
+        /* De :active en :focus status forceert blauw, ook op Android */
+        .stButton button:active, 
+        .stButton button:focus, 
+        .stButton button:active:focus {
+            background: #1E40AF !important; /* Iets donkerder blauw */
+            color: white !important;
+            border: none !important;
+            outline: none !important;
+            box-shadow: inset 0 2px 4px rgba(0,0,0,0.2) !important;
         }
 
-        /* --- [CRUCIALE MOBIELE KLEUR FIXES] --- */
-        
-        /* 1. Labels boven invulvelden ALTIJD donker */
-        div[data-testid="stWidgetLabel"] p, label p {
-            color: #0F172A !important;
-            font-weight: 600 !important;
+        /* --- [EXPANDER / ROADMAP KAARTEN FIX] --- */
+        /* Zorgt dat de vakken goed zichtbaar zijn op lichte schermen */
+        .streamlit-expander, div[data-testid="stExpander"] {
+            background-color: #FFFFFF !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 12px !important;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05) !important;
+            margin-bottom: 10px !important;
+            overflow: hidden;
         }
         
-        /* 2. Expander (Vriendencode) ALTIJD transparant en donkere tekst */
-        .streamlit-expanderHeader {
-            background-color: transparent !important;
-            border: 1px solid #E2E8F0 !important;
-            border-radius: 8px !important;
-            color: #475569 !important;
-        }
+        /* De tekst in de header van de expander */
         .streamlit-expanderHeader p {
-            font-size: 0.9rem !important;
-            color: #475569 !important;
-        }
-        .streamlit-expanderHeader:hover {
-            color: #2563EB !important;
+            font-size: 1rem !important;
+            color: #1E293B !important;
+            font-weight: 600 !important;
         }
         .streamlit-expanderHeader svg {
             fill: #64748B !important;
         }
+        .streamlit-expanderHeader:hover {
+            background-color: #F8FAFC !important;
+            color: #2563EB !important;
+        }
 
-        /* 3. Input Velden: Wit met donkere tekst */
+        /* --- [INPUT VELDEN & LABELS] --- */
+        /* Labels */
+        div[data-testid="stWidgetLabel"] p, label p {
+            color: #0F172A !important;
+            font-weight: 600 !important;
+        }
+        /* Input vak zelf */
         .stTextInput input {
             background-color: #FFFFFF !important;
-            border: 1px solid #E2E8F0 !important;
+            border: 1px solid #CBD5E1 !important;
             color: #0F172A !important;
             border-radius: 8px !important;
-            padding: 10px 12px !important;
+            padding: 12px !important;
         }
         .stTextInput input::placeholder {
             color: #94A3B8 !important;
@@ -152,21 +138,10 @@ st.markdown("""
             box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2) !important;
         }
 
-        /* 4. Knoppen: Altijd Blauw (Primary) */
-        .stButton button {
-            border-radius: 8px !important;
-            font-weight: 600 !important;
-            border: none !important;
-            color: white !important;
-            background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important;
-            box-shadow: 0 4px 6px -1px rgba(37, 99, 235, 0.2) !important;
+        /* --- [TABS] --- */
+        button[data-baseweb="tab"] {
+            background-color: transparent !important;
         }
-        .stButton button:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 8px -1px rgba(37, 99, 235, 0.3);
-        }
-
-        /* 5. Tabs Zichtbaarheid */
         button[data-baseweb="tab"] div p {
             color: #64748B !important;
             font-weight: 500;
@@ -175,11 +150,35 @@ st.markdown("""
             color: #2563EB !important;
             font-weight: 700;
         }
+        div[data-baseweb="tab-highlight"] {
+            background-color: #2563EB !important;
+        }
+
+        /* [SIDEBAR] */
+        section[data-testid="stSidebar"] { background-color: var(--white); border-right: 1px solid var(--border); }
+        section[data-testid="stSidebar"] .block-container { padding: 1.5rem 1rem !important; }
+
+        /* [NAVIGATIE MENU - GEEN BOLLETJES] */
+        div[role="radiogroup"] > label > div:first-child {
+            display: none !important;
+        }
+        div[role="radiogroup"] label {
+            width: 100%; padding: 10px 14px; border-radius: 10px;
+            color: var(--text-gray); font-weight: 500;
+            cursor: pointer; transition: all 0.2s ease;
+            margin-bottom: 4px;
+            border: 1px solid transparent;
+        }
+        div[role="radiogroup"] label:hover { background-color: #F1F5F9; color: var(--text-dark); }
+        div[role="radiogroup"] label[data-checked="true"] {
+            background-color: #EFF6FF !important; color: #2563EB !important;
+            font-weight: 600; border: 1px solid #DBEAFE;
+        }
 
         /* [CARDS & METRICS] */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border-radius: 16px; background: var(--white); border: 1px solid var(--border);
-            padding: 24px; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+            padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 25px; }
         .metric-card {
@@ -249,7 +248,7 @@ if "user" not in st.session_state:
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["Start Challenge", "Student Login"])
+            tab_free, tab_pro = st.tabs(["🚀 Start Challenge", "💎 Student Login"])
 
             with tab_free:
                 email = st.text_input("Email", placeholder="Vul hier je emailadres in...", label_visibility="collapsed", key="login_email_free")
@@ -286,10 +285,9 @@ if "user" not in st.session_state:
             with tab_pro:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
                 
-                # Labels zijn zichtbaar gemaakt door de CSS fix
                 pro_email = st.text_input("Jouw Email:", placeholder="Vul hier je emailadres in...", key="log_mail")
                 
-                # Label is verborgen, placeholder aangepast
+                # Label verborgen, placeholder aangepast
                 lic_key = st.text_input("Licentie Code", placeholder="Vul hier je code in...", type="password", label_visibility="collapsed", key="log_lic")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
@@ -324,7 +322,7 @@ if "user" not in st.session_state:
             <div style="display:flex; gap:16px; align-items:center;">
                 <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🏆</div>
                 <div>
-                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Level-based Groei</h4>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Level up en unlock tools terwijl je bouwt.</p>
                 </div>
             </div>
@@ -367,7 +365,7 @@ with st.sidebar:
     
     st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
     
-    # AANGEPASTE MENU LABELS VOOR BEGINNERS
+    # MENU
     menu_options = {
         "🏠 Dashboard": "Dashboard",
         "🎓 Gratis training": "Gratis Mini Training",
@@ -478,7 +476,7 @@ if pg == "Dashboard":
         <div class="metric-card">
             <div class="metric-label">JOUW XP</div>
             <div class="metric-value">{user['xp']}</div>
-            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende level</div>
+            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende rang</div>
         </div>
         <div class="metric-card">
             <div class="metric-label">VOLGENDE BELONING</div>
