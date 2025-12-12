@@ -8,7 +8,10 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from supabase import create_client
 
-# --- CONFIGURATIE VAN DE RANGEN ---
+# --- CONFIGURATIE ---
+# [BELANGRIJK] Vul hier de link in naar jouw live app, zodat de link in de email werkt.
+APP_URL = "https://rmacademy.onrender.com" 
+
 RANKS = {
     0: "🐣 Starter",
     200: "🔨 Bouwer",
@@ -75,8 +78,6 @@ def get_real_activity():
     if not supabase: return "⚡ Live: Systeem wordt opgestart..."
     
     try:
-        # We pakken 5 willekeurige actieve users om activiteit te simuleren
-        # In een perfecte wereld heb je een 'activity_log' tabel, maar dit werkt ook prima.
         response = supabase.table('users').select('email, xp').gt('xp', 0).limit(20).execute()
         users = response.data
         
@@ -85,7 +86,6 @@ def get_real_activity():
         user = random.choice(users)
         email_name = user['email'].split('@')[0].capitalize()
         
-        # Willekeurige echte lijkende berichten
         msgs = [
             f" {email_name} is net gestegen in rang!",
             f" {email_name} heeft +50 XP verdiend.",
@@ -97,7 +97,7 @@ def get_real_activity():
     except:
         return "⚡ Live: Druk bezig in de community..."
 
-# --- ECHTE EMAIL FUNCTIE ---
+# --- ECHTE EMAIL FUNCTIE (MOOI OPGEMAAKT) ---
 def send_welcome_email(to_email, referral_code):
     try:
         smtp_server = st.secrets["email"]["smtp_server"]
@@ -106,16 +106,48 @@ def send_welcome_email(to_email, referral_code):
         smtp_password = st.secrets["email"]["smtp_password"]
         sender_email = st.secrets["email"]["sender_email"]
 
-        subject = "Welkom bij RM Ecom Academy! 🚀"
+        # Maak de directe link aan (zorg dat je app dit leest uit query params)
+        referral_link = f"{APP_URL}?ref_code={referral_code}"
+
+        subject = "🚀 Welkom bij RM Ecom Academy - Start & Verdien"
+        
+        # HTML Email Design
         body = f"""
         <html>
-          <body style="font-family: Arial, sans-serif; color: #333;">
-            <div style="background-color: #f8fafc; padding: 20px; text-align: center;">
-                <h2>Welkom bij de Academy!</h2>
-                <p>Je account is succesvol aangemaakt.</p>
-                <div style="background: #fff; padding: 15px; border-radius: 8px; display: inline-block; border: 1px solid #e2e8f0;">
-                    <strong>Jouw Vrienden Code:</strong><br>
-                    <span style="font-size: 20px; color: #0ea5e9; font-weight: bold;">{referral_code}</span>
+          <body style="font-family: 'Helvetica', 'Arial', sans-serif; background-color: #f3f4f6; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 40px auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.05);">
+                
+                <!-- HEADER -->
+                <div style="background-color: #2563EB; padding: 30px; text-align: center;">
+                    <h1 style="color: #ffffff; margin: 0; font-size: 24px;">RM Ecom Academy</h1>
+                </div>
+
+                <!-- CONTENT -->
+                <div style="padding: 40px 30px; color: #334155; line-height: 1.6;">
+                    <h2 style="color: #0F172A; margin-top: 0;">Welkom aan boord! 🚀</h2>
+                    <p>Je account is succesvol aangemaakt. Je kunt nu direct starten met de gratis roadmap om je eerste sales te genereren.</p>
+                    
+                    <hr style="border: 0; border-top: 1px solid #e2e8f0; margin: 30px 0;">
+
+                    <h3 style="color: #0F172A;">💰 Verdien €250 per Student</h3>
+                    <p>Ken jij iemand anders die ook een webshop wil starten? Nodig ze uit en ontvang <strong>€250 commissie</strong> zodra zij Student worden.</p>
+
+                    <p style="margin-bottom: 5px; font-weight: bold;">Jouw Vrienden Code:</p>
+                    <div style="background: #f1f5f9; padding: 15px; border-radius: 8px; border: 1px dashed #cbd5e1; text-align: center; margin-bottom: 20px;">
+                        <span style="font-size: 24px; color: #2563EB; font-weight: 800; letter-spacing: 1px;">{referral_code}</span>
+                    </div>
+
+                    <p style="margin-bottom: 5px; font-weight: bold;">Jouw Directe Link:</p>
+                    <p style="font-size: 14px; color: #64748b; margin-top: 0;">Deel deze link, dan wordt jouw code automatisch ingevuld:</p>
+                    <a href="{referral_link}" style="display: block; background-color: #2563EB; color: #ffffff; text-decoration: none; text-align: center; padding: 12px; border-radius: 8px; font-weight: bold; margin-top: 10px;">
+                        🔗 Kopieer Jouw Link
+                    </a>
+                    <p style="font-size: 12px; color: #94a3b8; text-align: center; margin-top: 5px;">{referral_link}</p>
+                </div>
+
+                <!-- FOOTER -->
+                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
+                    <p>&copy; 2024 RM Ecom Academy. Alle rechten voorbehouden.</p>
                 </div>
             </div>
           </body>
@@ -123,7 +155,7 @@ def send_welcome_email(to_email, referral_code):
         """
 
         msg = MIMEMultipart()
-        msg['From'] = sender_email
+        msg['From'] = f"RM Ecom Academy <{sender_email}>"
         msg['To'] = to_email
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
@@ -152,7 +184,10 @@ def login_or_register(email, license_input=None, ref_code_input=None):
     except: user = None
 
     if not user:
+        # --- NIEUWE GEBRUIKER REGISTREREN ---
         referrer_id = None
+        
+        # Check of er een referral code is ingevuld
         if ref_code_input:
             ref_res = supabase.table('users').select("id").eq('referral_code', ref_code_input).execute()
             if ref_res.data: referrer_id = ref_res.data[0]['id']
@@ -167,6 +202,7 @@ def login_or_register(email, license_input=None, ref_code_input=None):
             "referred_by": referrer_id
         }
         
+        # Check of er direct PRO licentie is ingevuld
         if license_input and license_input.startswith("PRO-"):
             new_data['is_pro'] = True
             new_data['license_key'] = license_input
@@ -174,12 +210,17 @@ def login_or_register(email, license_input=None, ref_code_input=None):
             
         res = supabase.table('users').insert(new_data).execute()
         user = res.data[0]
+        
         st.toast(f"🎉 Account aangemaakt!", icon="📧")
-        # send_welcome_email(email, user['referral_code']) # Uncomment als mail werkt
+        
+        # --- EMAIL VERSTUREN (INGESCHAKELD) ---
+        # Stuurt de welkomstmail met de referral code en link
+        send_welcome_email(email, user['referral_code'])
 
     st.session_state.user = user
     st.session_state.is_pro = user['is_pro']
     
+    # Check of bestaande user nu PRO code invult
     if license_input and not user['is_pro']:
         if license_input.startswith("PRO-"):
             supabase.table('users').update({"is_pro": True, "license_key": license_input}).eq('id', user['id']).execute()
@@ -209,6 +250,7 @@ def mark_step_complete(step_id, xp_reward):
         old_title, _ = get_rank_info(current_xp)
         new_title, _ = get_rank_info(new_xp)
         
+        # Unlock logica
         if current_xp < 500 and new_xp >= 500:
             update_data["level"] = 2
             st.session_state.user['level'] = 2
@@ -247,7 +289,9 @@ def get_affiliate_stats():
         res = supabase.table('users').select("is_pro").eq('referred_by', uid).execute()
         total = len(res.data)
         pro = sum(1 for u in res.data if u['is_pro'])
-        return total, pro, pro * 5
+        
+        # AANGEPAST: 250 EURO PER STUDENT
+        return total, pro, pro * 250
     except: return 0, 0, 0
 
 def get_user_by_email(email):
