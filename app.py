@@ -429,7 +429,7 @@ def render_pro_lock(title, desc):
                 <li>Persoonlijke hulp via community en calls.</li>
                 <li>Tijdelijke unlocks zoals Spy tool verlopen niet.</li>
             </ul>
-            <p style="margin:0; font-size:0.8rem; color:#64748B;">De meeste studenten zitten rond €75–€175 per maand afhankelijk van het niveau.</p>
+            <p style="margin:0; font-size:0.8rem; color:#64748B;">De meeste studenten behalen in hun eerste 50 dagen hun omzet</p>
         </div>
         <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
             <div style="
