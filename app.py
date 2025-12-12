@@ -343,25 +343,24 @@ if "user" not in st.session_state:
 
 # ... (Bestaande imports en CSS)
 
-# --- 3. LOGIN SCHERM (10/10 FINAL POLISH) ---
+# --- 3. LOGIN SCHERM (FINAL TWEAKS) ---
 if "user" not in st.session_state:
     if "status" in st.query_params:
         st.query_params.clear()
 
-    # Vertical alignment center is cruciaal voor de balans
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
 
     with col_left:
-        # Logo (Witruimte erboven weggehaald, CSS regelt padding)
+        # Logo
         st.markdown("<div class='logo-text'>⚡ RM Ecom Academy</div>", unsafe_allow_html=True)
         
-        # Header - Font size wordt nu door CSS geregeld (2.2rem)
+        # Header
         st.markdown("""
         <h1 style='margin-bottom: 12px; line-height: 1.15; color: #0F172A;'>
-            Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met jouw eigen webshop.
+            Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met je eigen webshop.
         </h1>
         <p style='color:#64748B; font-size:1.05rem; margin-bottom: 30px; line-height: 1.6;'>
-            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag met de eerste 7 dagen <b>gratis</b>.
+            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
         </p>
         """, unsafe_allow_html=True)
 
@@ -371,10 +370,12 @@ if "user" not in st.session_state:
             with tab_free:
                 email = st.text_input("Email", placeholder="jouw@email.com", label_visibility="collapsed", key="login_email_free")
                 
-                with st.expander("Heb je een invite-code? (Optioneel)"):
+                # De expander is prima zo: subtiel maar beschikbaar
+                with st.expander("Heb je een Vrienden-code? (Optioneel)"):
                     ref_code = st.text_input("Vrienden Code", placeholder="bv. JAN-482", key="ref_code_input")
                 
-                st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+                # Witruimte boven de knop iets kleiner gemaakt (van 8px naar 5px)
+                st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
                 
                 if st.button("🚀 Start Direct (Gratis)", type="primary", use_container_width=True):
                     if email and "@" in email:
@@ -385,17 +386,22 @@ if "user" not in st.session_state:
                     else:
                         st.warning("Vul een geldig e-mailadres in.")
                 
-                # Trust signals - Iets groter en duidelijker
+                # AANGEPAST: Dichter op de knop en strakker uitgelijnd
                 st.markdown("""
-                <div style='text-align:center; margin-top:14px;'>
-                    <div style='font-size:0.8rem; color:#64748B; font-weight:500; margin-bottom:4px; display:flex; align-items:center; justify-content:center; gap:6px;'>
-                        <span>🔒 Geen creditcard nodig</span> • <span>Direct toegang</span>
+                <div style='text-align:center; margin-top:8px; line-height:1.4;'>
+                    <div style='font-size:0.75rem; color:#64748B; font-weight:500; display:flex; align-items:center; justify-content:center; gap:6px;'>
+                        <span style='opacity:0.8;'>🔒 Geen creditcard nodig</span> 
+                        <span style='color:#CBD5E1;'>|</span> 
+                        <span style='opacity:0.8;'>Direct toegang</span>
                     </div>
-                    <div style='font-size:0.75rem; color:#94A3B8;'>
-                        ⭐️ Al <b>500+ starters</b> gingen je voor.
+                    <div style='font-size:0.7rem; color:#94A3B8; margin-top:2px;'>
+                        ⭐️ Al <b>550+ starters</b> gingen je voor.
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
+                
+                # NIEUW: Extra witregel aan de onderkant zoals gevraagd
+                st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
             with tab_pro:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
@@ -413,35 +419,26 @@ if "user" not in st.session_state:
 
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        
+        # Rechterkant blijft ongewijzigd (was al goed)
         raw_html = """
         <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
             <h3 style="margin-top:0; color:#0F172A; font-size:1.15rem; font-weight: 700;">Dit krijg je gratis:</h3>
-            
             <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
-                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
-                    🗺️
-                </div>
+                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🗺️</div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar Sales' Roadmap</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Precies weten wat je vandaag moet doen.</p>
                 </div>
             </div>
-
             <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
-                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
-                    🤖
-                </div>
+                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🤖</div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI Coach</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Laat AI je teksten en scripts schrijven.</p>
                 </div>
             </div>
-
             <div style="display:flex; gap:16px; align-items:center;">
-                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">
-                    🏆
-                </div>
+                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🏆</div>
                 <div>
                     <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Level up en unlock tools terwijl je bouwt.</p>
