@@ -267,17 +267,17 @@ if "user" not in st.session_state:
         """, unsafe_allow_html=True)
 
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["Start Challenge", "Student Login"])
+            tab_free, tab_pro = st.tabs(["Start challenge", "Student login"])
 
             with tab_free:
                 email = st.text_input("Email", placeholder="Vul hier je emailadres in...", label_visibility="collapsed", key="login_email_free")
                 
-                with st.expander("Heb je een vriendencode? (Optioneel)"):
+                with st.expander("Heb je een vriendencode? (optioneel)"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 
                 st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
                 
-                if st.button("🚀 Start Direct (Gratis)", type="primary", use_container_width=True):
+                if st.button("🚀 Start direct (gratis)", type="primary", use_container_width=True):
                     if email and "@" in email:
                         with st.spinner("Account aanmaken..."):
                             auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None)
@@ -304,10 +304,10 @@ if "user" not in st.session_state:
             with tab_pro:
                 st.markdown("<small style='color:#64748b'>Welkom terug, topper.</small>", unsafe_allow_html=True)
                 
-                pro_email = st.text_input("Jouw Email:", placeholder="Vul hier je emailadres in...", key="log_mail")
+                pro_email = st.text_input("Jouw email:", placeholder="Vul hier je emailadres in...", key="log_mail")
                 
                 # Label verborgen, placeholder aangepast
-                lic_key = st.text_input("Licentie Code", placeholder="Vul hier je code in...", type="password", label_visibility="collapsed", key="log_lic")
+                lic_key = st.text_input("Licentie code", placeholder="Vul hier je code in...", type="password", label_visibility="collapsed", key="log_lic")
                 
                 st.markdown("<br>", unsafe_allow_html=True)
                 
@@ -327,21 +327,21 @@ if "user" not in st.session_state:
             <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
                 <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🗺️</div>
                 <div>
-                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar Sales' Roadmap</h4>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar sales' roadmap</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Precies weten wat je vandaag moet doen.</p>
                 </div>
             </div>
             <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
                 <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🤖</div>
                 <div>
-                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI Coach</h4>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI coach</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Laat AI je teksten en scripts schrijven.</p>
                 </div>
             </div>
             <div style="display:flex; gap:16px; align-items:center;">
                 <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink:0;">🏆</div>
                 <div>
-                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified Groei</h4>
+                    <h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Gamified groei</h4>
                     <p style="margin:2px 0 0 0; font-size:0.9rem; color:#64748B; line-height:1.4;">Level up en unlock tools terwijl je bouwt.</p>
                 </div>
             </div>
@@ -388,6 +388,7 @@ with st.sidebar:
     menu_options = {
         "🏠 Dashboard": "Dashboard",
         "🎓 Gratis training": "Gratis Mini Training",
+        "🎨 Logo maker": "Logo Maker",
         "🔍 Product ideeën": "Product Finder",
         "📊 Concurrenten": "Spy Tool",
         "🎬 Video ideeën": "Video Scripts",
@@ -397,7 +398,7 @@ with st.sidebar:
     
     display_options = []
     for icon_name, page_name in menu_options.items():
-        if not is_pro and page_name in ["Product Finder", "Spy Tool", "Video Scripts", "Ads Doctor"]:
+        if not is_pro and page_name in ["Product Finder", "Spy Tool", "Video Scripts", "Ads Doctor", "Logo Maker"]:
             display_options.append(f"{icon_name} 🔒")
         else:
             display_options.append(icon_name)
@@ -416,7 +417,7 @@ with st.sidebar:
         <div style="margin-top: 10px; padding: 10px; background: #F8FAFC; border-radius: 8px; border: 1px dashed #CBD5E1; text-align: center;">
             <p style="font-size:0.75rem; margin-bottom:5px; color:#64748B;">Wil je dat we persoonlijk meekijken?</p>
             <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none; color: #2563EB; font-weight: 700; font-size: 0.85rem;">
-                🚀 Word Student en ontgrendel alle tools
+                🚀 Word student en ontgrendel alle tools
             </a>
             <p style="font-size:0.7rem; margin-top:6px; color:#94A3B8;">
                 Plan eerst een gratis call om te kijken naar jouw situatie
@@ -434,12 +435,12 @@ def render_pro_lock(title, desc):
             {desc}
         </p>
         <div style="max-width:520px; margin:0 auto 20px auto; text-align:left; font-size:0.9rem; color:#0F172A;">
-            <p style="margin:0 0 4px 0; font-weight:600;">Als Student krijg je onder andere:</p>
+            <p style="margin:0 0 4px 0; font-weight:600;">Als student krijg je onder andere:</p>
             <ul style="margin:0 0 6px 18px; padding:0;">
                 <li>Volledige toegang tot alle AI tools.</li>
                 <li>Extra uitlegvideo's per fase.</li>
                 <li>Persoonlijke hulp via community en calls.</li>
-                <li>Tijdelijke unlocks zoals Spy Tool verlopen niet.</li>
+                <li>Tijdelijke unlocks zoals Spy tool verlopen niet.</li>
             </ul>
             <p style="margin:0; font-size:0.8rem; color:#64748B;">De meeste studenten zitten rond €75–€175 per maand afhankelijk van het niveau.</p>
         </div>
@@ -455,7 +456,7 @@ def render_pro_lock(title, desc):
                 box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
                 transition: transform 0.2s;
             ">
-                📞 Plan Gratis Unlock Call
+                📞 Plan gratis unlock call
             </div>
         </a>
     </div>
@@ -483,29 +484,29 @@ if pg == "Dashboard":
 
     current_title, next_xp_goal = auth.get_rank_info(user['xp'])
     xp_to_next = max(next_xp_goal - user['xp'], 0)
-    next_reward_label = "Spy Tool unlock" if user['level'] < 2 else "Video Scripts unlock"
+    next_reward_label = "Spy tool unlock" if user['level'] < 2 else "Video scripts unlock"
 
     st.markdown(f"""
     <div class="metric-container">
         <div class="metric-card">
-            <div class="metric-label">HUIDIG LEVEL</div>
+            <div class="metric-label">Huidig level</div>
             <div class="metric-value">{user['level']}</div>
             <div class="metric-sub" style="color:#64748B;">{current_title}</div>
         </div>
         <div class="metric-card">
-            <div class="metric-label">JOUW XP</div>
+            <div class="metric-label">Jouw XP</div>
             <div class="metric-value">{user['xp']}</div>
-            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende rang</div>
+            <div class="metric-sub" style="color:#0EA5E9;">Nog {xp_to_next} XP tot volgende level</div>
         </div>
         <div class="metric-card">
-            <div class="metric-label">VOLGENDE BELONING</div>
+            <div class="metric-label">Volgende beloning</div>
             <div class="metric-value">🎁</div>
             <div class="metric-sub" style="color:#2563EB;">{next_reward_label}</div>
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    tab_road, tab_leader = st.tabs(["📍 Mijn Roadmap", "🏆 Toplijst"])
+    tab_road, tab_leader = st.tabs(["📍 Mijn roadmap", "🏆 Toplijst"])
 
     with tab_road:
 
@@ -534,7 +535,7 @@ if pg == "Dashboard":
 
         st.markdown(f"""
 <div style="background: linear-gradient(120deg, #2563EB, #1E40AF); padding: 24px; border-radius: 16px; color: white; margin-bottom: 25px; box-shadow: 0 8px 20px -5px rgba(37, 99, 235, 0.4);">
-    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">🚀 Huidige Missie</div>
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; opacity: 0.9; margin-bottom: 8px;">🚀 Huidige missie</div>
     <h2 style="margin: 0; font-size: 1.4rem; color: white; font-weight: 700;">{next_step_title}</h2>
     <p style="margin: 6px 0 14px 0; font-size:0.85rem; opacity:0.9;">
         Voltooi de volgende stap. Daarna bepalen we samen wat logisch is om hierna te doen.
@@ -610,14 +611,14 @@ if pg == "Dashboard":
                 """, unsafe_allow_html=True)
 
 elif pg == "Gratis Mini Training":
-    st.title("🎓 Gratis Mini Training")
+    st.title("🎓 Gratis mini training")
     st.caption("Korte training om je eerste stappen als e-commerce starter snel helder te krijgen.")
 
     t1, t2 = st.columns(2)
     t3, t4 = st.columns(2)
 
     with t1:
-        st.markdown("### 1. Mindset & Realistische Verwachtingen")
+        st.markdown("### 1. Mindset & realistische verwachtingen")
         with st.container(border=True):
             st.markdown('<iframe src="https://drive.google.com/file/d/1xyM_9q2i5FJBF__HvmhDrHTBueBoBstv/preview" width="100%" height="300" style="border-radius:8px; border:none;"></iframe>', unsafe_allow_html=True)
         st.info("Noteer na deze video in 3 bulletpoints waarom je deze webshop wilt. Dat helpt je bij tegenslag.")
@@ -645,7 +646,70 @@ elif pg == "Gratis Mini Training":
             <p style="color:#0C4A6E; margin:0;">Je hebt de basis gezien. Wil je dat we meekijken zodat dit ook echt gaat draaien?</p>
         </div>
         """, unsafe_allow_html=True)
-        st.link_button("📞 Plan Gratis Strategie Call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
+        st.link_button("📞 Plan gratis strategie call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
+
+elif pg == "Logo Maker":
+    st.title("🎨 Logo maker")
+    
+    # 1. Check Sessie status voor gratis credits
+    if "logo_generations" not in st.session_state:
+        st.session_state.logo_generations = 0
+        
+    # 2. Toegang bepalen: Wel PRO OF nog gratis credits over
+    has_access = is_pro or st.session_state.logo_generations < 3
+    
+    if not has_access:
+        render_pro_lock(
+            "Je gratis logo credits zijn op",
+            "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren."
+        )
+    else:
+        # Toon resterende credits voor gratis gebruikers
+        if not is_pro:
+            credits_left = 3 - st.session_state.logo_generations
+            st.info(f"🎁 Je hebt nog **{credits_left}** gratis logo generaties over.")
+        else:
+            st.caption("Genereer onbeperkt professionele logo's voor je webshop.")
+        
+        with st.container(border=True):
+            col1, col2 = st.columns(2)
+            with col1:
+                brand_name = st.text_input("Bedrijfsnaam", placeholder="Bijv. Lumina")
+                niche = st.text_input("Niche / industrie", placeholder="Bijv. Moderne verlichting")
+            with col2:
+                style = st.selectbox("Stijl", ["Minimalistisch", "Modern & strak", "Vintage / retro", "Luxe & elegant", "Speels & kleurrijk"])
+                color = st.text_input("Voorkeurskleuren", placeholder="Bijv. Zwart en goud, of Pastelblauw")
+            
+            if st.button("✨ Genereer 3 logo concepten", type="primary", use_container_width=True):
+                if not brand_name or not niche:
+                    st.warning("Vul in ieder geval je bedrijfsnaam en niche in.")
+                else:
+                    # Update credits
+                    st.session_state.logo_generations += 1
+                    
+                    with st.spinner("AI is aan het ontwerpen... dit duurt ongeveer 30 seconden voor 3 variaties."):
+                        # We genereren 3 keer in een loop
+                        images = []
+                        for i in range(3):
+                            # Variatie in de prompt aanbrengen voor diversiteit
+                            variation = ""
+                            if i == 1: variation = "Make it slightly bolder."
+                            if i == 2: variation = "Make it more elegant and thin."
+                            
+                            img_url = ai_coach.generate_logo(brand_name, niche, style + " " + variation, color)
+                            if img_url: images.append(img_url)
+                        
+                        if images:
+                            st.success("Logo's succesvol gegenereerd!")
+                            cols = st.columns(3)
+                            for idx, img in enumerate(images):
+                                with cols[idx]:
+                                    # FIX: use_container_width (ipv deprecated use_column_width)
+                                    st.image(img, use_container_width=True)
+                                    st.caption(f"Optie {idx+1}")
+                            st.info("💡 Tip: Rechtsklik op de afbeelding om hem op te slaan.")
+                        else:
+                            st.error("Er ging iets mis bij het genereren. Probeer het opnieuw.")
 
 elif pg == "Product Finder":
     st.title("🔍 Product ideeën voor jouw webshop")
@@ -655,7 +719,7 @@ elif pg == "Product Finder":
     if not is_pro:
         render_pro_lock(
             "Ontgrendel echte winnende producten",
-            "Als Student krijg je toegang tot een uitgebreidere product finder, inclusief marges, positionering en vervolgstappen in de roadmap."
+            "Als student krijg je toegang tot een uitgebreidere product finder, inclusief marges, positionering en vervolgstappen in de roadmap."
         )
     else:
         with st.container(border=True):
@@ -679,7 +743,8 @@ elif pg == "Product Finder":
                         c1, c2 = st.columns([1, 2])
                         with c1:
                             if image_url:
-                                st.image(image_url, use_column_width=True)
+                                # FIX: use_container_width (ipv deprecated use_column_width)
+                                st.image(image_url, use_container_width=True)
                             else:
                                 st.write("Geen afbeelding beschikbaar.")
                         with c2:
@@ -708,7 +773,7 @@ elif pg == "Spy Tool":
 
     if has_access:
         if not is_pro:
-            st.info("🕒 Tijdelijke toegang actief (24u). Word Student om deze tool blijvend te gebruiken.")
+            st.info("🕒 Tijdelijke toegang actief (24u). Word student om deze tool blijvend te gebruiken.")
         with st.container(border=True):
             url = st.text_input("Shopify URL van de concurrent", placeholder="https://concurrent.nl")
             if url and st.button("🚀 Analyseer shop", type="primary", use_container_width=True):
@@ -719,12 +784,12 @@ elif pg == "Spy Tool":
                     time.sleep(0.5)
                     bar.progress((i+1)*20, text=txt)
                 bar.empty()
-                st.success("Analyse voorbeeld is klaar. In de Student omgeving koppelen we hier echte data en next steps aan.")
+                st.success("Analyse voorbeeld is klaar. In de student omgeving koppelen we hier echte data en next steps aan.")
 
                 c1, c2 = st.columns(2)
-                c1.metric("Geschatte Omzet (voorbeeld)", "€12.450", "+12%")
+                c1.metric("Geschatte omzet (voorbeeld)", "€12.450", "+12%")
                 c2.metric("Bestseller (voorbeeld)", "Galaxy Lamp")
-                st.caption("Dit is een demo weergave. In het Student programma laten we je zien hoe je hier echte acties aan koppelt.")
+                st.caption("Dit is een demo weergave. In het student programma laten we je zien hoe je hier echte acties aan koppelt.")
     else:
         render_pro_lock("Concurrenten professioneel analyseren", "Zie omzet, bestsellers en positionering van andere shops zodat je niet in het donker bouwt.")
 
@@ -756,7 +821,7 @@ elif pg == "Video Scripts":
                     st.code(res['creator_brief'], language="text")
                 st.caption("Tip: kies één hook en neem die 5–10 keer op. De beste variant gebruik je in je advertentie.")
     else:
-        render_pro_lock("Viral Video Scripts Generator", "Laat AI complete TikTok en Reels scripts voor je product schrijven, inclusief briefing tekst.")
+        render_pro_lock("Viral video scripts generator", "Laat AI complete TikTok en Reels scripts voor je product schrijven, inclusief briefing tekst.")
 
 elif pg == "Ads Doctor":
     st.title("🩺 Ads check")
@@ -770,7 +835,7 @@ elif pg == "Ads Doctor":
                 if not upload or not notities:
                     st.warning("Upload een screenshot en vul je vraag in.")
                 else:
-                    st.success("In de Student omgeving koppelen we hier AI analyse en concrete advertentie acties aan.")
+                    st.success("In de student omgeving koppelen we hier AI analyse en concrete advertentie acties aan.")
                     st.caption("Nu kun je dit screenshot alvast bewaren zodat je het makkelijk terugvindt.")
     else:
         render_pro_lock("Ads check", "Laat je advertenties beoordelen en krijg concrete verbeterpunten per campagne.")
@@ -821,7 +886,7 @@ elif pg == "Instellingen":
         
         with st.container(border=True):
             st.markdown("#### Jouw vrienden code")
-            st.caption("Deel deze code met mensen die willen starten. Zij krijgen een voordeel en jij ontvangt commissie per Student die via jouw code instapt. Het exacte bedrag zie je hierboven bij 'Geschat verdiend'.")
+            st.caption("Deel deze code met mensen die willen starten. Zij krijgen een voordeel en jij ontvangt commissie per student die via jouw code instapt. Het exacte bedrag zie je hierboven bij 'Geschat verdiend'.")
             st.code(user['referral_code'], language="text")
 
     with tab3:
@@ -863,8 +928,8 @@ elif pg == "Instellingen":
     with tab4:
         with st.container(border=True):
             st.markdown("#### Support")
-            st.link_button("💬 Discord Community", COMMUNITY_URL, use_container_width=True)
-            st.link_button("📧 Email Support", "mailto:support@rmecom.nl", use_container_width=True)
+            st.link_button("💬 Discord community", COMMUNITY_URL, use_container_width=True)
+            st.link_button("📧 Email support", "mailto:support@rmecom.nl", use_container_width=True)
         
         with st.expander("Veelgestelde vragen"):
             st.write("**Hoe werkt de XP?**")
