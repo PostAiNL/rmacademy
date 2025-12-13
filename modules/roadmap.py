@@ -12,12 +12,12 @@ def get_roadmap():
             "desc": "Zonder fundering stort je huis in. Regel dit administratieve werk eerst.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK inschrijving", "icon": "", "locked": False,
+                    "id": "step_kvk", "title": "KVK inschrijving", "icon": "📝", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
                 {
-                    "id": "step_bank", "title": "Bank & creditcard wizard", "icon": "", "locked": False,
+                    "id": "step_bank", "title": "Bank & creditcard wizard", "icon": "💳", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/financieel"
                 }
@@ -28,18 +28,17 @@ def get_roadmap():
             "desc": "Geef je winkel een gezicht en een naam die blijft hangen.",
             "steps": [
                 {
-                    "id": "step_brand_name", "title": "Naam & slogan generator", "icon": "", "locked": False,
+                    "id": "step_brand_name", "title": "Naam & slogan generator", "icon": "✨", "locked": False,
                     "content": "TOOL_BRAND_NAME", "xp_reward": 125,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/branding"
                 },
-                # NIEUWE STAP: LOGO MAKER
                 {
-                    "id": "step_logo_maker", "title": "Logo maker (AI)", "icon": "", "locked": False,
+                    "id": "step_logo_maker", "title": "Logo maker (AI)", "icon": "🎨", "locked": False,
                     "content": "TOOL_LOGO_MAKER", "xp_reward": 150,
                     "teaser": "Ontwerp je eigen professionele logo in seconden."
                 },
                 {
-                    "id": "step_shopify_setup", "title": "Shopify opzetten", "icon": "", "locked": False,
+                    "id": "step_shopify_setup", "title": "Shopify opzetten", "icon": "🛍️", "locked": False,
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 }
@@ -50,21 +49,40 @@ def get_roadmap():
             "desc": "Bereken je prijzen en vul je shop met professionele teksten.",
             "steps": [
                 {
-                    "id": "step_pricing", "title": "Winst calculator", "icon": "", "locked": False,
+                    "id": "step_pricing", "title": "Winst calculator", "icon": "🧮", "locked": False,
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
                 },
+                # AANGEPAST: NU GRATIS (LOCKED: FALSE)
                 {
-                    "id": "step_about_us", "title": "'Over ons' pagina", "icon": "", "locked": True, 
+                    "id": "step_about_us", "title": "'Over ons' pagina", "icon": "✍️", "locked": False, 
                     "content": "TOOL_ABOUT_US", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/copywriting",
                     "teaser": "Laat AI je merkverhaal schrijven in 1 klik."
                 },
+                # AANGEPAST: NU GRATIS (LOCKED: FALSE)
                 {
-                    "id": "step_legal", "title": "Juridische pagina's", "icon": "", "locked": True, 
+                    "id": "step_legal", "title": "Juridische pagina's", "icon": "⚖️", "locked": False, 
                     "content": "TOOL_LEGAL_GEN", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/legal",
                     "teaser": "Genereer waterdichte juridische teksten."
+                }
+            ]
+        },
+        # NIEUWE FASE 4: MARKETING & SALES (PRO)
+        "fase_4": {
+            "title": "Fase 4: Marketing & Sales",
+            "desc": "Tijd om op te schalen. Vind winnende producten en start met adverteren.",
+            "steps": [
+                {
+                    "id": "step_winning_prod", "title": "Winnende Producten Vinden", "icon": "🔥", "locked": True,
+                    "content": "TOOL_PRODUCT_SPY", "xp_reward": 200,
+                    "teaser": "Gebruik de Spy Tool om bewezen bestsellers te vinden."
+                },
+                {
+                    "id": "step_ads_script", "title": "Viral Ads Maken", "icon": "🎬", "locked": True,
+                    "content": "TOOL_VIDEO_SCRIPTS", "xp_reward": 200,
+                    "teaser": "Laat AI scripts schrijven die viraal gaan op TikTok."
                 }
             ]
         }
@@ -183,7 +201,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 for item in st.session_state[result_key]:
                     st.info(f"**{item['name']}** - {item['slogan']}")
         
-        # --- HIER IS DE NIEUWE LOGO MAKER STAP IN DE ROADMAP ---
         elif step['content'] == "TOOL_LOGO_MAKER":
             st.write("Genereer een logo voor je nieuwe merknaam.")
             with st.form(key=f"logo_{step['id']}"):
@@ -192,14 +209,12 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 if st.form_submit_button("✨ Maak logo", type="primary"):
                     if brand_name and niche:
                         with st.spinner("Logo wordt ontworpen..."):
-                            # Hier roepen we de echte AI functie aan
                             img_url = ai_coach.generate_logo(brand_name, niche, "Modern & Minimal", "Black & White")
                             if img_url:
                                 st.session_state[result_key] = img_url
                                 st.session_state[usage_key] = True
                             else:
                                 st.error("Fout bij genereren.")
-            
             if result_key in st.session_state:
                 st.image(st.session_state[result_key], caption="Jouw logo")
                 st.success("Logo gegenereerd!")
@@ -238,6 +253,16 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     st.session_state[usage_key] = True
                     st.session_state[result_key] = f"Algemene voorwaarden voor {name}..."
             if result_key in st.session_state: st.success("Teksten gegenereerd!")
+
+        # --- NIEUWE TOOLS FASE 4 (PRO) ---
+        elif step['content'] == "TOOL_PRODUCT_SPY":
+            st.write("Ga naar het tabblad **Product ideeën** of **Concurrenten** in het menu om deze taak uit te voeren.")
+            st.markdown("Gebruik de tools daar en vink dan hieronder aan dat je klaar bent.")
+            if st.checkbox("✅ Ik heb een winnend product gevonden"): st.session_state[usage_key] = True
+
+        elif step['content'] == "TOOL_VIDEO_SCRIPTS":
+            st.write("Ga naar het tabblad **Video ideeën** in het menu om je scripts te genereren.")
+            if st.checkbox("✅ Ik heb mijn scripts gemaakt"): st.session_state[usage_key] = True
 
         st.markdown("<br>", unsafe_allow_html=True)
         if not is_completed:
