@@ -32,7 +32,7 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES) ---
+# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES & BLUE THEME) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
@@ -135,7 +135,7 @@ st.markdown("""
             font-weight: 600 !important;
         }
 
-        /* --- TABS FIX (Voorkom onzichtbare tekst op mobiel) --- */
+        /* --- TABS TEKST KLEUR --- */
         button[data-baseweb="tab"] div p {
             color: #64748B !important; /* Donkergrijs voor niet-actief */
             font-weight: 600 !important;
@@ -147,44 +147,26 @@ st.markdown("""
             background-color: transparent !important;
         }
 
-        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (CRUCIAAL) --- */
-        
-        /* 1. Normale staat: Duidelijke randen & Zwarte tekst */
+        /* --- SAMSUNG EXPANDER / DROPDOWN FIX --- */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
-            border: 2px solid #CBD5E1 !important; /* DIKKERE RAND (2px) */
+            border: 2px solid #CBD5E1 !important;
             border-radius: 8px !important;
             transition: all 0.2s;
         }
-        .streamlit-expanderHeader p {
-            color: #0F172A !important;
-            font-weight: 600 !important;
-        }
-        .streamlit-expanderHeader svg {
-            fill: #0F172A !important;
-        }
+        .streamlit-expanderHeader p { color: #0F172A !important; font-weight: 600 !important; }
+        .streamlit-expanderHeader svg { fill: #0F172A !important; }
 
-        /* 2. KLIK / ACTIVE STAAT: Donkere achtergrond & WITTE TEKST */
-        /* Dit lost het Samsung probleem op. Als Samsung de knop 'active' maakt, */
-        /* forceren we de tekst naar wit zodat het leesbaar blijft. */
-        .streamlit-expanderHeader:active, 
-        .streamlit-expanderHeader:focus,
-        .streamlit-expanderHeader:hover {
-            background-color: #1E293B !important; /* Donkerblauw/Zwart */
+        .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus, .streamlit-expanderHeader:hover {
+            background-color: #1E293B !important;
             border-color: #0F172A !important;
         }
-        
-        .streamlit-expanderHeader:active p, 
-        .streamlit-expanderHeader:focus p,
-        .streamlit-expanderHeader:hover p {
-            color: #FFFFFF !important; /* WITTE TEKST */
+        .streamlit-expanderHeader:active p, .streamlit-expanderHeader:focus p, .streamlit-expanderHeader:hover p {
+            color: #FFFFFF !important;
         }
-        
-        .streamlit-expanderHeader:active svg, 
-        .streamlit-expanderHeader:focus svg,
-        .streamlit-expanderHeader:hover svg {
-            fill: #FFFFFF !important; /* WIT PIJLTJE */
+        .streamlit-expanderHeader:active svg, .streamlit-expanderHeader:focus svg, .streamlit-expanderHeader:hover svg {
+            fill: #FFFFFF !important;
         }
 
         /* DROPDOWN MENU FIX */
@@ -193,14 +175,8 @@ st.markdown("""
             color: #0F172A !important;
             border-color: #CBD5E1 !important;
         }
-        
-        ul[data-baseweb="menu"] { 
-            background-color: #FFFFFF !important; 
-        }
-        li[data-baseweb="option"] { 
-            color: #0F172A !important; 
-            background-color: #FFFFFF !important; 
-        }
+        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
+        li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
         li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
             background-color: #EFF6FF !important; 
         }
@@ -220,37 +196,17 @@ st.markdown("""
             padding-bottom: 5rem !important;
             max-width: 1000px;
         }
-        
-        /* SIDEBAR COMPACT MAKEN */
         [data-testid="stSidebar"] .block-container {
-            padding-top: 1.5rem !important;
-            padding-bottom: 1rem !important;
-            padding-left: 1rem !important; 
-            padding-right: 1rem !important;
+            padding-top: 1.5rem !important; padding-bottom: 1rem !important;
+            padding-left: 1rem !important; padding-right: 1rem !important;
         }
-        
-        /* Minder witruimte tussen sidebar items */
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div {
-            gap: 0.5rem !important;
-        }
+        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div { gap: 0.5rem !important; }
 
-        @media (max-width: 992px) {
-            .block-container { padding-top: 4rem !important; }
-        }
+        @media (max-width: 992px) { .block-container { padding-top: 4rem !important; } }
 
         /* TITELS */
-        h1 {
-            font-size: 1.8rem !important;
-            font-weight: 800 !important;
-            letter-spacing: -1px !important;
-            color: #0F172A !important;
-            margin-top: 0px !important;
-        }
-        
-        .logo-text {
-            font-weight: 800; font-size: 1.1rem; color: #0F172A;
-            display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
-        }
+        h1 { font-size: 1.8rem !important; font-weight: 800 !important; letter-spacing: -1px !important; color: #0F172A !important; margin-top: 0px !important; }
+        .logo-text { font-weight: 800; font-size: 1.1rem; color: #0F172A; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
 
         /* Cards & Metrics */
         div[data-testid="stVerticalBlockBorderWrapper"] {
@@ -258,59 +214,48 @@ st.markdown("""
             padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px; }
-        .metric-card {
-            background: white; border: 1px solid #E2E8F0; border-radius: 12px;
-            padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-        }
+        .metric-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
         .metric-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
         .metric-label { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; }
         
         /* Lock & Expander Fixes */
-        .lock-container { 
-            text-align: center; padding: 30px 20px; background: white; 
-            border-radius: 16px; border: 1px solid #E2E8F0; 
-            box-shadow: 0 4px 20px rgba(0,0,0,0.02); margin-top: 10px;
-        }
-        .stExpander {
-            margin-bottom: -15px !important; border: none !important; box-shadow: none !important;
-        }
-
-        /* Focus Mode Styling voor Expander Headers */
-        div[data-testid="stExpander"] details summary p {
-            font-weight: 600;
-        }
+        .lock-container { text-align: center; padding: 30px 20px; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0,0,0,0.02); margin-top: 10px; }
+        .stExpander { margin-bottom: -15px !important; border: none !important; box-shadow: none !important; }
+        div[data-testid="stExpander"] details summary p { font-weight: 600; }
         
-        /* --- VISUAL ROADMAP STYLES (PUNT 3) --- */
-        .progress-container {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 30px; position: relative; padding: 0 10px;
-        }
-        .progress-line {
-            position: absolute; top: 50%; left: 0; width: 100%; height: 3px;
-            background: #E2E8F0; z-index: 1; transform: translateY(-50%);
-        }
-        .progress-step {
-            width: 32px; height: 32px; border-radius: 50%;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 2; position: relative; background: white;
-            border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold;
-            font-size: 0.8rem; transition: all 0.3s;
-        }
-        .progress-step.active {
-            border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
-        }
-        .progress-step.completed {
-            background: #10B981; border-color: #10B981; color: white;
-        }
-        .progress-label {
-            position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
-            font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600;
-        }
+        /* VISUAL ROADMAP STYLES */
+        .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; }
+        .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; transform: translateY(-50%); }
+        .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
+        .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
+        .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
+        .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
 
         @media (max-width: 600px) {
             .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
             .metric-value { font-size: 1.1rem; }
             .metric-label { font-size: 0.6rem; }
+        }
+
+        /* ==============================================
+           5. FORCEREN VAN BLAUW (OVERRIDE STREAMLIT RED)
+           ============================================== */
+        
+        /* 1. De Primary Button (Start direct knop) Blauw maken */
+        div.stButton > button[kind="primary"] {
+            background-color: #2563EB !important;
+            border-color: #2563EB !important;
+            color: white !important;
+        }
+        
+        div.stButton > button[kind="primary"]:hover {
+            background-color: #1D4ED8 !important; /* Iets donkerder blauw bij hover */
+            border-color: #1D4ED8 !important;
+        }
+
+        /* 2. De Tabbladen lijntjes (Het actieve lijntje onder 'Start Challenge') */
+        div[data-baseweb="tab-highlight"] {
+            background-color: #2563EB !important;
         }
     </style>
 """, unsafe_allow_html=True)
