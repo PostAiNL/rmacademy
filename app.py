@@ -126,6 +126,35 @@ st.markdown("""
             font-weight: 600 !important;
         }
 
+        /* --- NIEUW: TABS FIX (Voorkom onzichtbare tekst op mobiel) --- */
+        button[data-baseweb="tab"] div p {
+            color: #64748B !important; /* Donkergrijs voor niet-actief */
+            font-weight: 600 !important;
+        }
+        button[data-baseweb="tab"][aria-selected="true"] div p {
+            color: #2563EB !important; /* Blauw voor actief */
+        }
+        button[data-baseweb="tab"] {
+            background-color: transparent !important;
+        }
+
+        /* --- NIEUW: EXPANDER FIX (Vriendencode Samsung fix) --- */
+        .streamlit-expanderHeader {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1px solid #E2E8F0 !important;
+            border-radius: 8px !important;
+        }
+        /* Forceer ook bij klikken (active/focus) wit met zwarte tekst */
+        .streamlit-expanderHeader:hover, .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+        }
+        .streamlit-expanderHeader p {
+            color: #0F172A !important;
+            font-weight: 500 !important;
+        }
+
         /* DROPDOWN MENU FIX (Voorkom zwarte achtergrond) */
         div[data-baseweb="select"] > div {
             background-color: #FFFFFF !important;
@@ -133,7 +162,6 @@ st.markdown("""
             border-color: #CBD5E1 !important;
         }
         
-        /* De lijst met opties in dropdown */
         ul[data-baseweb="menu"] { 
             background-color: #FFFFFF !important; 
         }
