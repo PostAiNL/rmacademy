@@ -10,3 +10,4 @@ openpyxl
 beautifulsoup4
 deep-translator
 streamlit-option-menu
+extra-streamlit-components
