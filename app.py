@@ -239,7 +239,7 @@ st.markdown("""
         
         .logo-text {
             font-weight: 800; font-size: 1.1rem; color: #0F172A;
-            display: flex; align-items: center; gap: 8px; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 8px; margin-bottom: 5px;
         }
 
         /* Cards & Metrics */
