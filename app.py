@@ -48,7 +48,7 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE (MET ROADMAP & LOGIN FIX) ---
+# --- 1. CSS ENGINE (MET CRUCIALE MOBILE FIXES) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
@@ -76,7 +76,7 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER & SIDEBAR FIXES
+           2. HEADER & SIDEBAR FIXES (MOBILE)
            ============================================== */
         header[data-testid="stHeader"] {
             background-color: #F8FAFC !important;
@@ -85,24 +85,28 @@ st.markdown("""
             height: 60px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX */
+        /* MOBIELE SIDEBAR FIX: Forceer witte achtergrond en zichtbare knoppen */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
+            /* De 'X' knop (sluiten) en de hamburger (openen) */
             button[kind="header"], [data-testid="stSidebarCollapseButton"] {
                 color: #0F172A !important;
                 fill: #0F172A !important;
                 background-color: transparent !important;
             }
+            /* Zorg dat de iconen (svg) in de knoppen donker zijn */
             button[kind="header"] svg, [data-testid="stSidebarCollapseButton"] svg {
                 fill: #0F172A !important;
                 color: #0F172A !important;
             }
         }
 
+        /* Desktop sidebar toggle */
         [data-testid="stSidebarCollapseButton"] { color: #0F172A !important; }
+        
         [data-testid="stDecoration"] { display: none !important; }
         [data-testid="stStatusWidget"] { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
@@ -116,6 +120,7 @@ st.markdown("""
             max-width: 1000px;
         }
         
+        /* H1 strakker omhoog trekken */
         h1 { 
             font-size: 1.8rem !important; 
             font-weight: 800 !important; 
@@ -126,6 +131,7 @@ st.markdown("""
             margin-bottom: 10px !important;
         }
 
+        /* Sidebar content padding */
         [data-testid="stSidebar"] .block-container {
             padding-top: 1.5rem !important; 
             padding-left: 1rem !important; 
@@ -166,7 +172,7 @@ st.markdown("""
         input[type="checkbox"] { accent-color: #2563EB !important; background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
 
         /* ==============================================
-           4. VISUAL ROADMAP STYLES (GECORRIGEERD)
+           4. VISUAL ROADMAP STYLES
            ============================================== */
         .progress-container {
             display: flex !important;
@@ -226,6 +232,10 @@ st.markdown("""
         }
 
         /* STATS GRID */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-radius: 16px; background: var(--white); border: 1px solid var(--border);
+            padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .stat-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 4px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .stat-icon { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; white-space: nowrap; }
@@ -243,8 +253,16 @@ st.markdown("""
 
         /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .levelup-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: popIn 0.5s ease-out forwards; }
-        .levelup-card { background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24; }
+        .levelup-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.9); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: popIn 0.5s ease-out forwards;
+        }
+        .levelup-card {
+            background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24;
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -253,48 +271,76 @@ cookie_manager = stx.CookieManager()
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
     if cookie_email:
+        # Hier gebruiken we tijdelijk een dummy password check voor sessie herstel, 
+        # in een echte app zou je een token gebruiken.
+        # Voor nu gaan we ervan uit dat als de cookie er is, het goed is voor sessie herstel (soft login).
         try: auth.login_or_register(cookie_email)
         except: pass
 
-# --- 3. LOGIN SCHERM (MET TEKST HERSTELD) ---
+# --- 3. LOGIN SCHERM (MET WACHTWOORD + STERREN) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
     with col_left:
         st.markdown("<div class='logo-text'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
-        
-        # HIER IS DE TEKST HERSTELD:
         st.markdown("""
         <h1>Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met je eigen webshop.</h1>
         <p style='color:#64748B; font-size:1.05rem; margin-bottom: 30px; line-height: 1.6;'>
             De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
         </p>
         """, unsafe_allow_html=True)
-
         with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["Start challenge", "Student login"])
+            tab_free, tab_pro = st.tabs(["Nieuw Account", "Inloggen"])
             with tab_free:
                 col_name, col_email = st.columns(2)
                 first_name = col_name.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
-                email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="login_email_free")
+                email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
+                password = st.text_input("Wachtwoord verzinnen", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
                 with st.expander("Heb je een vriendencode?"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
-                    if email and "@" in email and first_name:
+                    if email and "@" in email and first_name and password:
                         with st.spinner("Account aanmaken..."):
-                            auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
-                            cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
-                            st.rerun()
+                            # 1. DB Create
+                            status = db.create_user(email, password, first_name)
+                            if status == "SUCCESS":
+                                auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
+                                cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
+                                st.rerun()
+                            elif status == "EXISTS":
+                                st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
+                            else:
+                                st.error("Er ging iets mis met de database.")
+                    else:
+                        st.warning("Vul alle velden in.")
+                st.markdown("""<div style='text-align:center; margin-top:8px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                
+                # REVIEWS (HERSTELD)
+                st.markdown("""
+                <div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9;'>
+                    <div style="color: #F59E0B; font-size: 0.8rem;">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span>
+                </div>
+                """, unsafe_allow_html=True)
+
             with tab_pro:
-                pro_email = st.text_input("Jouw email:", placeholder="Email...", key="log_mail")
-                lic_key = st.text_input("Licentie code", placeholder="Code...", type="password", label_visibility="collapsed", key="log_lic")
+                log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
+                log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Inloggen", type="primary", use_container_width=True):
-                    if pro_email and lic_key:
-                        auth.login_or_register(pro_email, license_input=lic_key)
-                        cookie_manager.set("rmecom_user_email", pro_email, expires_at=datetime.now() + timedelta(days=30))
-                        st.rerun()
+                    if log_email and log_pass:
+                        # 1. DB Verify
+                        if db.verify_user(log_email, log_pass):
+                            auth.login_or_register(log_email)
+                            cookie_manager.set("rmecom_user_email", log_email, expires_at=datetime.now() + timedelta(days=30))
+                            st.rerun()
+                        else:
+                            st.error("Onjuiste gegevens.")
+                    else:
+                        st.warning("Vul alles in.")
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
         raw_html = """
@@ -388,8 +434,9 @@ with st.sidebar:
     if not is_pro:
         st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
-    options = ["Dashboard", "Gratis training", "Marketing Tools", "Logo maker", "Product ideeën", "Winst Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
-    icons = ["house-fill", "mortarboard-fill", "megaphone-fill", "palette-fill", "search", "calculator-fill", "bar-chart-fill", "camera-reels-fill", "bandaid-fill", "gear-fill"]
+    # NIEUWE OPTIE: PROFIT TRACKER
+    options = ["Dashboard", "Gratis training", "Profit Tracker", "Marketing Tools", "Logo maker", "Product ideeën", "Winst Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
+    icons = ["house-fill", "mortarboard-fill", "cash-stack", "megaphone-fill", "palette-fill", "search", "calculator-fill", "bar-chart-fill", "camera-reels-fill", "bandaid-fill", "gear-fill"]
     
     menu_display_options = []
     for opt in options:
@@ -422,41 +469,29 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     
-# --- FEEDBACK & REWARDS CARD (ONE-TIME ONLY) ---
+    # --- FEEDBACK & REWARDS CARD ---
     st.markdown("---") 
-    
     with st.container(border=True):
         st.markdown("<div style='font-weight:700; color:#0F172A; margin-bottom:4px;'>💡Geef ons jouw mening</div>", unsafe_allow_html=True)
         st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
-        
         fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=80, key="fb_sidebar", label_visibility="collapsed")
-        
         if st.button("Claim gratis PRO🚀", use_container_width=True):
             if len(fb_text) > 10:
                 with st.spinner("Checken..."):
-                    # 1. AI Validatie
                     is_valid = ai_coach.validate_feedback(fb_text)
-                    
-                    # 2. Opslaan (altijd, ook als het ongeldig is voor training)
                     db.save_feedback(user['email'], fb_text, is_valid)
-                    
                     if is_valid:
-                        # 3. Proberen te claimen in DB
                         status = db.claim_feedback_reward(user['email'])
-                        
                         if status == "SUCCESS":
                             st.balloons()
                             st.success("🎉 Geweldig! Je 24 uur PRO toegang is gestart!")
                             time.sleep(2)
                             st.rerun()
                         elif status == "ALREADY_CLAIMED":
-                            st.info("Bedankt voor je feedback! 🙌 Je hebt je 24u reward al eerder gebruikt, dus deze keer geen upgrade, maar we waarderen het enorm!")
-                        else:
-                            st.error("Er ging iets mis met de verbinding.")
-                    else:
-                        st.warning("De AI vond dit geen nuttige feedback. Wees specifieker om de reward te verdienen.")
-            else:
-                st.warning("Typ minimaal 10 letters.")
+                            st.info("Bedankt! Je hebt je beloning al eerder gehad.")
+                        else: st.error("Fout met DB.")
+                    else: st.warning("Probeer constructieve feedback te geven.")
+            else: st.warning("Typ minimaal 10 letters.")
 
 # --- LOCK SCREEN COMPONENT ---
 def render_pro_lock(title, desc):
@@ -468,7 +503,6 @@ def render_pro_lock(title, desc):
             <div style="height: 15px; background: #E2E8F0; width: 60%; margin-bottom: 10px; border-radius: 4px;"></div>
             <div style="height: 15px; background: #E2E8F0; width: 70%; margin-bottom: 20px; border-radius: 4px;"></div>
             <div style="display:flex; gap:15px;">
-                <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
                 <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
                 <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
             </div>
@@ -541,8 +575,8 @@ if pg == "Dashboard":
         if phase_done and idx == len(fase_keys) - 1: next_step_phase_index = 6 
 
     html_steps = ""
-    labels = ["Start", "Bouwen", "Product", "Trust", "Scale"]
-    for i in range(1, 6):
+    labels = ["Start", "Bouwen", "Product", "Trust", "Scale", "Daily"]
+    for i in range(1, 7): # Aangepast naar 7 voor Fase 6
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
@@ -602,9 +636,7 @@ elif pg == "Gratis training":
     st.caption("Korte training om je eerste stappen als e-commerce starter snel helder te krijgen.")
     t1, t2 = st.columns(2)
     t3, t4 = st.columns(2)
-    
-    def video_header(text):
-        st.markdown(f"<div style='font-weight:700; font-size:0.95rem; margin-bottom:8px; color:#0F172A;'>{text}</div>", unsafe_allow_html=True)
+    def video_header(text): st.markdown(f"<div style='font-weight:700; font-size:0.95rem; margin-bottom:8px; color:#0F172A;'>{text}</div>", unsafe_allow_html=True)
 
     with t1:
         video_header("1. Mindset & realistische verwachtingen")
@@ -628,6 +660,45 @@ elif pg == "Gratis training":
         st.markdown("<br>", unsafe_allow_html=True)
         st.markdown("""<div style="background: #F0F9FF; padding: 25px; border-radius: 12px; border: 1px solid #BAE6FD; text-align: center;"><h4 style="color:#0369A1; margin-bottom:6px;">Klaar voor het echte werk?</h4><p style="color:#0C4A6E; margin:0;">Je hebt de basis gezien. Wil je dat we meekijken zodat dit ook echt gaat draaien?</p></div>""", unsafe_allow_html=True)
         st.link_button("Plan gratis strategie call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
+
+# --- NIEUWE PAGINA: PROFIT TRACKER ---
+elif pg == "Profit Tracker":
+    st.markdown("<h1><i class='bi bi-cash-stack'></i> Daily Profit Tracker</h1>", unsafe_allow_html=True)
+    st.caption("Je moet elke dag weten of je wint of verliest. Vul dit elke ochtend in.")
+    
+    # 1. Input Formulier
+    with st.container(border=True):
+        st.markdown("#### Vandaag toevoegen")
+        c1, c2, c3 = st.columns(3)
+        rev = c1.number_input("Omzet (€)", 0.0)
+        spend = c2.number_input("Ad Spend (€)", 0.0)
+        cogs = c3.number_input("Inkoop (COGS) (€)", 0.0)
+        
+        if st.button("Opslaan in Database", type="primary"):
+            if db.save_daily_stats(user['email'], rev, spend, cogs):
+                st.success("Opgeslagen! Goed bezig.")
+            else:
+                st.error("Kon niet opslaan (Database error).")
+
+    # 2. Historie & Grafiek
+    history = db.get_daily_stats_history(user['email'])
+    if history:
+        st.markdown("### Laatste 7 Dagen")
+        df = pd.DataFrame(history)
+        df['Profit'] = df['revenue'] - df['ad_spend'] - df['cogs']
+        
+        # Metrics
+        total_rev = df['revenue'].sum()
+        total_profit = df['Profit'].sum()
+        col1, col2 = st.columns(2)
+        col1.metric("Totaal Omzet (7d)", f"€{total_rev:.2f}")
+        col2.metric("Totaal Winst (7d)", f"€{total_profit:.2f}", delta_color="normal")
+        
+        # Grafiek
+        st.bar_chart(df, x="date", y="Profit")
+        st.dataframe(df)
+    else:
+        st.info("Nog geen data. Vul hierboven je eerste dag in!")
 
 elif pg == "Marketing Tools":
     st.markdown("<h1><i class='bi bi-megaphone-fill'></i> Marketing Tools</h1>", unsafe_allow_html=True)
