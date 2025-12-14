@@ -4,7 +4,6 @@ import pandas as pd
 from io import BytesIO
 from modules import ai_coach
 
-# HIER STAAT DE URL VOOR DE KNOP
 STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 
@@ -22,7 +21,7 @@ def get_roadmap():
                 {
                     "id": "step_niche", "title": "Kies je Niche", "icon": "🎯", "locked": False,
                     "content": "TOOL_NICHE_FINDER", "xp_reward": 100,
-                    "teaser": "Weet je niet wat je moet verkopen? Gebruik de Niche Finder."
+                    "teaser": "Weet je niet wat je moet verkopen? Vraag de AI om hulp."
                 },
                 {
                     "id": "step_bank", "title": "Bank & creditcard", "icon": "💳", "locked": False,
@@ -56,9 +55,9 @@ def get_roadmap():
                     "teaser": "Kies hoe klanten betalen: Mollie, Stripe of Shopify Payments."
                 },
                 {
-                    "id": "step_logo_maker", "title": "Logo ontwerp (AI)", "icon": "✨", "locked": False,
-                    "content": "TOOL_LOGO_MAKER", "xp_reward": 100,
-                    "teaser": "Ontwerp je eigen professionele logo in seconden."
+                    "id": "step_legal_safe", "title": "AVG & Juridische Veiligheid", "icon": "🛡️", "locked": False,
+                    "content": "TOOL_LEGAL_SAFE_NEW", "xp_reward": 150,
+                    "teaser": "Voorkom boetes. Genereer je Algemene Voorwaarden & Privacy Policy."
                 }
             ]
         },
@@ -75,11 +74,6 @@ def get_roadmap():
                     "id": "step_pricing", "title": "Winst calculator", "icon": "🧮", "locked": False,
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
-                },
-                {
-                    "id": "step_legal", "title": "Juridische pagina's", "icon": "⚖️", "locked": False, 
-                    "content": "TOOL_LEGAL_GEN", "xp_reward": 50,
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/legal"
                 }
             ]
         },
@@ -114,9 +108,9 @@ def get_roadmap():
             "desc": "Je winkel is klaar. Tijd om bezoekers te kopen en winst te maken.",
             "steps": [
                 {
-                    "id": "step_preflight", "title": "De 'Eerste Sale' Checklist", "icon": "🛫", "locked": False,
-                    "content": "TOOL_PREFLIGHT", "xp_reward": 100,
-                    "teaser": "Voorkom dat je geld weggooit. Check dit voordat je Ads aanzet."
+                    "id": "step_24h_live", "title": "De Eerste 24 Uur Checklist", "icon": "🚀", "locked": False,
+                    "content": "TOOL_24H_CHECK", "xp_reward": 150,
+                    "teaser": "Je shop is live, wat nu? Check deze lijst om niks te vergeten."
                 },
                 {
                     "id": "step_winning_prod", "title": "Winnende Producten", "icon": "🔥", "locked": True,
@@ -124,9 +118,9 @@ def get_roadmap():
                     "teaser": "Gebruik de Spy Tool om bewezen bestsellers te vinden."
                 },
                 {
-                    "id": "step_ads_script", "title": "Viral Video Scripts", "icon": "🎬", "locked": True,
-                    "content": "TOOL_VIDEO_SCRIPTS", "xp_reward": 200,
-                    "teaser": "Laat AI scripts schrijven die viraal gaan op TikTok."
+                    "id": "step_influencer", "title": "Influencer Outreach", "icon": "🤳", "locked": False,
+                    "content": "TOOL_INFLUENCER_OUTREACH", "xp_reward": 100,
+                    "teaser": "Laat AI een bericht schrijven om influencers te benaderen."
                 }
             ]
         }
@@ -161,16 +155,15 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     </div>
     """, unsafe_allow_html=True)
 
-    # --- LOCKED STATE (FIXED: HTML FLATTENED) ---
+    # --- LOCKED STATE ---
     if is_locked:
         teaser_text = step.get('teaser', 'Upgrade voor toegang.')
-        # Alles op 1 regel of compacte strings om markdown code blocks te voorkomen
         lock_html = f"""
         <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
             <div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;">
                 <h3 style="color: #64748B;">██████ ██████</h3>
                 <p style="color: #94A3B8;">█████ ████ ██████ ███ ████. ████ ██████ ██ █████.</p>
-                <div style="display:flex; gap:10px; margin-top:10px;"><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div></div>
+                <div style="display:flex; gap:10px; margin-top:10px;"><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div></div>
             </div>
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.4); backdrop-filter: blur(4px);">
                 <div style="background: white; padding: 20px 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #DBEAFE; max-width: 90%;">
@@ -178,7 +171,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     <h4 style="margin: 0; color: #1E293B; font-size: 1rem; font-weight: 700;">Student Only Tool</h4>
                     <p style="font-size: 0.85rem; color: #64748B; margin: 5px 0 15px 0;">{teaser_text}</p>
                     <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;"><div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">🚀 Unlock via Shop Review Call</div></a>
-                    <div style="margin-top: 8px; font-size: 0.7rem; color: #94A3B8;"><i class="bi bi-people-fill"></i> Al door 550+ studenten gebruikt</div>
                 </div>
             </div>
         </div>
@@ -201,18 +193,19 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_NICHE_FINDER":
-            st.write("Weet je niet wat je moet verkopen? Vul in wat je leuk vindt.")
+            st.write("Weet je niet wat je moet verkopen?")
             interest = st.text_input("Jouw interesses (bv. fitness, honden, gadgets, koken)")
-            if st.button("🔍 Vind mijn niche"):
+            if st.button("🔍 Vraag AI om suggesties"):
                 st.session_state[usage_key] = True
-                st.markdown("### 💡 Suggesties voor jou:")
-                st.info(f"Gebaseerd op '{interest}' zou je dit kunnen proberen:")
-                st.markdown("""
-                1.  **Probleem-oplosser:** Een product dat een irritatie wegneemt binnen jouw interesse.
-                2.  **Passie-product:** Iets wat mensen *trots* maakt (bv. bedrukte items).
-                3.  **Viral Gadget:** Iets wat er cool uitziet op TikTok.
-                """)
-                st.success("Kies één richting en ga door naar fase 2!")
+                if not interest: st.warning("Vul iets in!")
+                else:
+                    st.info(f"💡 Suggesties voor '{interest}':")
+                    st.markdown("""
+                    1.  **Probleem-oplosser:** Een product dat een irritatie wegneemt binnen jouw interesse.
+                    2.  **Passie-product:** Iets wat mensen *trots* maakt (bv. bedrukte items).
+                    3.  **Viral Gadget:** Iets wat er cool uitziet op TikTok.
+                    """)
+                    st.success("Kies één richting en ga door!")
 
         elif step['content'] == "TOOL_BANK_WIZARD":
             c1, c2 = st.columns(2)
@@ -221,7 +214,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             if st.checkbox("✅ Ik heb dit geregeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_DOMAIN_CHECK":
-            st.write("Een goede naam is kort en makkelijk te spellen.")
             st.link_button("🔎 Check beschikbaarheid (TransIP)", "https://www.transip.nl", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn domein vastgelegd"): st.session_state[usage_key] = True
 
@@ -231,253 +223,89 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             if st.checkbox("✅ Account aangemaakt"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_THEME_GUIDE":
-            st.write("Een goede winkel ziet er betrouwbaar uit. Begin niet te moeilijk.")
-            
-            tab_basic, tab_colors, tab_pro_theme = st.tabs(["🚀 Gratis Starten", "🧠 Kleuren Tips", "💎 Premium Thema"])
-            
+            tab_basic, tab_pro_theme = st.tabs(["🚀 Gratis Starten", "💎 Premium Thema"])
             with tab_basic:
-                st.info("💡 **Advies voor beginners:** Gebruik het gratis **'Dawn'** of **'Sense'** thema in Shopify.")
-                st.markdown("""
-                **De Gouden Regels voor Design:**
-                1.  **Less is More:** Witruimte is luxe. Prop het niet vol.
-                2.  **Hoge kwaliteit foto's:** Geen korrelige plaatjes.
-                3.  **Duidelijke knoppen:** Zorg dat de 'Koop Nu' knop opvalt.
-                """)
+                st.info("💡 **Advies:** Gebruik het gratis **'Dawn'** of **'Sense'** thema.")
                 st.link_button("Naar Shopify Theme Store", "https://themes.shopify.com", use_container_width=True)
-
-            with tab_colors:
-                st.write("**Kleuren bepalen je verkoop.** Kies 1 hoofdkleur en 1 accentkleur.")
-                c1, c2 = st.columns(2)
-                with c1:
-                    st.success("🔵 **Blauw:** Vertrouwen, veiligheid (Bol.com, Coolblue)")
-                    st.error("🔴 **Rood:** Actie, urgentie, uitverkoop (MediaMarkt)")
-                with c2:
-                    st.warning("🟡 **Geel/Goud:** Goedkoop of Luxe (Jumbo of Rolex)")
-                    st.info("⚫ **Zwart/Wit:** Modern, strak, fashion (Zara, Nike)")
-
             with tab_pro_theme:
-                st.markdown("### 🎁 Uniek Studenten Voordeel")
-                st.write("Een goed converterend 'Premium Thema' kost normaal **$350 - $500**.")
-                
                 if is_pro:
                     st.success("✅ **Jij krijgt dit GRATIS!**")
-                    st.write("Omdat je student bent, mag je ons RM High-Converter theme gebruiken.")
                     st.link_button("📥 Download Premium Theme", COMMUNITY_URL, type="primary", use_container_width=True)
                 else:
                     st.warning("🔒 **Alleen voor studenten**")
-                    st.write("Bespaar direct honderden euro's en start met een voorsprong.")
-                    st.link_button("🚀 Word Student & Claim Thema", STRATEGY_CALL_URL, type="primary", use_container_width=True)
-
-            st.markdown("---")
+                    st.link_button("🚀 Word Student", STRATEGY_CALL_URL, type="primary", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn thema en kleuren ingesteld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_PAYMENTS":
-            st.write("Om geld te ontvangen, moet je een 'Payment Provider' koppelen. Kies er één:")
-            tab_mol, tab_shop, tab_stripe = st.tabs(["Mollie (NL/BE)", "Shopify Payments", "Stripe (Int)"])
-            with tab_mol:
-                st.info("ℹ️ **Beste voor Nederland & België** (iDEAL + Bancontact).")
-                st.link_button("Maak Mollie account", "https://www.mollie.com", use_container_width=True)
-            with tab_shop:
-                st.info("⚡ **Snelste optie.** Geen apart account nodig.")
-                st.caption("Ga in Shopify naar Instellingen > Payments.")
-            with tab_stripe:
-                st.info("🌍 **Beste voor internationaal** (Creditcards + Apple Pay).")
-                st.link_button("Maak Stripe account", "https://stripe.com", use_container_width=True)
-            st.markdown("---")
+            st.link_button("Maak Mollie account (NL/BE)", "https://www.mollie.com", use_container_width=True)
             if st.checkbox("✅ Ik heb een betaalmethode geactiveerd"): st.session_state[usage_key] = True
 
-        elif step['content'] == "TOOL_LOGO_MAKER":
-            with st.form(key=f"logo_{step['id']}"):
-                brand_name = st.text_input("Bedrijfsnaam")
-                niche = st.text_input("Niche")
-                if st.form_submit_button("✨ Maak logo"):
-                    if brand_name:
-                        with st.spinner("Genereren..."):
-                            st.session_state[result_key] = ai_coach.generate_logo(brand_name, niche, "Modern", "Black")
-                            st.session_state[usage_key] = True
-            if result_key in st.session_state:
-                st.image(st.session_state[result_key])
-                st.success("Gedaan!")
+        elif step['content'] == "TOOL_LEGAL_SAFE_NEW":
+            st.write("**Voorkom boetes.** Genereer hier je teksten.")
+            company_name = st.text_input("Bedrijfsnaam")
+            email_contact = st.text_input("Contact Email")
+            if st.button("📝 Genereer Juridische Teksten"):
+                if company_name and email_contact:
+                    res = ai_coach.generate_legal_text(company_name)
+                    st.text_area("Kopieer dit naar je 'Privacy Policy' pagina:", res, height=200)
+                    st.session_state[usage_key] = True
+                else:
+                    st.warning("Vul beide velden in.")
 
         elif step['content'] == "TOOL_SUPPLIER_HUB":
-            st.write("Stop met AliExpress. Voor serieus resultaat heb je een **Private Agent** nodig.")
             if is_pro:
                 st.success("🎉 **Je bent student!** Je hebt gratis toegang tot onze Private Agent.")
-                st.markdown("Klik hieronder om direct contact op te nemen via onze community.")
                 st.link_button("📲 Chat met onze Agent (Discord)", COMMUNITY_URL, type="primary", use_container_width=True)
             else:
-                st.warning("⚠️ **Let op:** AliExpress is traag en onbetrouwbaar voor serieuze shops.")
-                st.info("💎 **Studenten Deal:** Word student en krijg direct toegang tot onze snelle Private Agent.")
+                st.info("💎 **Studenten Deal:** Krijg toegang tot onze snelle Private Agent.")
                 st.link_button("📞 Plan call & Claim Agent", STRATEGY_CALL_URL, type="primary", use_container_width=True)
-            st.markdown("---")
             if st.checkbox("✅ Ik heb mijn leverancier geregeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_PROFIT_CALC":
-            with st.form(key=f"calc_{step['id']}"):
-                p = st.number_input("Verkoopprijs", 30.0)
-                c = st.number_input("Inkoop", 10.0)
-                if st.form_submit_button("Bereken"):
-                    st.session_state[usage_key] = True
-                    st.session_state[result_key] = p - c
-            if result_key in st.session_state: st.metric("Winst", f"€{st.session_state[result_key]}")
-
-        elif step['content'] == "TOOL_LEGAL_GEN":
-            with st.form(key=f"legal_{step['id']}"):
-                name = st.text_input("Bedrijfsnaam")
-                if st.form_submit_button("Genereer"):
-                    st.session_state[usage_key] = True
-                    st.session_state[result_key] = "Done"
-            if result_key in st.session_state: st.success("Teksten klaar!")
+            p = st.number_input("Verkoopprijs", 30.0)
+            c = st.number_input("Inkoop", 10.0)
+            if st.button("Bereken Winst"):
+                st.session_state[usage_key] = True
+                st.metric("Winst", f"€{p-c}")
 
         elif step['content'] == "TOOL_ABOUT_US":
-            with st.form(key=f"about_{step['id']}"):
-                name = st.text_input("Naam")
-                if st.form_submit_button("Schrijf"):
-                    st.session_state[usage_key] = True
-                    st.session_state[result_key] = ai_coach.generate_about_us(name, "General")
-            if result_key in st.session_state: st.text_area("Tekst", st.session_state[result_key])
+            name = st.text_input("Naam")
+            if st.button("Schrijf 'Over Ons'"):
+                st.session_state[usage_key] = True
+                st.text_area("Tekst", ai_coach.generate_about_us(name, "General"))
 
         elif step['content'] == "TOOL_REVIEWS":
-            st.write("Reviews zorgen voor vertrouwen. Zonder reviews koopt niemand.")
-            tab_create, tab_imp, tab_trust = st.tabs(["✨ Zelf Maken (AI)", "📥 Importeren", "⭐ Trustpilot"])
-            
-            with tab_create:
-                st.info("💎 **Pro Tip:** Genereer 5-10 realistische Nederlandse reviews.")
-                with st.form(key=f"rev_gen_{step['id']}"):
-                    prod_name = st.text_input("Productnaam")
-                    vibe = st.selectbox("Vibe", ["Enthousiast", "Kort", "Zakelijk"])
-                    if st.form_submit_button("🚀 Genereer CSV"):
-                        # Dummy data generation logic
-                        st.session_state[result_key] = "title,body,rating\nGreat,Love it,5"
-                        st.session_state[usage_key] = True
-                if result_key in st.session_state:
-                    st.success("Gegenereerd!")
-                    st.download_button("Download CSV", st.session_state[result_key], "reviews.csv")
-
-            with tab_imp:
-                st.write("Gebruik Judge.me voor import.")
-                st.link_button("📦 Installeer Judge.me", "https://apps.shopify.com/judgeme", use_container_width=True)
-
-            with tab_trust:
-                st.link_button("✅ Maak Trustpilot Account", "https://business.trustpilot.com", use_container_width=True)
-
-            st.markdown("---")
+            st.link_button("📦 Installeer Judge.me", "https://apps.shopify.com/judgeme", use_container_width=True)
             if st.checkbox("✅ Ik heb reviews"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_PIXELS":
-            st.write("Een Pixel is een 'spion' die bijhoudt wie wat koopt. Zonder dit kun je niet winstgevend adverteren.")
-            
-            st.info("💡 **Goed nieuws:** Je hoeft GEEN code aan te raken. We gebruiken de officiële Shopify koppelingen.")
-            
-            tab_tiktok, tab_meta, tab_check = st.tabs(["📱 TikTok Pixel", "📘 Meta (FB) Pixel", "✅ Check of het werkt"])
-            
-            with tab_tiktok:
-                st.write("**De makkelijkste methode:**")
-                st.markdown("""
-                1. Installeer de officiële **TikTok** app in Shopify.
-                2. Klik op 'Connect' en log in op je TikTok for Business account.
-                3. Kies bij 'Data Sharing' voor **'Maximum'**.
-                """)
-                st.link_button("📦 Installeer TikTok App (Shopify)", "https://apps.shopify.com/tiktok", use_container_width=True)
-            
-            with tab_meta:
-                st.write("**Verbind Instagram & Facebook:**")
-                st.markdown("""
-                1. Installeer de officiële **Facebook & Instagram** app.
-                2. Koppel je Facebook Pagina en Ad Account.
-                3. Zet 'Data Sharing' op **'Maximum'** (belangrijk voor iOS14+).
-                """)
-                st.link_button("📦 Installeer Meta App (Shopify)", "https://apps.shopify.com/facebook", use_container_width=True)
-            
-            with tab_check:
-                st.write("Wil je zeker weten dat het werkt?")
-                st.markdown("""
-                Installeer deze gratis Chrome Extensies. Als je daarna je eigen site bezoekt, moeten de icoontjes oplichten.
-                *   🔵 **Meta Pixel Helper**
-                *   ⚫ **TikTok Pixel Helper**
-                """)
-                st.caption("Zie je groene vinkjes? Dan ben je klaar!")
-
-            st.markdown("---")
-            if st.checkbox("✅ Mijn pixels zijn gekoppeld en actief"): st.session_state[usage_key] = True
-
+            st.info("Installeer de TikTok & Meta apps in Shopify en zet Data Sharing op 'Maximum'.")
+            st.link_button("📦 Installeer Meta App", "https://apps.shopify.com/facebook", use_container_width=True)
+            if st.checkbox("✅ Mijn pixels zijn gekoppeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_EMAIL_GEN":
-            st.markdown("""
-            **Email Marketing is geen optie, het is noodzaak.** 
-            De meeste beginners focussen alleen op Ads, maar 30% van je omzet moet uit email komen (gratis omzet).
-            """)
-
-            tab_strat, tab_gen, tab_pro_tool = st.tabs(["📚 Strategie & Flows", "✍️ AI Email Schrijver", "🎁 Student Tool (Gratis)"])
-
-            with tab_strat:
-                st.info("💡 **De 3 'Must-Have' Automations (Flows):**")
-                st.markdown("""
-                1.  **Welcome Series:** Voor nieuwe inschrijvers (Nieuwsbrief). Geef direct je kortingscode.
-                2.  **Abandoned Checkout:** Iemand klikt op betalen maar stopt. Stuur na 1 uur en na 10 uur een herinnering.
-                3.  **Post-Purchase:** Bedank de klant, vraag om een review en bied korting voor de volgende keer.
-                """)
-                st.markdown("**Aanbevolen Software:**")
-                c1, c2 = st.columns(2)
-                c1.link_button("Shopify Email (Gratis start)", "https://apps.shopify.com/shopify-email", use_container_width=True)
-                c2.link_button("Klaviyo (Voor Pro's)", "https://www.klaviyo.com", use_container_width=True)
-
-            with tab_gen:
-                st.write("Laat AI je emails schrijven zodat je ze direct kunt kopiëren.")
-                email_type = st.selectbox("Welke mail wil je schrijven?", ["Verlaten Winkelwagen", "Welkomstmail", "Review Verzoek"])
-                
-                with st.form(key=f"mail_{step['id']}"):
-                    col_a, col_b = st.columns(2)
-                    with col_a: prod = st.text_input("Productnaam")
-                    with col_b: discount = st.text_input("Korting code", "WELKOM10")
-                    
-                    if st.form_submit_button("✍️ Genereer Email Script"):
-                        st.session_state[usage_key] = True
-                        if "Winkelwagen" in email_type:
-                            st.session_state[result_key] = f"**Onderwerp: Je bent je {prod} vergeten! 😲**\n\nHoi,\n\nWe zagen dat je bijna klaar was, maar je bent weggegaan zonder af te rekenen.\nGebruik code **{discount}** voor korting!"
-                        elif "Welkomstmail" in email_type:
-                             st.session_state[result_key] = f"**Onderwerp: Welkom! Hier is je cadeautje 🎁**\n\nHoi topper,\n\nBedankt voor je interesse in {prod}.\nZoals beloofd: **{discount}**."
-                        else:
-                             st.session_state[result_key] = f"**Onderwerp: Wat vond je ervan? ⭐**\n\nHoi,\n\nHeb je {prod} al uitgepakt? We horen graag je mening!"
-                
-                if result_key in st.session_state:
-                    st.success("Gegenereerd! Kopieer dit naar je email app.")
-                    st.code(st.session_state[result_key], language="markdown")
-
-            with tab_pro_tool:
-                st.markdown("### 🚀 RM Auto-Pilot (AI)")
-                st.write("Als student krijg je toegang tot onze exclusieve tool die **automatisch** koppelt met je Shopify store.")
-                if is_pro:
-                    st.success("✅ **Jij hebt toegang!**")
-                    st.link_button("📥 Download Templates & Start Bot", COMMUNITY_URL, type="primary", use_container_width=True)
-                else:
-                    st.warning("🔒 **Alleen voor studenten**")
-                    st.write("Stop met handmatig typen. Krijg onze 'One-Click-Import' templates.")
-                    st.link_button("🔓 Unlock Studenten Tools", STRATEGY_CALL_URL, use_container_width=True)
-
-            st.markdown("---")
-            if st.checkbox("✅ Ik heb mijn automatische mails ingesteld"): st.session_state[usage_key] = True
-
-        elif step['content'] == "TOOL_PREFLIGHT":
-            st.write("Gooi geen geld weg aan ads als je winkel niet werkt. Check dit:")
-            with st.container(border=True):
-                c1 = st.checkbox("💳 Ik heb zelf een testbestelling gedaan (belangrijk!)")
-                c2 = st.checkbox("🚚 Verzendkosten worden correct berekend in de checkout")
-                c3 = st.checkbox("🇬🇧 Er staan geen gekke Engelse teksten meer op de site")
-                c4 = st.checkbox("📱 De site ziet er goed uit op mobiel")
-                
-                if c1 and c2 and c3 and c4:
-                    st.success("✅ Je bent er klaar voor! Op naar de sales.")
+            st.write("Laat AI je emails schrijven.")
+            with st.form(key=f"mail_{step['id']}"):
+                prod = st.text_input("Productnaam")
+                if st.form_submit_button("✍️ Genereer Email Script"):
                     st.session_state[usage_key] = True
-                else:
-                    st.info("Vink alles af om door te gaan.")
+                    st.code(f"Onderwerp: Je bent je {prod} vergeten!\n\nHoi,\n\nWe zagen dat je bijna klaar was. Hier is 10% korting: WELKOM10", language="text")
+
+        elif step['content'] == "TOOL_24H_CHECK":
+            st.write("Je shop is live! Check dit direct:")
+            c1 = st.checkbox("💳 Zelf een testbestelling gedaan")
+            c2 = st.checkbox("📧 Bevestigingsmail ontvangen")
+            c3 = st.checkbox("📱 Mobiele weergave gecheckt")
+            if c1 and c2 and c3:
+                st.success("✅ Gefeliciteerd! Je bent echt live.")
+                st.session_state[usage_key] = True
+
+        elif step['content'] == "TOOL_INFLUENCER_OUTREACH":
+            st.write("Ga naar 'Marketing Tools' in het menu om dit te doen.")
+            if st.checkbox("✅ Gedaan"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_PRODUCT_SPY":
             st.write("Ga naar 'Product Ideeën' in het menu.")
-            if st.checkbox("✅ Gedaan"): st.session_state[usage_key] = True
-        
-        elif step['content'] == "TOOL_VIDEO_SCRIPTS":
-            st.write("Ga naar 'Video Ideeën' in het menu.")
             if st.checkbox("✅ Gedaan"): st.session_state[usage_key] = True
 
         st.markdown("<br>", unsafe_allow_html=True)
