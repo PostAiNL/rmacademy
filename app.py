@@ -217,7 +217,7 @@ st.markdown("""
             max-width: 100%;
         }
 
-        /* --- LEVEL UP OVERLAY (NIEUW) --- */
+        /* --- LEVEL UP OVERLAY --- */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
         .levelup-overlay {
             position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
@@ -363,6 +363,43 @@ if "user" not in st.session_state:
 user = st.session_state.user
 is_pro = user['is_pro']
 
+# --- NIEUWE SLIMME LEVEL LOGICA (HIER IS DE FIX) ---
+def calculate_level_data(current_xp):
+    # Lijst met (Drempel, Naam)
+    levels = [
+        (0, "Starter"),
+        (500, "Builder"),
+        (1500, "E-com Boss"),
+        (3000, "Legend"),
+        (5000, "Master"),
+        (10000, "Grandmaster")
+    ]
+    
+    current_rank = levels[0][1]
+    next_goal = levels[1][0]
+    prev_goal = levels[0][0]
+    level_num = 1
+
+    # Loop door levels om te kijken waar de gebruiker zit
+    for i, (threshold, title) in enumerate(levels):
+        if current_xp >= threshold:
+            current_rank = title
+            level_num = i + 1
+            prev_goal = threshold
+            # Bepaal volgende doel
+            if i + 1 < len(levels):
+                next_goal = levels[i+1][0]
+            else:
+                next_goal = threshold * 2 # Fallback
+        else:
+            break
+            
+    return level_num, current_rank, next_goal, prev_goal
+
+# Gebruik de nieuwe functie
+user_level_num, rank_title, next_xp_goal_sidebar, prev_threshold = calculate_level_data(user['xp'])
+user['level'] = user_level_num # Update level in sessie voor consistentie
+
 # --- SESSION STATE TRACKING VOOR LEVEL UP ---
 if "prev_level" not in st.session_state:
     st.session_state.prev_level = user['level']
@@ -393,7 +430,6 @@ def get_image_base64(path):
 
 # --- SIDEBAR (MET DUIDELIJKE PROGRESSIE & CREDITS) ---
 with st.sidebar:
-    rank_title, next_xp_goal_sidebar = auth.get_rank_info(user['xp'])
     display_name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     
     st.markdown(f"""
@@ -405,9 +441,7 @@ with st.sidebar:
     </div>
     """, unsafe_allow_html=True)
 
-    prev_threshold = 0
-    for t in [0, 200, 500, 1000]:
-        if user['xp'] >= t: prev_threshold = t
+    # Bereken percentage voor de balk
     range_span = next_xp_goal_sidebar - prev_threshold
     if range_span <= 0: range_span = 1
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
@@ -431,7 +465,7 @@ with st.sidebar:
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Logo maker", "Concurrenten", "Video ideeën", "Ads check"]:
+        if not is_pro and opt in ["Logo maker", "Product ideeën", "Concurrenten", "Video ideeën", "Ads check"]:
             menu_display_options.append(f"{opt} 🔒")
         else:
             menu_display_options.append(opt)
@@ -612,8 +646,8 @@ if pg == "Dashboard":
     mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;">{bg_icon_html}<div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
-    current_title, next_xp_goal = auth.get_rank_info(user['xp'])
-    needed = next_xp_goal - user['xp']
+    # Bereken nieuwe stats voor dashboard cards
+    needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
 
     st.markdown(f"""
@@ -621,7 +655,7 @@ if pg == "Dashboard":
         <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div>
             <div class="stat-value">{user['level']}</div>
-            <div class="stat-sub">{current_title}</div>
+            <div class="stat-sub">{rank_title}</div>
         </div>
         <div class="stat-card">
             <div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div>
