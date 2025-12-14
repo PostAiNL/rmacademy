@@ -235,6 +235,7 @@ st.markdown("""
             font-weight: 800 !important;
             letter-spacing: -1px !important;
             color: #0F172A !important;
+            margin-top: 0px !important;
         }
         
         .logo-text {
