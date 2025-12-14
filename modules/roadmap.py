@@ -6,6 +6,7 @@ from modules import ai_coach
 
 # HIER STAAT DE URL VOOR DE KNOP
 STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
+COMMUNITY_URL = "https://discord.com"
 
 def get_roadmap():
     return {
@@ -17,6 +18,12 @@ def get_roadmap():
                     "id": "step_kvk", "title": "KVK inschrijving", "icon": "📝", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
+                },
+                # NIEUW: NICHE FINDER (Punt 1)
+                {
+                    "id": "step_niche", "title": "Kies je Niche (Onderwerp of Productcategorie)", "icon": "🎯", "locked": False,
+                    "content": "TOOL_NICHE_FINDER", "xp_reward": 100,
+                    "teaser": "Weet je niet wat je moet verkopen? Gebruik de Niche Finder."
                 },
                 {
                     "id": "step_bank", "title": "Bank & creditcard", "icon": "💳", "locked": False,
@@ -39,7 +46,6 @@ def get_roadmap():
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 },
-                # DE GEUPGRADEDE THEMA STAP
                 {
                     "id": "step_theme", "title": "Thema & Vormgeving", "icon": "🎨", "locked": False,
                     "content": "TOOL_THEME_GUIDE", "xp_reward": 100,
@@ -97,10 +103,11 @@ def get_roadmap():
                     "content": "TOOL_PIXELS", "xp_reward": 125,
                     "teaser": "Installeer de TikTok & Meta pixel, anders gooi je geld weg."
                 },
+                # AANGEPAST: EMAIL STEP
                 {
-                    "id": "step_email", "title": "Email Marketing (AI)", "icon": "📧", "locked": False,
-                    "content": "TOOL_EMAIL_GEN", "xp_reward": 100,
-                    "teaser": "Laat AI een 'verlaten winkelmandje' mail schrijven om sales te redden."
+                    "id": "step_email", "title": "Email Geld Machine", "icon": "📧", "locked": False,
+                    "content": "TOOL_EMAIL_GEN", "xp_reward": 150,
+                    "teaser": "Zet automatische mails aan die geld verdienen terwijl je slaapt."
                 }
             ]
         },
@@ -108,6 +115,12 @@ def get_roadmap():
             "title": "Fase 5: Marketing & Opschalen",
             "desc": "Je winkel is klaar. Tijd om bezoekers te kopen en winst te maken.",
             "steps": [
+                # NIEUW: PRE-FLIGHT CHECKLIST
+                {
+                    "id": "step_preflight", "title": "De 'Eerste Sale' Checklist", "icon": "🛫", "locked": False,
+                    "content": "TOOL_PREFLIGHT", "xp_reward": 100,
+                    "teaser": "Voorkom dat je geld weggooit. Check dit voordat je Ads aanzet."
+                },
                 {
                     "id": "step_winning_prod", "title": "Winnende Producten", "icon": "🔥", "locked": True,
                     "content": "TOOL_PRODUCT_SPY", "xp_reward": 200,
@@ -182,6 +195,21 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
 
+        # --- NIEUW: NICHE FINDER ---
+        elif step['content'] == "TOOL_NICHE_FINDER":
+            st.write("Weet je niet wat je moet verkopen? Vul in wat je leuk vindt.")
+            interest = st.text_input("Jouw interesses (bv. fitness, honden, gadgets, koken)")
+            if st.button("🔍 Vind mijn niche"):
+                st.session_state[usage_key] = True
+                st.markdown("### 💡 Suggesties voor jou:")
+                st.info(f"Gebaseerd op '{interest}' zou je dit kunnen proberen:")
+                st.markdown("""
+                1.  **Probleem-oplosser:** Een product dat een irritatie wegneemt binnen jouw interesse.
+                2.  **Passie-product:** Iets wat mensen *trots* maakt (bv. bedrukte items).
+                3.  **Viral Gadget:** Iets wat er cool uitziet op TikTok.
+                """)
+                st.success("Kies één richting en ga door naar fase 2!")
+
         elif step['content'] == "TOOL_BANK_WIZARD":
             c1, c2 = st.columns(2)
             c1.link_button("Knab (Bank)", "https://knab.nl", use_container_width=True)
@@ -198,7 +226,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.link_button("🚀 Claim €1 Shopify deal", "https://shopify.com", type="primary", use_container_width=True)
             if st.checkbox("✅ Account aangemaakt"): st.session_state[usage_key] = True
 
-        # --- AANGEPASTE THEMA STAP ---
+        # --- OORSPRONKELIJKE THEMA STEP (EXTENDED) ---
         elif step['content'] == "TOOL_THEME_GUIDE":
             st.write("Een goede winkel ziet er betrouwbaar uit. Begin niet te moeilijk.")
             
@@ -333,7 +361,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.markdown("---")
             if st.checkbox("✅ Ik heb reviews"): st.session_state[usage_key] = True
 
-# --- AANGEPAST: PIXEL HUB (NO-CODE METHODE) ---
+        # --- OORSPRONKELIJKE PIXEL STEP (EXTENDED) ---
         elif step['content'] == "TOOL_PIXELS":
             st.write("Een Pixel is een 'spion' die bijhoudt wie wat koopt. Zonder dit kun je niet winstgevend adverteren.")
             
@@ -372,17 +400,80 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             if st.checkbox("✅ Mijn pixels zijn gekoppeld en actief"): st.session_state[usage_key] = True
 
 
+        # --- AANGEPASTE EMAIL TOOL (PUNT 2 & 5 UIT ADVIES) ---
         elif step['content'] == "TOOL_EMAIL_GEN":
-            st.write("60% verlaat de winkelwagen. Stuur ze automatisch een mailtje.")
-            with st.form(key=f"mail_{step['id']}"):
-                prod = st.text_input("Welk product laten ze achter?")
-                discount = st.text_input("Korting? (optioneel)", "10%")
-                if st.form_submit_button("✍️ Schrijf Herstel-mail"):
+            st.markdown("""
+            **Email Marketing is geen optie, het is noodzaak.** 
+            De meeste beginners focussen alleen op Ads, maar 30% van je omzet moet uit email komen (gratis omzet).
+            """)
+
+            tab_strat, tab_gen, tab_pro_tool = st.tabs(["📚 Strategie & Flows", "✍️ AI Email Schrijver", "🎁 Student Tool (Gratis)"])
+
+            # TAB 1: STRATEGIE
+            with tab_strat:
+                st.info("💡 **De 3 'Must-Have' Automations (Flows):**")
+                st.markdown("""
+                1.  **Welcome Series:** Voor nieuwe inschrijvers (Nieuwsbrief). Geef direct je kortingscode.
+                2.  **Abandoned Checkout:** Iemand klikt op betalen maar stopt. Stuur na 1 uur en na 10 uur een herinnering.
+                3.  **Post-Purchase:** Bedank de klant, vraag om een review en bied korting voor de volgende keer.
+                """)
+                st.markdown("**Aanbevolen Software:**")
+                c1, c2 = st.columns(2)
+                c1.link_button("Shopify Email (Gratis start)", "https://apps.shopify.com/shopify-email", use_container_width=True)
+                c2.link_button("Klaviyo (Voor Pro's)", "https://www.klaviyo.com", use_container_width=True)
+
+            # TAB 2: AI GENERATOR
+            with tab_gen:
+                st.write("Laat AI je emails schrijven zodat je ze direct kunt kopiëren.")
+                email_type = st.selectbox("Welke mail wil je schrijven?", ["Verlaten Winkelwagen", "Welkomstmail", "Review Verzoek"])
+                
+                with st.form(key=f"mail_{step['id']}"):
+                    col_a, col_b = st.columns(2)
+                    with col_a: prod = st.text_input("Productnaam")
+                    with col_b: discount = st.text_input("Korting code", "WELKOM10")
+                    
+                    if st.form_submit_button("✍️ Genereer Email Script"):
+                        st.session_state[usage_key] = True
+                        if "Winkelwagen" in email_type:
+                            st.session_state[result_key] = f"**Onderwerp: Je bent je {prod} vergeten! 😲**\n\nHoi,\n\nWe zagen dat je bijna klaar was, maar je bent weggegaan zonder af te rekenen.\nGebruik code **{discount}** voor korting!"
+                        elif "Welkomstmail" in email_type:
+                             st.session_state[result_key] = f"**Onderwerp: Welkom! Hier is je cadeautje 🎁**\n\nHoi topper,\n\nBedankt voor je interesse in {prod}.\nZoals beloofd: **{discount}**."
+                        else:
+                             st.session_state[result_key] = f"**Onderwerp: Wat vond je ervan? ⭐**\n\nHoi,\n\nHeb je {prod} al uitgepakt? We horen graag je mening!"
+                
+                if result_key in st.session_state:
+                    st.success("Gegenereerd! Kopieer dit naar je email app.")
+                    st.code(st.session_state[result_key], language="markdown")
+
+            # TAB 3: STUDENT VOORDEEL
+            with tab_pro_tool:
+                st.markdown("### 🚀 RM Auto-Pilot (AI)")
+                st.write("Als student krijg je toegang tot onze exclusieve tool die **automatisch** koppelt met je Shopify store.")
+                if is_pro:
+                    st.success("✅ **Jij hebt toegang!**")
+                    st.link_button("📥 Download Templates & Start Bot", COMMUNITY_URL, type="primary", use_container_width=True)
+                else:
+                    st.warning("🔒 **Alleen voor studenten**")
+                    st.write("Stop met handmatig typen. Krijg onze 'One-Click-Import' templates.")
+                    st.link_button("🔓 Unlock Studenten Tools", STRATEGY_CALL_URL, use_container_width=True)
+
+            st.markdown("---")
+            if st.checkbox("✅ Ik heb mijn automatische mails ingesteld"): st.session_state[usage_key] = True
+
+        # --- NIEUW: PRE-FLIGHT CHECKLIST (PUNT 4) ---
+        elif step['content'] == "TOOL_PREFLIGHT":
+            st.write("Gooi geen geld weg aan ads als je winkel niet werkt. Check dit:")
+            with st.container(border=True):
+                c1 = st.checkbox("💳 Ik heb zelf een testbestelling gedaan (belangrijk!)")
+                c2 = st.checkbox("🚚 Verzendkosten worden correct berekend in de checkout")
+                c3 = st.checkbox("🇬🇧 Er staan geen gekke Engelse teksten meer op de site")
+                c4 = st.checkbox("📱 De site ziet er goed uit op mobiel")
+                
+                if c1 and c2 and c3 and c4:
+                    st.success("✅ Je bent er klaar voor! Op naar de sales.")
                     st.session_state[usage_key] = True
-                    st.session_state[result_key] = f"Onderwerp: Je {prod} wacht op je! (met {discount} korting)..."
-            if result_key in st.session_state:
-                st.code(st.session_state[result_key], language="text")
-                st.caption("Kopieer dit naar Shopify > Settings > Notifications > Abandoned Checkout.")
+                else:
+                    st.info("Vink alles af om door te gaan.")
 
         elif step['content'] == "TOOL_PRODUCT_SPY":
             st.write("Ga naar 'Product Ideeën' in het menu.")
