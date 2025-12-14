@@ -32,6 +32,24 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
+# --- 1.5 META TAGS & PWA NAAM FIX ---
+# Dit probeert de standaard "Streamlit" naam te overschrijven voor Android/iOS installatie
+st.markdown("""
+<script>
+    var link = document.querySelector("link[rel~='icon']");
+    if (!link) {
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }
+    link.href = 'assets/logo.png';
+</script>
+<meta name="application-name" content="RM Ecom Academy">
+<meta name="apple-mobile-web-app-title" content="RM Ecom">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+""", unsafe_allow_html=True)
+
 # --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES & BLUE THEME) ---
 st.markdown("""
     <style>
