@@ -272,7 +272,7 @@ if "user" not in st.session_state:
                         st.warning("Vul je naam en een geldig e-mailadres in.")
                 st.markdown("""<div style='text-align:center; margin-top:8px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
                 
-                # --- REVIEWS NETJES TERUGGEPLAATST ---
+                # --- REVIEWS ---
                 st.markdown("""
                 <div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9;'>
                     <div style="color: #F59E0B; font-size: 0.8rem;">
@@ -281,7 +281,6 @@ if "user" not in st.session_state:
                     <span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span>
                 </div>
                 """, unsafe_allow_html=True)
-                # -------------------------------------
 
                 st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
@@ -409,28 +408,40 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-# --- LOCK SCREEN COMPONENT ---
+# --- LOCK SCREEN COMPONENT (AANGEPAST: ZELFDE STIJL ALS ROADMAP) ---
 def render_pro_lock(title, desc):
-    st.markdown(f"""
-    <div class="lock-container">
-        <div style="font-size: 30px; margin-bottom: 10px; color: #64748B;"><i class="bi bi-lock-fill"></i></div>
-        <h3 style="margin-bottom: 5px; color: #1E293B; font-size: 1.2rem;">{title}</h3>
-        <p style="color: #64748B; font-size: 0.9rem; margin-bottom: 15px; max-width: 480px; margin-left: auto; margin-right: auto;">{desc}</p>
-        <div style="max-width:480px; margin:0 auto 15px auto; text-align:left; font-size:0.85rem; color:#0F172A;">
-            <p style="margin:0 0 4px 0; font-weight:600;">Als student krijg je onder andere:</p>
-            <ul style="margin:0 0 0 18px; padding:0; color:#475569;">
-                <li>Volledige toegang tot alle AI tools.</li>
-                <li>Extra uitlegvideo's per fase.</li>
-                <li>Persoonlijke hulp via community en calls.</li>
-            </ul>
-        </div>
-        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
-            <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block;">
-                <i class="bi bi-telephone-fill"></i> Plan gratis unlock call
+    # Alles op 1 regel of compacte strings om markdown code blocks te voorkomen
+    lock_html = f"""
+    <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
+        <div style="filter: blur(5px); opacity: 0.5; padding: 30px; pointer-events: none; user-select: none;">
+            <h3 style="color: #64748B; margin-bottom: 15px;">██████ ██████</h3>
+            <div style="height: 15px; background: #CBD5E1; width: 80%; margin-bottom: 10px; border-radius: 4px;"></div>
+            <div style="height: 15px; background: #E2E8F0; width: 60%; margin-bottom: 10px; border-radius: 4px;"></div>
+            <div style="height: 15px; background: #E2E8F0; width: 70%; margin-bottom: 20px; border-radius: 4px;"></div>
+            <div style="display:flex; gap:15px;">
+                <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
+                <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
+                <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
             </div>
-        </a>
+        </div>
+        <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.4); backdrop-filter: blur(4px);">
+            <div style="background: white; padding: 30px 40px; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #DBEAFE; max-width: 400px;">
+                <div style="font-size: 32px; margin-bottom: 10px;">🔒</div>
+                <h3 style="margin: 0 0 5px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3>
+                <p style="font-size: 0.9rem; color: #64748B; margin: 0 0 20px 0; line-height: 1.5;">{desc}</p>
+                <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
+                    <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 12px 28px; border-radius: 50px; font-weight: 600; font-size: 0.95rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
+                        🚀 Unlock via Shop Review Call
+                    </div>
+                </a>
+                <div style="margin-top: 12px; font-size: 0.75rem; color: #94A3B8; font-weight: 500;">
+                    <i class="bi bi-people-fill"></i> Al door 550+ studenten gebruikt
+                </div>
+            </div>
+        </div>
     </div>
-    """, unsafe_allow_html=True)
+    """
+    st.markdown(lock_html.replace("\n", ""), unsafe_allow_html=True)
 
 # --- CONTENT PAGES ---
 
@@ -467,7 +478,6 @@ if pg == "Dashboard":
             next_step_phase_index = 6 # Alles klaar
 
     # --- NIEUWE FEATURE: VISUELE PROGRESS BAR (PUNT 3) ---
-    # !!! FIX: Alle HTML op 1 regel om markdown block errors te voorkomen !!!
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Trust", "Scale"]
     
@@ -480,12 +490,10 @@ if pg == "Dashboard":
         
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
         
-        # Geen spaties aan het begin van de regels!
+        # ALLES OP 1 REGEL OM FOUTEN TE VOORKOMEN
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
     
-    # Geen tabs of enters in de f-string
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
-    
     # --- EINDE NIEUWE FEATURE ---
 
     logo_base64 = get_image_base64("assets/logo.png")
