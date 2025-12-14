@@ -15,63 +15,50 @@ client = None
 def init_ai():
     global client
     if HAS_OPENAI and "OPENAI_API_KEY" in st.secrets:
-        try: client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        except: client = None
+        try:
+            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+        except:
+            client = None
 
 def call_llm(system_prompt, user_prompt, model="gpt-4o-mini", json_mode=False):
     init_ai()
     if not HAS_OPENAI or not client: return None
     try:
-        kwargs = {"model": model, "messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": user_prompt}], "temperature": 0.7}
+        kwargs = {
+            "model": model, 
+            "messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": user_prompt}], 
+            "temperature": 0.7
+        }
         if json_mode: kwargs["response_format"] = { "type": "json_object" }
         response = client.chat.completions.create(**kwargs)
         return response.choices[0].message.content
     except: return None
 
-# --- NIEUWE MARKETING FUNCTIES ---
-
-def generate_product_description(product_name):
+# --- NIEUW: FEEDBACK VALIDATOR ---
+def validate_feedback(text):
+    """Checkt of feedback nuttig is."""
     init_ai()
-    if not HAS_OPENAI or not client: 
-        return f"**{product_name}**\n\nOntdek de magie van {product_name}. Dit product lost al je problemen op en ziet er geweldig uit. Bestel vandaag nog!"
+    if not HAS_OPENAI or not client: return True 
     
     prompt = f"""
-    Schrijf een onweerstaanbare productbeschrijving voor '{product_name}' volgens het AIDA model (Attention, Interest, Desire, Action).
-    Taal: Nederlands.
-    Stijl: Enthousiast en overtuigend.
-    Opmaak: Gebruik Markdown (dikgedrukt, bulletpoints).
+    Beoordeel deze feedback voor een app. Is het serieuze tekst (NL/EN)?
+    Antwoord TRUE als het een echte zin is.
+    Antwoord FALSE als het spam is (zoals 'asdf', 'test', 'bla bla', of te kort).
+    
+    Feedback: "{text}"
     """
-    return call_llm("Je bent een expert copywriter.", prompt)
+    res = call_llm("Je bent een spam filter. Antwoord alleen TRUE of FALSE.", prompt)
+    if res and "TRUE" in res.upper(): return True
+    return False
+
+# --- BESTAANDE FUNCTIES (NIET VERWIJDEREN) ---
+def generate_product_description(product_name):
+    prompt = f"Schrijf een AIDA productbeschrijving (NL) voor: {product_name}."
+    return call_llm("Copywriter", prompt) or "AI niet beschikbaar."
 
 def generate_influencer_dm(product_name):
-    init_ai()
-    if not HAS_OPENAI or not client:
-        return f"Hoi! Ik zag je profiel en vind je content te gek. We verkopen {product_name} en zouden graag samenwerken. Heb je interesse?"
-    
-    prompt = f"""
-    Schrijf een kort, casual DM bericht om een Instagram influencer te benaderen voor een samenwerking.
-    Product: {product_name}.
-    Doel: Gratis product sturen in ruil voor een video.
-    Toon: Casual, niet als een robot of sales-persoon.
-    """
-    return call_llm("Je bent een influencer marketing manager.", prompt)
-
-def generate_legal_text(company_name):
-    return f"""
-    **PRIVACY BELEID {company_name.upper()}**
-    
-    Versie 1.0 - {company_name} respecteert de privacy van alle gebruikers van haar site en draagt er zorg voor dat de persoonlijke informatie die u ons verschaft vertrouwelijk wordt behandeld.
-    
-    **1. Gebruik van gegevens**
-    Wij gebruiken uw gegevens om de bestellingen zo snel en gemakkelijk mogelijk te laten verlopen.
-    
-    **2. Derden**
-    Wij zullen uw persoonlijke gegevens niet aan derden verkopen en zullen deze uitsluitend aan derden ter beschikking stellen die zijn betrokken bij het uitvoeren van uw bestelling.
-    
-    (Dit is een standaard template. Raadpleeg altijd een jurist voor volledige zekerheid.)
-    """
-
-# --- BESTAANDE FUNCTIES ---
+    prompt = f"Schrijf een casual Instagram DM (NL) om een influencer te benaderen voor: {product_name}."
+    return call_llm("Marketeer", prompt) or "AI niet beschikbaar."
 
 def find_real_winning_products(niche, filter_type="Viral"):
     init_ai()
@@ -97,20 +84,11 @@ def find_real_winning_products(niche, filter_type="Viral"):
     return results
 
 def generate_about_us(brand_name, niche):
-    init_ai()
-    if not HAS_OPENAI or not client: return f"Welkom bij {brand_name}. Wij zijn experts in {niche}!"
     prompt = f"Schrijf een 'Over Ons' tekst voor webshop '{brand_name}' ({niche}). Max 100 woorden. Betrouwbaar."
     return call_llm("Je bent een Storytelling Expert.", prompt) or "Fout."
 
 def generate_viral_scripts(product, benefits, platform="TikTok"):
-    init_ai()
-    if not HAS_OPENAI or not client: 
-        return {"hooks": ["Stop scrolling!", "Dit moet je zien."], "full_script": "Demo script...", "creator_brief": "Maak een video."}
-
-    prompt = f"""
-    Schrijf een viral {platform} script voor: '{product}'.
-    Output JSON: {{ "hooks": ["..."], "full_script": "...", "creator_brief": "..." }}
-    """
+    prompt = f"""Schrijf een viral {platform} script voor: '{product}'. Output JSON: {{ "hooks": ["..."], "full_script": "...", "creator_brief": "..." }}"""
     res = call_llm("Je bent een Viral Video Expert.", prompt, json_mode=True)
     if res:
         try: return json.loads(res)
