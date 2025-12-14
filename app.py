@@ -49,22 +49,20 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES & BLUE THEME) ---
+# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & MOBILE FIXES) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
-           1. ALGEMENE CONFIGURATIE & MOBILE FIXES
+           1. ALGEMENE CONFIGURATIE
            ============================================== */
         :root {
             --primary: #2563EB;
             --bg-light: #F8FAFC;
             --text-dark: #0F172A;
             --white: #FFFFFF;
-            
-            /* FORCEER LIGHT MODE (Samsung/iPhone fix) */
             color-scheme: light !important; 
         }
 
@@ -72,198 +70,171 @@ st.markdown("""
             background-color: var(--bg-light) !important;
             color: var(--text-dark) !important;
         }
-
-        /* Iconen styling */
-        .bi { margin-right: 6px; vertical-align: -0.125em; }
         
-        /* Specifieke kleur voor titels (H1-H3) */
         h1, h2, h3 { color: #0F172A !important; }
-        
         * { -webkit-tap-highlight-color: transparent !important; }
+        .bi { margin-right: 6px; vertical-align: -0.125em; }
 
         /* ==============================================
-           2. HEADER WEG & KNOP ZICHTBAAR
+           2. HEADER WEG & MENU KNOP ZICHTBAAR MAKEN
            ============================================== */
-        header[data-testid="stHeader"] { background-color: transparent !important; border-bottom: none !important; pointer-events: none !important; }
-
-        [data-testid="stSidebarCollapseButton"] {
-            display: flex !important; visibility: visible !important; pointer-events: auto !important;
-            align-items: center !important; justify-content: center !important;
-            position: fixed !important; top: 15px !important; left: 15px !important; z-index: 1000005 !important;
-            background-color: #FFFFFF !important; border: 1px solid #94A3B8 !important; border-radius: 8px !important;
-            width: 44px !important; height: 44px !important;
+        /* Header transparant maken, maar knoppen wel klikbaar houden */
+        header[data-testid="stHeader"] { 
+            background-color: transparent !important; 
+            border-bottom: none !important; 
+            pointer-events: none !important; 
+            height: auto !important;
         }
 
-        [data-testid="stSidebarCollapseButton"] svg { fill: #2563EB !important; stroke: #2563EB !important; }
-        @media (min-width: 992px) { [data-testid="stSidebarCollapseButton"] { display: none !important; } }
-        
+        /* DE MENU KNOP (HAMBURGER) - Geforceerd zichtbaar */
+        [data-testid="stSidebarCollapseButton"] {
+            display: flex !important;
+            visibility: visible !important;
+            pointer-events: auto !important;
+            align-items: center !important;
+            justify-content: center !important;
+            position: fixed !important;
+            top: 10px !important;      /* Strak bovenin */
+            left: 10px !important;     /* Strak links */
+            z-index: 1000000 !important; /* Altijd bovenop */
+            background-color: #FFFFFF !important;
+            border: 1px solid #CBD5E1 !important;
+            border-radius: 8px !important;
+            width: 42px !important;
+            height: 42px !important;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+        }
+
+        /* Icoontje in de knop blauw maken */
+        [data-testid="stSidebarCollapseButton"] svg { 
+            fill: #2563EB !important; 
+            stroke: #2563EB !important; 
+            width: 22px !important;
+            height: 22px !important;
+        }
+
+        /* Verberg knop op desktop (grote schermen) */
+        @media (min-width: 992px) { 
+            [data-testid="stSidebarCollapseButton"] { display: none !important; } 
+        }
+
+        /* Verberg de rest van de header rommel */
         [data-testid="stDecoration"] { display: none !important; }
         [data-testid="stToolbar"] { display: none !important; }
         [data-testid="stStatusWidget"] { visibility: hidden !important; }
-        footer { visibility: hidden !important; }
-        #MainMenu { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
-        
-        .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
-        .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { display: none !important; pointer-events: none; }
+        footer { visibility: hidden !important; }
+        .stMarkdown h1 a { display: none !important; pointer-events: none; }
 
         /* ==============================================
-           3. UI ELEMENTEN FIXES (SAMSUNG/IPHONE)
+           3. DROPDOWN / EXPANDER FIX (BLAUWE MODUS)
            ============================================== */
-        
-        /* IPHONE & SAMSUNG INPUT FIX: Zwarte tekst afdwingen */
-        input, textarea, select, .stTextInput > div > div > input {
-            background-color: #FFFFFF !important;
-            color: #0F172A !important;
-            border: 1px solid #94A3B8 !important; /* Iets donkerder voor zichtbaarheid */
-            -webkit-text-fill-color: #0F172A !important;
-            opacity: 1 !important;
-        }
-
-        .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
-            color: #0F172A !important; font-weight: 600 !important;
-        }
-
-        /* --- TABS TEKST KLEUR --- */
-        button[data-baseweb="tab"] div p { color: #64748B !important; font-weight: 600 !important; }
-        button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; }
-        button[data-baseweb="tab"] { background-color: transparent !important; }
-
-        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (BLAUWE MODUS) --- */
-        
-        /* 1. Normale staat (Dicht) */
+        /* 1. Normale staat (Dicht) -> Wit met donkere tekst */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
-            border: 1px solid #94A3B8 !important; /* Donkerdere rand */
+            border: 1px solid #94A3B8 !important;
             border-radius: 8px !important;
             transition: all 0.2s;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
-        .streamlit-expanderHeader p, .streamlit-expanderHeader span, .streamlit-expanderHeader div { 
-            color: #0F172A !important; font-weight: 600 !important; 
-        }
+        .streamlit-expanderHeader p { color: #0F172A !important; font-weight: 600 !important; }
         .streamlit-expanderHeader svg { fill: #0F172A !important; }
 
-        /* 2. ACTIVE / HOVER / FOCUS STAAT -> BLAUWE ACHTERGROND, WITTE TEKST */
+        /* 2. ACTIEVE STAAT (Open of Hover) -> BLAUW met WITTE tekst */
         .streamlit-expanderHeader:hover,
-        .streamlit-expanderHeader:active,
-        .streamlit-expanderHeader:focus,
-        .streamlit-expanderHeader:focus-visible,
         .streamlit-expanderHeader[aria-expanded="true"] {
-            background-color: #2563EB !important; /* BLAUW */
+            background-color: #2563EB !important; /* Blauw */
             border-color: #2563EB !important;
-            color: #FFFFFF !important; /* WIT */
+            color: white !important;
         }
 
-        /* FORCEER WITTE TEKST/ICONEN BIJ HOVER/ACTIEF */
+        /* Zorg dat ALLE tekst en iconen WIT worden als hij actief is */
         .streamlit-expanderHeader:hover *,
-        .streamlit-expanderHeader:active *,
-        .streamlit-expanderHeader:focus *,
-        .streamlit-expanderHeader:focus-visible *,
-        .streamlit-expanderHeader[aria-expanded="true"] * {
+        .streamlit-expanderHeader:hover p,
+        .streamlit-expanderHeader:hover svg,
+        .streamlit-expanderHeader[aria-expanded="true"] *,
+        .streamlit-expanderHeader[aria-expanded="true"] p,
+        .streamlit-expanderHeader[aria-expanded="true"] svg {
             color: #FFFFFF !important;
             fill: #FFFFFF !important;
             stroke: #FFFFFF !important;
         }
 
-        /* DROPDOWN MENU FIX */
-        div[data-baseweb="select"] > div {
-            background-color: #FFFFFF !important;
-            color: #0F172A !important;
-            border-color: #94A3B8 !important;
-        }
+        /* Dropdown menu items */
         ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
         li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
         li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
             background-color: #EFF6FF !important; color: #2563EB !important;
         }
 
-        /* CHECKBOX FIX */
-        input[type="checkbox"] { 
-            accent-color: #2563EB !important; 
-            background-color: #FFFFFF !important;
-            border-color: #94A3B8 !important;
-        }
-
         /* ==============================================
-           4. LAYOUT & ZICHTBAARHEID VAKKEN FIX
+           4. LAYOUT & WITRUIMTE FIX (MOBIEL)
            ============================================== */
         .block-container {
-            padding-top: 3rem !important; padding-bottom: 5rem !important; max-width: 1000px;
+            padding-top: 3rem !important;
+            padding-bottom: 5rem !important;
+            max-width: 1000px;
         }
 
-        /* --- VAKKEN ZICHTBAAR MAKEN (Border fix) --- */
+        /* MOBIEL SPECIFIEK: Minder witruimte bovenin */
+        @media (max-width: 992px) {
+            .block-container {
+                padding-top: 3.5rem !important; /* Ruimte voor de menuknop, maar niet te veel */
+                padding-left: 1rem !important;
+                padding-right: 1rem !important;
+            }
+        }
+
+        /* Samsung Inputs Fix */
+        input, textarea, select, .stTextInput > div > div > input {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1px solid #94A3B8 !important;
+            -webkit-text-fill-color: #0F172A !important;
+            opacity: 1 !important;
+        }
+        .stTextInput label, label p { color: #0F172A !important; font-weight: 600 !important; }
+
+        /* Vakken styling (Cards) */
         div[data-testid="stVerticalBlockBorderWrapper"] {
-            border: 1px solid #94A3B8 !important; /* Donkerder grijs */
+            border: 1px solid #94A3B8 !important;
             border-radius: 12px !important;
             background: #FFFFFF !important;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important; /* Meer schaduw */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important;
             padding: 20px !important;
             margin-bottom: 20px !important;
         }
 
-        /* Cards & Metrics */
-        .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px; }
-        .metric-card { 
-            background: white; 
-            border: 1px solid #94A3B8; 
-            border-radius: 12px; 
-            padding: 15px; 
-            text-align: center; 
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
-        }
-        .metric-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
-        .metric-label { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; }
-        
-        /* Lock & Expander Fixes */
-        .stExpander { margin-bottom: -15px !important; border: none !important; box-shadow: none !important; }
-        div[data-testid="stExpander"] details summary p { font-weight: 600; }
-        
-        /* VISUAL ROADMAP STYLES */
-        .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; }
-        .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; transform: translateY(-50%); }
-        .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
-        .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1); }
-        .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
-        .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
-
-        @media (max-width: 600px) {
-            .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-            .metric-value { font-size: 1.1rem; }
-            .metric-label { font-size: 0.6rem; }
-        }
-
         /* ==============================================
-           5. FORCEREN VAN BLAUW
+           5. OVERIGE STYLING
            ============================================== */
         div.stButton > button[kind="primary"] {
             background-color: #2563EB !important; border-color: #2563EB !important; color: white !important;
         }
-        div.stButton > button[kind="primary"]:hover {
-            background-color: #1D4ED8 !important; border-color: #1D4ED8 !important;
-        }
         div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
-
-        /* ==============================================
-           6. TITELS & LOGO HERSTEL
-           ============================================== */
-        h1 { 
-            font-size: 1.8rem !important; 
-            font-weight: 800 !important; 
-            letter-spacing: -1px !important; 
-            color: #0F172A !important; 
-            margin-top: 0px !important; 
-        }
         
-        .logo-text { 
-            font-weight: 800; 
-            font-size: 1.1rem; 
-            color: #0F172A; 
-            display: flex; 
-            align-items: center; 
-            gap: 8px; 
-            margin-bottom: 5px; 
+        /* Titels hersteld */
+        h1 { font-size: 1.8rem !important; font-weight: 800 !important; letter-spacing: -1px !important; color: #0F172A !important; margin-top: 0px !important; }
+        .logo-text { font-weight: 800; font-size: 1.1rem; color: #0F172A; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+
+        /* Progress Bar */
+        .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; }
+        .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; transform: translateY(-50%); }
+        .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; }
+        .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; }
+        .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
+        .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; color: #64748B; font-weight: 600; white-space: nowrap; }
+        
+        .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+        .metric-card { background: white; border: 1px solid #94A3B8; border-radius: 12px; padding: 15px; text-align: center; }
+        .metric-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
+        .metric-label { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; }
+        
+        @media (max-width: 600px) {
+            .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+            .metric-value { font-size: 1.1rem; }
+            .metric-label { font-size: 0.6rem; }
         }
     </style>
 """, unsafe_allow_html=True)
