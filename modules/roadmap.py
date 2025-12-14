@@ -123,6 +123,27 @@ def get_roadmap():
                     "teaser": "Laat AI een bericht schrijven om influencers te benaderen."
                 }
             ]
+        },
+        "fase_6": {
+            "title": "Fase 6: The Daily Grind",
+            "desc": "De shop staat. Nu begint het echte werk: Testen, Analyseren en Winst pakken.",
+            "steps": [
+                {
+                    "id": "step_testing_ads", "title": "Dag 1: Test Fase (Ads)", "icon": "🧪", "locked": False,
+                    "content": "TEXT_ONLY", "text": "Start met €20-€50 per dag. Test minimaal 3 verschillende video's. Zet alles uit wat na €15 geen 'Add to Cart' heeft.",
+                    "xp_reward": 150
+                },
+                {
+                    "id": "step_analysis", "title": "Dag 3: Data Analyse", "icon": "📊", "locked": False,
+                    "content": "TEXT_ONLY", "text": "Kijk naar je CPC (onder €0.50?), CTR (boven 1%?) en ROAS. Slechte cijfers? Nieuwe creatives maken. Goede cijfers? Budget verhogen.",
+                    "xp_reward": 150
+                },
+                {
+                    "id": "step_kill_scale", "title": "Dag 7: Kill or Scale", "icon": "⚖️", "locked": False,
+                    "content": "TEXT_ONLY", "text": "Heb je winst? Schaal op (20% budget erbij per dag). Geen winst? Kill het product en begin opnieuw met Fase 3.",
+                    "xp_reward": 200
+                }
+            ]
         }
     }
 
@@ -187,7 +208,11 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             else:
                 st.markdown(f"""<div style="margin-bottom: 20px; padding: 12px; background: #F8FAFC; border-radius: 10px; border: 1px dashed #CBD5E1; display: flex; align-items: center; gap: 10px; opacity: 0.7;"><span style="color: #64748B; font-weight: 600; font-size: 0.9rem;">Video instructie (Student only)</span><span style="margin-left:auto;">🔒</span></div>""", unsafe_allow_html=True)
 
-        if step['content'] == "TOOL_KVK_GUIDE":
+        if step.get('content') == "TEXT_ONLY":
+            st.info(step['text'])
+            st.session_state[usage_key] = True
+
+        elif step['content'] == "TOOL_KVK_GUIDE":
             st.info("💡 Tip: Maak eerst een afspraak, het is vaak druk!")
             st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True

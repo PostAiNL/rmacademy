@@ -1,5 +1,6 @@
 import streamlit as st
 from datetime import datetime, timedelta, timezone
+import hashlib
 
 # Zorg dat 'supabase' in je requirements.txt staat
 try:
@@ -16,63 +17,141 @@ def get_client():
         return create_client(url, key)
     except: return None
 
-def claim_feedback_reward(email):
-    """
-    Probeert de 24u reward te claimen.
-    Returns: "SUCCESS", "ALREADY_CLAIMED", of "ERROR"
-    """
+# --- AUTHENTICATIE MET WACHTWOORD (DEZE MISTE JE) ---
+
+def hash_password(password):
+    """Simpele hashing voor veiligheid."""
+    return hashlib.sha256(password.encode()).hexdigest()
+
+def create_user(email, password, name=""):
+    """Maakt een gebruiker aan in Supabase users tabel."""
     client = get_client()
     if not client: return "ERROR"
     
+    hashed_pw = hash_password(password)
+    
+    # We voegen nu ook wachtwoord en naam toe
+    data = {
+        "email": email, 
+        "password": hashed_pw,
+        "first_name": name,
+        "pro_expiry": None # Standaard geen pro
+    }
+    
     try:
-        # 1. Check of gebruiker al bestaat en reward heeft gehad
+        # 1. Check of gebruiker al bestaat
         res = client.table("users").select("*").eq("email", email).execute()
+        if res.data: 
+            return "EXISTS"
         
-        if res.data:
-            user_data = res.data[0]
-            if user_data.get('has_claimed_feedback_reward', False):
-                return "ALREADY_CLAIMED"
-
-        # 2. Geef reward en zet vinkje aan
-        expiry_time = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
-        
-        data = {
-            "email": email, 
-            "pro_expiry": expiry_time,
-            "has_claimed_feedback_reward": True
-        }
-        
-        client.table("users").upsert(data).execute()
+        # 2. Nieuwe gebruiker invoegen
+        client.table("users").insert(data).execute()
         return "SUCCESS"
-        
     except Exception as e:
-        print(f"DB Error: {e}")
+        print(f"DB Auth Error: {e}")
         return "ERROR"
 
-def check_pro_status_db(email):
-    """Checkt of de gebruiker nog geldige pro tijd heeft in DB."""
+def verify_user(email, password):
+    """Checkt of email en wachtwoord kloppen."""
     client = get_client()
     if not client: return False
     
+    hashed_pw = hash_password(password)
     try:
-        res = client.table("users").select("pro_expiry").eq("email", email).execute()
+        res = client.table("users").select("password").eq("email", email).execute()
         if res.data:
-            expiry_str = res.data[0]['pro_expiry']
-            if expiry_str:
-                expiry_dt = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
-                if expiry_dt > datetime.now(timezone.utc):
-                    return True
+            # Check of het wachtwoord in de database matcht met de hash
+            stored_pw = res.data[0].get('password')
+            if stored_pw == hashed_pw:
+                return True
     except: pass
     return False
 
+def get_user_data(email):
+    """Haalt extra data op (zoals naam)."""
+    client = get_client()
+    if not client: return {}
+    try:
+        res = client.table("users").select("*").eq("email", email).execute()
+        if res.data: return res.data[0]
+    except: pass
+    return {}
+
+# --- PRO / FEEDBACK / STATS FUNCTIES ---
+
+def give_temp_pro_access(email, hours=24):
+    client = get_client()
+    if not client: return False
+    expiry_time = (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
+    try:
+        # Upsert zorgt dat het werkt, ook als de user nog niet bestond (zou niet moeten kunnen nu, maar voor zekerheid)
+        data = {"email": email, "pro_expiry": expiry_time}
+        client.table("users").upsert(data).execute()
+        return True
+    except: return False
+
+def check_pro_status_db(email):
+    client = get_client()
+    if not client: return False
+    try:
+        res = client.table("users").select("pro_expiry").eq("email", email).execute()
+        if res.data and res.data[0].get('pro_expiry'):
+            expiry_str = res.data[0]['pro_expiry']
+            expiry_dt = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
+            if expiry_dt > datetime.now(timezone.utc): return True
+    except: pass
+    return False
+
+def claim_feedback_reward(email):
+    client = get_client()
+    if not client: return "ERROR"
+    try:
+        # Check status
+        res = client.table("users").select("has_claimed_feedback_reward").eq("email", email).execute()
+        if res.data and res.data[0].get('has_claimed_feedback_reward'): 
+            return "ALREADY_CLAIMED"
+        
+        # Geef reward en zet vinkje
+        give_temp_pro_access(email, 24)
+        client.table("users").update({"has_claimed_feedback_reward": True}).eq("email", email).execute()
+        return "SUCCESS"
+    except Exception as e: 
+        print(e)
+        return "ERROR"
+
 def save_feedback(email, content, is_valid):
-    """Slaat feedback op."""
     client = get_client()
     if client:
-        try:
+        try: 
             client.table("feedback").insert({
                 "email": email, 
                 "content": content, 
                 "is_valid": is_valid
             }).execute()
         except: pass
+
+def save_daily_stats(email, revenue, spend, cogs):
+    client = get_client()
+    if client:
+        try:
+            today = datetime.now().strftime('%Y-%m-%d')
+            client.table("daily_stats").insert({
+                "user_email": email, 
+                "date": today, 
+                "revenue": revenue, 
+                "ad_spend": spend, 
+                "cogs": cogs
+            }).execute()
+            return True
+        except Exception as e: 
+            print(e)
+            return False
+    return False
+
+def get_daily_stats_history(email):
+    client = get_client()
+    if not client: return []
+    try:
+        res = client.table("daily_stats").select("*").eq("user_email", email).order("date", desc=True).limit(7).execute()
+        return res.data
+    except: return []
