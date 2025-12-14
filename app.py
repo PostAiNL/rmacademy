@@ -217,6 +217,19 @@ st.markdown("""
             max-width: 100%;
         }
 
+        /* --- LEVEL UP OVERLAY (NIEUW) --- */
+        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        .levelup-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.9); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: popIn 0.5s ease-out forwards;
+        }
+        .levelup-card {
+            background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24;
+        }
+
         @media (max-width: 600px) {
             .stat-grid { gap: 8px; }
             .stat-value { font-size: 1.1rem; }
@@ -350,7 +363,10 @@ if "user" not in st.session_state:
 user = st.session_state.user
 is_pro = user['is_pro']
 
-# --- CREDIT SYSTEM (RETENTION) ---
+# --- SESSION STATE TRACKING VOOR LEVEL UP ---
+if "prev_level" not in st.session_state:
+    st.session_state.prev_level = user['level']
+
 if "ai_credits" not in st.session_state:
     st.session_state.ai_credits = 3 
 
@@ -415,7 +431,7 @@ with st.sidebar:
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Logo maker", "Product ideeën", "Concurrenten", "Video ideeën", "Ads check"]:
+        if not is_pro and opt in ["Logo maker", "Concurrenten", "Video ideeën", "Ads check"]:
             menu_display_options.append(f"{opt} 🔒")
         else:
             menu_display_options.append(opt)
@@ -482,6 +498,24 @@ def render_pro_lock(title, desc):
 # --- CONTENT PAGES ---
 
 if pg == "Dashboard":
+    
+    # --- LEVEL UP CELEBRATION (NIEUW FEATURE) ---
+    if user['level'] > st.session_state.prev_level:
+        st.balloons()
+        # Fullscreen overlay via CSS/HTML
+        st.markdown(f"""
+        <div class="levelup-overlay" onclick="this.style.display='none'">
+            <div class="levelup-card">
+                <div style="font-size:60px; margin-bottom:10px;">🏆</div>
+                <h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1>
+                <h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3>
+                <p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p>
+                <div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+        st.session_state.prev_level = user['level']
+
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     
     st.markdown(f"<h1 style='margin-bottom: 15px;'>{get_greeting()}, {name} <i class='bi bi-hand-thumbs-up-fill' style='color:#FBBF24;'></i></h1>", unsafe_allow_html=True)
@@ -623,7 +657,7 @@ if pg == "Dashboard":
                 just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=True)
                 if just_completed_id:
                     auth.mark_step_complete(just_completed_id, xp)
-                    st.toast(f"🎉 Lekker bezig! +{xp} XP", icon="🚀") # MICRO REWARD
+                    st.toast(f"🎉 Lekker bezig! +{xp} XP", icon="🚀") 
                     time.sleep(1)
                     st.rerun()
             
@@ -664,10 +698,8 @@ elif pg == "Marketing Tools":
     with tab_desc:
         st.markdown("### AIDA Product Beschrijving Generator")
         st.write("Verander een saaie naam in een tekst die verkoopt (Attention, Interest, Desire, Action).")
-        
         with st.container(border=True):
             prod_name = st.text_input("Productnaam / URL (AliExpress)", placeholder="Bv. Galaxy Star Projector")
-            
             if st.button("✨ Genereer Beschrijving", type="primary", use_container_width=True):
                 if check_credits():
                     with st.spinner("AI is aan het schrijven..."):
@@ -680,10 +712,8 @@ elif pg == "Marketing Tools":
     with tab_influencer:
         st.markdown("### Influencer Outreach Script")
         st.write("Weet je niet wat je moet sturen naar influencers? Gebruik dit script.")
-        
         with st.container(border=True):
             inf_prod = st.text_input("Jouw Product", placeholder="Bv. Organic Face Serum")
-            
             if st.button("📩 Genereer DM Script", type="primary", use_container_width=True):
                 if check_credits():
                     with st.spinner("Script schrijven..."):
@@ -725,7 +755,20 @@ elif pg == "Logo maker":
 
 elif pg == "Product ideeën":
     st.markdown("<h1><i class='bi bi-search'></i> Product ideeën</h1>", unsafe_allow_html=True)
-    if not is_pro: render_pro_lock("Ontgrendel winnende producten", "Als student krijg je toegang tot de Product Inspirator.")
+    if not is_pro:
+        # --- TASTE TEST: HET GRATIS VOORBEELD (NIEUWE FEATURE) ---
+        st.markdown("### 🎁 Gratis Voorbeeld: Huidige Bestseller")
+        with st.container(border=True):
+            st.markdown(f"**🔥 Galaxy Star Projector 2.0**")
+            st.caption("Richtprijs verkoop: €34.95")
+            st.write(f"💡 **Waarom viral:** Visueel spectaculair voor TikTok, lost het probleem op van saaie kamers, hoge marge.")
+            c1, c2 = st.columns(2)
+            c1.link_button("TikTok Voorbeelden", "https://www.tiktok.com/search?q=galaxy+projector", use_container_width=True)
+            c2.link_button("AliExpress Inkoop", "https://www.aliexpress.com/wholesale?SearchText=galaxy+projector", use_container_width=True)
+        st.write("") 
+        
+        # De Lock staat eronder
+        render_pro_lock("Ontgrendel alle winnende producten", "Krijg toegang tot de volledige database met dagelijks nieuwe producten.")
     else:
         with st.container(border=True):
             col_inp, col_btn = st.columns([3, 1])
@@ -745,19 +788,46 @@ elif pg == "Product ideeën":
                                 c2.link_button("AliExpress", p['search_links']['ali'], use_container_width=True)
 
 elif pg == "Winst Calculator":
-    st.markdown("<h1><i class='bi bi-calculator-fill'></i> Rijkrekenaar</h1>", unsafe_allow_html=True)
-    with st.container(border=True):
-        c1, c2 = st.columns(2)
-        vp = c1.number_input("Verkoopprijs", value=29.95)
-        ip = c1.number_input("Inkoop + Verzenden", value=12.00)
-        cpa = c2.number_input("Ads kosten (CPA)", value=10.00)
-        tr = vp * 0.03
-    winst = vp - (ip + cpa + tr)
-    marge = (winst / vp * 100) if vp > 0 else 0
-    st.markdown("---")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("Netto Winst", f"€{winst:.2f}")
-    c2.metric("Marge", f"{marge:.1f}%")
+    st.markdown("<h1><i class='bi bi-calculator-fill'></i> Calculator</h1>", unsafe_allow_html=True)
+    
+    # --- START BUDGET CALCULATOR (NIEUWE FEATURE) ---
+    tab_profit, tab_budget = st.tabs(["💶 Product Winst", "💰 Start Budget"])
+    
+    with tab_profit:
+        st.caption("Bereken hoeveel je overhoudt per sale.")
+        with st.container(border=True):
+            c1, c2 = st.columns(2)
+            vp = c1.number_input("Verkoopprijs", value=29.95)
+            ip = c1.number_input("Inkoop + Verzenden", value=12.00)
+            cpa = c2.number_input("Ads kosten (CPA)", value=10.00)
+            tr = vp * 0.03
+            winst = vp - (ip + cpa + tr)
+            marge = (winst / vp * 100) if vp > 0 else 0
+            st.markdown("---")
+            cc1, cc2, cc3 = st.columns(3)
+            cc1.metric("Netto Winst", f"€{winst:.2f}")
+            cc2.metric("Marge", f"{marge:.1f}%")
+
+    with tab_budget:
+        st.caption("Kan ik starten met mijn spaargeld? Check het hier.")
+        with st.container(border=True):
+            budget = st.number_input("Wat is je totale spaargeld?", value=500)
+            
+            # Vaste kosten
+            kvk = 51.95
+            domein = 10.00
+            shopify = 1.00 # Actie
+            
+            totaal_vast = kvk + domein + shopify
+            over = budget - totaal_vast
+            
+            if over < 100:
+                st.error(f"Je hebt minimaal €200 nodig om veilig te starten. Je komt €{200-over:.0f} tekort.")
+            else:
+                st.success("✅ Ja! Je hebt genoeg budget om te starten.")
+                st.write(f"Na de opstartkosten (€{totaal_vast:.2f}) houd je **€{over:.2f}** over voor marketing en testen.")
+                st.progress(min(over/500, 1.0))
+                st.caption("Dit is ruim voldoende om je eerste product te testen.")
 
 elif pg == "Concurrenten":
     st.markdown("<h1><i class='bi bi-graph-up-arrow'></i> Concurrenten</h1>", unsafe_allow_html=True)
