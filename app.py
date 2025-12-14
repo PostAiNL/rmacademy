@@ -1,3 +1,5 @@
+--- START OF FILE app.py ---
+
 import streamlit as st
 import time
 import urllib.parse
@@ -26,14 +28,13 @@ except:
     pass
 
 st.set_page_config(
-    page_title="RM Ecom Academy",  # <--- Hier de nieuwe titel
-    page_icon=fav_icon,            # <--- Hier je eigen logo
+    page_title="RM Ecom Academy",
+    page_icon=fav_icon,
     layout="wide",
     initial_sidebar_state="auto"
 )
 
 # --- 1.5 META TAGS & PWA NAAM FIX ---
-# Dit probeert de standaard "Streamlit" naam te overschrijven voor Android/iOS installatie
 st.markdown("""
 <script>
     var link = document.querySelector("link[rel~='icon']");
@@ -165,7 +166,8 @@ st.markdown("""
             background-color: transparent !important;
         }
 
-        /* --- SAMSUNG EXPANDER / DROPDOWN FIX --- */
+        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (CRUCIAAL) --- */
+        /* 1. Normale staat */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
@@ -173,18 +175,34 @@ st.markdown("""
             border-radius: 8px !important;
             transition: all 0.2s;
         }
-        .streamlit-expanderHeader p { color: #0F172A !important; font-weight: 600 !important; }
-        .streamlit-expanderHeader svg { fill: #0F172A !important; }
+        /* Specifieke tekstkleur voor normale staat */
+        .streamlit-expanderHeader p, .streamlit-expanderHeader span, .streamlit-expanderHeader div { 
+            color: #0F172A !important; 
+            font-weight: 600 !important; 
+        }
+        .streamlit-expanderHeader svg { 
+            fill: #0F172A !important; 
+        }
 
-        .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus, .streamlit-expanderHeader:hover {
+        /* 2. ACTIVE / HOVER / FOCUS STAAT -> ALLES WIT */
+        /* Zodra je klikt of hovert, wordt achtergrond donker */
+        .streamlit-expanderHeader:hover,
+        .streamlit-expanderHeader:active,
+        .streamlit-expanderHeader:focus,
+        .streamlit-expanderHeader:focus-visible {
             background-color: #1E293B !important;
             border-color: #0F172A !important;
-        }
-        .streamlit-expanderHeader:active p, .streamlit-expanderHeader:focus p, .streamlit-expanderHeader:hover p {
             color: #FFFFFF !important;
         }
-        .streamlit-expanderHeader:active svg, .streamlit-expanderHeader:focus svg, .streamlit-expanderHeader:hover svg {
+
+        /* AGRESSIEVE FIX: Forceer ELK element (tekst, icoon, div) in de header naar WIT bij interactie */
+        .streamlit-expanderHeader:hover *,
+        .streamlit-expanderHeader:active *,
+        .streamlit-expanderHeader:focus *,
+        .streamlit-expanderHeader:focus-visible * {
+            color: #FFFFFF !important;
             fill: #FFFFFF !important;
+            stroke: #FFFFFF !important;
         }
 
         /* DROPDOWN MENU FIX */
