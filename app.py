@@ -189,6 +189,33 @@ st.markdown("""
         div[data-testid="stExpander"] details summary p {
             font-weight: 600;
         }
+        
+        /* --- VISUAL ROADMAP STYLES (PUNT 3) --- */
+        .progress-container {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 30px; position: relative; padding: 0 10px;
+        }
+        .progress-line {
+            position: absolute; top: 50%; left: 0; width: 100%; height: 3px;
+            background: #E2E8F0; z-index: 1; transform: translateY(-50%);
+        }
+        .progress-step {
+            width: 32px; height: 32px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            z-index: 2; position: relative; background: white;
+            border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold;
+            font-size: 0.8rem; transition: all 0.3s;
+        }
+        .progress-step.active {
+            border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+        }
+        .progress-step.completed {
+            background: #10B981; border-color: #10B981; color: white;
+        }
+        .progress-label {
+            position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%);
+            font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600;
+        }
 
         @media (max-width: 600px) {
             .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
@@ -216,6 +243,7 @@ if "user" not in st.session_state:
 
     with col_left:
         st.markdown("<div class='logo-text'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
+        
         st.markdown("""
         <h1>Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met je eigen webshop.</h1>
         <p style='color:#64748B; font-size:1.05rem; margin-bottom: 30px; line-height: 1.6;'>
@@ -243,6 +271,18 @@ if "user" not in st.session_state:
                     else:
                         st.warning("Vul je naam en een geldig e-mailadres in.")
                 st.markdown("""<div style='text-align:center; margin-top:8px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                
+                # --- REVIEWS NETJES TERUGGEPLAATST ---
+                st.markdown("""
+                <div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9;'>
+                    <div style="color: #F59E0B; font-size: 0.8rem;">
+                        <i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i>
+                    </div>
+                    <span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span>
+                </div>
+                """, unsafe_allow_html=True)
+                # -------------------------------------
+
                 st.markdown("<div style='height: 12px;'></div>", unsafe_allow_html=True)
 
             with tab_pro:
@@ -404,24 +444,49 @@ if pg == "Dashboard":
     
     next_step_title = "Alles afgerond! 🎉"
     next_step_phase = "Klaar"
+    next_step_phase_index = 0
     next_step_id = None
     next_step_locked = False
-    found = False
     
-    for fase_key, fase in full_map.items():
+    # Bepaal huidige fase index voor progress bar
+    fase_keys = list(full_map.keys())
+    for idx, (fase_key, fase) in enumerate(full_map.items()):
+        phase_done = True
         for s in fase['steps']:
             if s['id'] not in completed_steps:
                 next_step_title = s['title']
                 next_step_phase = fase['title'].split(":")[0]
+                next_step_phase_index = idx + 1 # 1-based index voor visual
                 next_step_id = s['id']
                 next_step_locked = s.get('locked', False)
-                found = True
+                phase_done = False
                 break
-        if found: break
-            
-    total_steps = sum(len(f['steps']) for f in full_map.values())
-    done_count = len(completed_steps)
-    pct = int(done_count/total_steps*100) if total_steps > 0 else 0
+        if not phase_done: break
+        # Als we hier zijn is de hele fase klaar, check of we bij de laatste zijn
+        if phase_done and idx == len(fase_keys) - 1:
+            next_step_phase_index = 6 # Alles klaar
+
+    # --- NIEUWE FEATURE: VISUELE PROGRESS BAR (PUNT 3) ---
+    # !!! FIX: Alle HTML op 1 regel om markdown block errors te voorkomen !!!
+    html_steps = ""
+    labels = ["Start", "Bouwen", "Product", "Trust", "Scale"]
+    
+    for i in range(1, 6):
+        status_class = ""
+        if i < next_step_phase_index:
+            status_class = "completed"
+        elif i == next_step_phase_index:
+            status_class = "active"
+        
+        icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
+        
+        # Geen spaties aan het begin van de regels!
+        html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
+    
+    # Geen tabs of enters in de f-string
+    st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
+    
+    # --- EINDE NIEUWE FEATURE ---
 
     logo_base64 = get_image_base64("assets/logo.png")
     
@@ -430,27 +495,25 @@ if pg == "Dashboard":
     else:
         bg_icon_html = '<div style="position: absolute; top: 10px; right: 20px; font-size: 100px; opacity: 0.15; color: white;"><i class="bi bi-rocket-takeoff-fill"></i></div>'
 
-    # --- 10/10 UPGRADE: SLIMME KAART (LOCKED vs UNLOCKED) ---
+    # --- SLIMME KAART (LOCKED vs UNLOCKED) ---
     is_step_pro = next_step_locked and not is_pro
     
     if is_step_pro:
-        # PREMIUM KAART (GOUD/DONKER)
-        card_bg = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)" # Diep donkerblauw
-        accent_color = "#F59E0B" # Goud geel
+        card_bg = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)" 
+        accent_color = "#F59E0B" 
         btn_text = "🚀 Word Student"
-        btn_bg = "linear-gradient(to bottom, #FBBF24, #D97706)" # Gouden knop
+        btn_bg = "linear-gradient(to bottom, #FBBF24, #D97706)"
         btn_url = STRATEGY_CALL_URL
         btn_target = "_blank"
         card_icon = "bi-lock-fill"
         status_text = "Deze stap is exclusief voor studenten."
         title_color = "#FFFFFF" 
-        card_border = "1px solid #F59E0B" # Gouden rand
+        card_border = "1px solid #F59E0B"
     else:
-        # STANDAARD KAART (BLAUW)
         card_bg = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
-        accent_color = "#DBEAFE" # Lichtblauw
+        accent_color = "#DBEAFE" 
         btn_text = "Start Direct <i class='bi bi-play-fill'></i>"
-        btn_bg = "#FBBF24" # Geel
+        btn_bg = "#FBBF24"
         btn_url = "#mission"
         btn_target = "_self"
         card_icon = "bi-crosshair"
@@ -458,24 +521,8 @@ if pg == "Dashboard":
         title_color = "#FFFFFF"
         card_border = "1px solid rgba(255,255,255,0.1)"
 
-    # HTML string zonder indentatie om code-block weergave te voorkomen
-    mission_html = f"""
-<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;">
-    {bg_icon_html}
-    <div style="position: relative; z-index: 2;">
-        <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div>
-        <div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div>
-        <p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">
-            {status_text}
-        </p>
-        <a href="{btn_url}" target="{btn_target}" style="text-decoration:none;">
-            <div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">
-                {btn_text}
-            </div>
-        </a>
-    </div>
-</div>
-"""
+    # Platgeslagen HTML string
+    mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;">{bg_icon_html}<div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
     current_title, next_xp_goal = auth.get_rank_info(user['xp'])
@@ -484,29 +531,11 @@ if pg == "Dashboard":
 
     cols = st.columns(3) 
     with cols[0]:
-        st.markdown(f"""
-        <div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;">
-            <div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-bar-chart-fill"></i> LEVEL</div>
-            <div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['level']}</div>
-            <div style="font-size:0.75rem; color:#64748B;">{current_title}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-bar-chart-fill"></i> LEVEL</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['level']}</div><div style="font-size:0.75rem; color:#64748B;">{current_title}</div></div>""", unsafe_allow_html=True)
     with cols[1]:
-        st.markdown(f"""
-        <div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;">
-            <div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-lightning-fill"></i> XP</div>
-            <div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['xp']}</div>
-            <div style="font-size:0.75rem; color:#64748B;">Nog {needed} tot next lvl</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-lightning-fill"></i> XP</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['xp']}</div><div style="font-size:0.75rem; color:#64748B;">Nog {needed} tot next lvl</div></div>""", unsafe_allow_html=True)
     with cols[2]:
-        st.markdown(f"""
-        <div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;">
-            <div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-gift-fill"></i> NEXT REWARD</div>
-            <div style="font-size:1.5rem; font-weight:800; color:#0F172A;">🎁</div>
-            <div style="font-size:0.75rem; color:#2563EB;">{next_reward}</div>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-gift-fill"></i> NEXT REWARD</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">🎁</div><div style="font-size:0.75rem; color:#2563EB;">{next_reward}</div></div>""", unsafe_allow_html=True)
     
     st.markdown("<div id='mission' style='height: 20px;'></div>", unsafe_allow_html=True)
 
@@ -536,21 +565,7 @@ if pg == "Dashboard":
             
             else:
                 icon = "bi-lock-fill" if step.get('locked', False) else "bi-circle"
-                st.markdown(f"""
-                <div style="
-                    padding: 12px 16px; 
-                    background: #F8FAFC; 
-                    border: 1px solid #E2E8F0; 
-                    border-radius: 8px; 
-                    color: #94A3B8; 
-                    font-size: 0.9rem; 
-                    margin-bottom: 8px; 
-                    display: flex; 
-                    align-items: center;
-                    gap: 10px;">
-                    <i class="bi {icon}"></i> {step['title']}
-                </div>
-                """, unsafe_allow_html=True)
+                st.markdown(f"""<div style="padding: 12px 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #94A3B8; font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;"><i class="bi {icon}"></i> {step['title']}</div>""", unsafe_allow_html=True)
         
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
