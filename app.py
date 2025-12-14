@@ -17,9 +17,10 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
-# Probeer het logo te laden
+# Probeer het logo te laden, als het niet bestaat val je terug op de raket
 fav_icon = "🚀"
 try:
+    # Zorg dat je logo.png vierkant is voor het beste resultaat in de tab
     fav_icon = Image.open("assets/logo.png") 
 except:
     pass
@@ -55,17 +56,15 @@ st.markdown("""
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
-           1. ALGEMENE CONFIGURATIE
+           1. ALGEMENE CONFIGURATIE & MOBILE FIXES
            ============================================== */
         :root {
             --primary: #2563EB;
             --bg-light: #F8FAFC;
             --text-dark: #0F172A;
             --white: #FFFFFF;
-            /* Donkerdere randkleur voor betere zichtbaarheid op Samsung */
-            --border: #94A3B8; 
             
-            /* FORCEER LIGHT MODE */
+            /* FORCEER LIGHT MODE (Samsung/iPhone fix) */
             color-scheme: light !important; 
         }
 
@@ -76,7 +75,10 @@ st.markdown("""
 
         /* Iconen styling */
         .bi { margin-right: 6px; vertical-align: -0.125em; }
+        
+        /* Specifieke kleur voor titels (H1-H3) */
         h1, h2, h3 { color: #0F172A !important; }
+        
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
@@ -86,89 +88,139 @@ st.markdown("""
 
         [data-testid="stSidebarCollapseButton"] {
             display: flex !important; visibility: visible !important; pointer-events: auto !important;
-            align-items: center !important; justify-content: center !important; position: fixed !important;
-            top: 15px !important; left: 15px !important; z-index: 1000005 !important;
-            background-color: #FFFFFF !important; border: 2px solid #94A3B8 !important; /* Dikkere rand */
-            border-radius: 8px !important; width: 44px !important; height: 44px !important;
+            align-items: center !important; justify-content: center !important;
+            position: fixed !important; top: 15px !important; left: 15px !important; z-index: 1000005 !important;
+            background-color: #FFFFFF !important; border: 1px solid #94A3B8 !important; border-radius: 8px !important;
+            width: 44px !important; height: 44px !important;
         }
+
         [data-testid="stSidebarCollapseButton"] svg { fill: #2563EB !important; stroke: #2563EB !important; }
         @media (min-width: 992px) { [data-testid="stSidebarCollapseButton"] { display: none !important; } }
-        [data-testid="stDecoration"], [data-testid="stToolbar"], [data-testid="stStatusWidget"], footer, #MainMenu, [data-testid="stHeaderActionElements"] { 
-            visibility: hidden !important; display: none !important; 
-        }
-        .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a { display: none !important; pointer-events: none; }
+        
+        [data-testid="stDecoration"] { display: none !important; }
+        [data-testid="stToolbar"] { display: none !important; }
+        [data-testid="stStatusWidget"] { visibility: hidden !important; }
+        footer { visibility: hidden !important; }
+        #MainMenu { visibility: hidden !important; }
+        [data-testid="stHeaderActionElements"] { display: none !important; }
+        
+        .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
+        .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { display: none !important; pointer-events: none; }
 
         /* ==============================================
-           3. UI ELEMENTEN & SAMSUNG ZICHTBAARHEID FIX
+           3. UI ELEMENTEN FIXES (SAMSUNG/IPHONE)
            ============================================== */
         
-        /* A. INPUT VELDEN: Dikke rand & Zwarte tekst */
+        /* IPHONE & SAMSUNG INPUT FIX: Zwarte tekst afdwingen */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
-            border: 2px solid #94A3B8 !important; /* ZICHTBARE RAND */
-            border-radius: 8px !important;
+            border: 1px solid #94A3B8 !important; /* Iets donkerder voor zichtbaarheid */
             -webkit-text-fill-color: #0F172A !important;
             opacity: 1 !important;
         }
 
-        /* B. LABELS */
         .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
-            color: #0F172A !important; font-weight: 700 !important;
+            color: #0F172A !important; font-weight: 600 !important;
         }
 
-        /* C. ROADMAP ITEMS (EXPANDERS) */
-        /* 1. Normale staat: Wit blok, Donkere rand, ZWARTE TEKST */
+        /* --- TABS TEKST KLEUR --- */
+        button[data-baseweb="tab"] div p { color: #64748B !important; font-weight: 600 !important; }
+        button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; }
+        button[data-baseweb="tab"] { background-color: transparent !important; }
+
+        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (BLAUWE MODUS) --- */
+        
+        /* 1. Normale staat (Dicht) */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
-            border: 2px solid #94A3B8 !important; /* ZICHTBARE RAND */
+            border: 1px solid #94A3B8 !important; /* Donkerdere rand */
             border-radius: 8px !important;
             transition: all 0.2s;
-            margin-bottom: 8px !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05) !important;
         }
-        /* Dit was ik vergeten in het vorige bericht -> Forceer tekst zwart in rust */
         .streamlit-expanderHeader p, .streamlit-expanderHeader span, .streamlit-expanderHeader div { 
-            color: #0F172A !important; 
-            font-weight: 600 !important; 
+            color: #0F172A !important; font-weight: 600 !important; 
         }
-        .streamlit-expanderHeader svg { 
-            fill: #0F172A !important; 
+        .streamlit-expanderHeader svg { fill: #0F172A !important; }
+
+        /* 2. ACTIVE / HOVER / FOCUS STAAT -> BLAUWE ACHTERGROND, WITTE TEKST */
+        .streamlit-expanderHeader:hover,
+        .streamlit-expanderHeader:active,
+        .streamlit-expanderHeader:focus,
+        .streamlit-expanderHeader:focus-visible,
+        .streamlit-expanderHeader[aria-expanded="true"] {
+            background-color: #2563EB !important; /* BLAUW */
+            border-color: #2563EB !important;
+            color: #FFFFFF !important; /* WIT */
         }
 
-        /* 2. Interactie staat (Klik/Focus): Donkere achtergrond, WITTE TEKST */
-        .streamlit-expanderHeader:hover, .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus, .streamlit-expanderHeader:focus-visible {
-            background-color: #1E293B !important; 
-            border-color: #0F172A !important; 
+        /* FORCEER WITTE TEKST/ICONEN BIJ HOVER/ACTIEF */
+        .streamlit-expanderHeader:hover *,
+        .streamlit-expanderHeader:active *,
+        .streamlit-expanderHeader:focus *,
+        .streamlit-expanderHeader:focus-visible *,
+        .streamlit-expanderHeader[aria-expanded="true"] * {
             color: #FFFFFF !important;
-        }
-        /* Forceer alle tekst/iconen naar wit bij interactie */
-        .streamlit-expanderHeader:hover *, .streamlit-expanderHeader:active *, .streamlit-expanderHeader:focus *, .streamlit-expanderHeader:focus-visible * {
-            color: #FFFFFF !important; 
-            fill: #FFFFFF !important; 
+            fill: #FFFFFF !important;
             stroke: #FFFFFF !important;
         }
 
-        /* Dropdown menu fix */
-        div[data-baseweb="select"] > div { background-color: #FFFFFF !important; color: #0F172A !important; border-color: #94A3B8 !important; }
-        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; border: 1px solid #94A3B8 !important; }
+        /* DROPDOWN MENU FIX */
+        div[data-baseweb="select"] > div {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border-color: #94A3B8 !important;
+        }
+        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
         li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
-        li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { background-color: #EFF6FF !important; }
+        li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
+            background-color: #EFF6FF !important; color: #2563EB !important;
+        }
 
-        /* Checkbox fix */
+        /* CHECKBOX FIX */
         input[type="checkbox"] { 
             accent-color: #2563EB !important; 
             background-color: #FFFFFF !important;
-            border: 1px solid #94A3B8 !important; /* Randje zichtbaar maken */
+            border-color: #94A3B8 !important;
         }
 
         /* ==============================================
-           4. LAYOUT & STIJL
+           4. LAYOUT & ZICHTBAARHEID VAKKEN FIX
            ============================================== */
-        .block-container { padding-top: 3rem !important; padding-bottom: 5rem !important; max-width: 1000px; }
-        [data-testid="stSidebar"] .block-container { padding-top: 1.5rem !important; padding-bottom: 1rem !important; }
+        .block-container {
+            padding-top: 3rem !important; padding-bottom: 5rem !important; max-width: 1000px;
+        }
+
+        /* --- VAKKEN ZICHTBAAR MAKEN (Border fix) --- */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border: 1px solid #94A3B8 !important; /* Donkerder grijs */
+            border-radius: 12px !important;
+            background: #FFFFFF !important;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important; /* Meer schaduw */
+            padding: 20px !important;
+            margin-bottom: 20px !important;
+        }
+
+        /* Cards & Metrics */
+        .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px; }
+        .metric-card { 
+            background: white; 
+            border: 1px solid #94A3B8; 
+            border-radius: 12px; 
+            padding: 15px; 
+            text-align: center; 
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); 
+        }
+        .metric-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
+        .metric-label { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; }
         
-        /* Visuele Roadmap */
+        /* Lock & Expander Fixes */
+        .stExpander { margin-bottom: -15px !important; border: none !important; box-shadow: none !important; }
+        div[data-testid="stExpander"] details summary p { font-weight: 600; }
+        
+        /* VISUAL ROADMAP STYLES */
         .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; }
         .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; transform: translateY(-50%); }
         .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
@@ -176,38 +228,43 @@ st.markdown("""
         .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
         .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
 
-        /* Cards styling */
-        div[data-testid="stVerticalBlockBorderWrapper"] {
-            border: 1px solid #E2E8F0 !important;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
-            background: white; border-radius: 16px; padding: 24px; margin-bottom: 20px;
+        @media (max-width: 600px) {
+            .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
+            .metric-value { font-size: 1.1rem; }
+            .metric-label { font-size: 0.6rem; }
         }
 
         /* ==============================================
-           5. FORCEREN VAN BLAUWE THEMA KLEUREN
+           5. FORCEREN VAN BLAUW
            ============================================== */
-        
-        /* Start Direct Knop -> BLAUW */
         div.stButton > button[kind="primary"] {
-            background-color: #2563EB !important; 
-            border-color: #2563EB !important; 
-            color: white !important;
+            background-color: #2563EB !important; border-color: #2563EB !important; color: white !important;
         }
         div.stButton > button[kind="primary"]:hover {
-            background-color: #1D4ED8 !important; 
-            border-color: #1D4ED8 !important;
+            background-color: #1D4ED8 !important; border-color: #1D4ED8 !important;
         }
-        div.stButton > button[kind="primary"]:focus {
-            box-shadow: none !important;
-            border-color: #1D4ED8 !important;
-        }
-
-        /* Tab lijntjes -> BLAUW */
         div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
+
+        /* ==============================================
+           6. TITELS & LOGO HERSTEL
+           ============================================== */
+        h1 { 
+            font-size: 1.8rem !important; 
+            font-weight: 800 !important; 
+            letter-spacing: -1px !important; 
+            color: #0F172A !important; 
+            margin-top: 0px !important; 
+        }
         
-        /* Tab tekst kleuren */
-        button[data-baseweb="tab"] div p { color: #64748B !important; font-weight: 600 !important; }
-        button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; }
+        .logo-text { 
+            font-weight: 800; 
+            font-size: 1.1rem; 
+            color: #0F172A; 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            margin-bottom: 5px; 
+        }
     </style>
 """, unsafe_allow_html=True)
 
@@ -387,7 +444,7 @@ with st.sidebar:
 
     if not is_pro:
         st.markdown(f"""
-        <div style="margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px dashed #94A3B8; text-align: center;">
+        <div style="margin-top: 10px; padding: 8px; background: #F8FAFC; border-radius: 6px; border: 1px dashed #CBD5E1; text-align: center;">
             <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none; color: #2563EB; font-weight: 700; font-size: 0.8rem;">
                 Word student <i class="bi bi-arrow-right"></i>
             </a>
@@ -397,7 +454,7 @@ with st.sidebar:
 # --- LOCK SCREEN COMPONENT (BLURRED STYLE) ---
 def render_pro_lock(title, desc):
     lock_html = f"""
-    <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #94A3B8; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
+    <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
         <div style="filter: blur(5px); opacity: 0.5; padding: 30px; pointer-events: none; user-select: none;">
             <h3 style="color: #64748B; margin-bottom: 15px;">██████ ██████</h3>
             <div style="height: 15px; background: #CBD5E1; width: 80%; margin-bottom: 10px; border-radius: 4px;"></div>
