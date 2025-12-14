@@ -6,6 +6,7 @@ import pandas as pd
 import textwrap
 import base64 
 import os
+from PIL import Image
 from streamlit_option_menu import option_menu
 from datetime import datetime, timedelta, timezone
 import extra_streamlit_components as stx
@@ -16,9 +17,17 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
+# Probeer het logo te laden, als het niet bestaat val je terug op de raket
+fav_icon = "🚀"
+try:
+    # Zorg dat je logo.png vierkant is voor het beste resultaat in de tab
+    fav_icon = Image.open("assets/logo.png") 
+except:
+    pass
+
 st.set_page_config(
-    page_title="RM Ecom App",
-    page_icon="🚀",
+    page_title="RM Ecom Academy",  # <--- Hier de nieuwe titel
+    page_icon=fav_icon,            # <--- Hier je eigen logo
     layout="wide",
     initial_sidebar_state="auto"
 )
