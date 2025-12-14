@@ -271,9 +271,6 @@ cookie_manager = stx.CookieManager()
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
     if cookie_email:
-        # Hier gebruiken we tijdelijk een dummy password check voor sessie herstel, 
-        # in een echte app zou je een token gebruiken.
-        # Voor nu gaan we ervan uit dat als de cookie er is, het goed is voor sessie herstel (soft login).
         try: auth.login_or_register(cookie_email)
         except: pass
 
@@ -434,8 +431,7 @@ with st.sidebar:
     if not is_pro:
         st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
-    # NIEUWE OPTIE: PROFIT TRACKER
-    options = ["Dashboard", "Gratis training", "Profit Tracker", "Marketing Tools", "Logo maker", "Product ideeën", "Winst Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
+    options = ["Dashboard", "Gratis training", "Profit Tracker", "Marketing Tools", "Logo maker", "Product ideeën", "Marge Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
     icons = ["house-fill", "mortarboard-fill", "cash-stack", "megaphone-fill", "palette-fill", "search", "calculator-fill", "bar-chart-fill", "camera-reels-fill", "bandaid-fill", "gear-fill"]
     
     menu_display_options = []
@@ -456,9 +452,14 @@ with st.sidebar:
             "icon": {"color": "#64748B", "font-size": "14px"}, 
             "nav-link": {"font-size": "14px", "text-align": "left", "margin": "1px", "padding": "8px", "--hover-color": "#EFF6FF", "color": "#0F172A"},
             "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"},
-        }
+        },
+        key="main_navigation_menu" # HIER ZIT DE FIX VOOR HET VERDWIJNEN
     )
-    pg = selected_display.replace(" 🔒", "")
+    
+    if selected_display:
+        pg = selected_display.replace(" 🔒", "")
+    else:
+        pg = "Dashboard"
 
     if not is_pro:
         st.markdown(f"""
@@ -469,29 +470,41 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
     
-    # --- FEEDBACK & REWARDS CARD ---
+    # --- FEEDBACK & REWARDS CARD (ONE-TIME ONLY) ---
     st.markdown("---") 
+    
     with st.container(border=True):
         st.markdown("<div style='font-weight:700; color:#0F172A; margin-bottom:4px;'>💡Geef ons jouw mening</div>", unsafe_allow_html=True)
         st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
+        
         fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=80, key="fb_sidebar", label_visibility="collapsed")
+        
         if st.button("Claim gratis PRO🚀", use_container_width=True):
             if len(fb_text) > 10:
                 with st.spinner("Checken..."):
+                    # 1. AI Validatie
                     is_valid = ai_coach.validate_feedback(fb_text)
+                    
+                    # 2. Opslaan (altijd, ook als het ongeldig is voor training)
                     db.save_feedback(user['email'], fb_text, is_valid)
+                    
                     if is_valid:
+                        # 3. Proberen te claimen in DB
                         status = db.claim_feedback_reward(user['email'])
+                        
                         if status == "SUCCESS":
                             st.balloons()
                             st.success("🎉 Geweldig! Je 24 uur PRO toegang is gestart!")
                             time.sleep(2)
                             st.rerun()
                         elif status == "ALREADY_CLAIMED":
-                            st.info("Bedankt! Je hebt je beloning al eerder gehad.")
-                        else: st.error("Fout met DB.")
-                    else: st.warning("Probeer constructieve feedback te geven.")
-            else: st.warning("Typ minimaal 10 letters.")
+                            st.info("Bedankt voor je feedback! 🙌 Je hebt je 24u reward al eerder gebruikt, dus deze keer geen upgrade, maar we waarderen het enorm!")
+                        else:
+                            st.error("Er ging iets mis met de verbinding.")
+                    else:
+                        st.warning("De AI vond dit geen nuttige feedback. Wees specifieker om de reward te verdienen.")
+            else:
+                st.warning("Typ minimaal 10 letters.")
 
 # --- LOCK SCREEN COMPONENT ---
 def render_pro_lock(title, desc):
@@ -503,6 +516,7 @@ def render_pro_lock(title, desc):
             <div style="height: 15px; background: #E2E8F0; width: 60%; margin-bottom: 10px; border-radius: 4px;"></div>
             <div style="height: 15px; background: #E2E8F0; width: 70%; margin-bottom: 20px; border-radius: 4px;"></div>
             <div style="display:flex; gap:15px;">
+                <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
                 <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
                 <div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
             </div>
@@ -576,7 +590,7 @@ if pg == "Dashboard":
 
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Trust", "Scale", "Daily"]
-    for i in range(1, 7): # Aangepast naar 7 voor Fase 6
+    for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
@@ -661,44 +675,52 @@ elif pg == "Gratis training":
         st.markdown("""<div style="background: #F0F9FF; padding: 25px; border-radius: 12px; border: 1px solid #BAE6FD; text-align: center;"><h4 style="color:#0369A1; margin-bottom:6px;">Klaar voor het echte werk?</h4><p style="color:#0C4A6E; margin:0;">Je hebt de basis gezien. Wil je dat we meekijken zodat dit ook echt gaat draaien?</p></div>""", unsafe_allow_html=True)
         st.link_button("Plan gratis strategie call", STRATEGY_CALL_URL, type="primary", use_container_width=True)
 
-# --- NIEUWE PAGINA: PROFIT TRACKER ---
+# --- AANGEPAST: PROFIT TRACKER UI ---
 elif pg == "Profit Tracker":
-    st.markdown("<h1><i class='bi bi-cash-stack'></i> Daily Profit Tracker</h1>", unsafe_allow_html=True)
-    st.caption("Je moet elke dag weten of je wint of verliest. Vul dit elke ochtend in.")
+    st.markdown("<h1><i class='bi bi-cash-stack'></i> Profit Tracker</h1>", unsafe_allow_html=True)
+    st.caption("Je dagelijkse thermometer: winst of verlies? Vul dit elke ochtend in.")
     
     # 1. Input Formulier
     with st.container(border=True):
-        st.markdown("#### Vandaag toevoegen")
+        st.markdown("#### 📅 Resultaten van vandaag")
         c1, c2, c3 = st.columns(3)
-        rev = c1.number_input("Omzet (€)", 0.0)
-        spend = c2.number_input("Ad Spend (€)", 0.0)
-        cogs = c3.number_input("Inkoop (COGS) (€)", 0.0)
+        rev = c1.number_input("Totale Omzet (€)", 0.0, step=10.0, help="Alles wat Shopify zegt dat je hebt verkocht.")
+        spend = c2.number_input("Ad Spend (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.")
+        cogs = c3.number_input("Inkoopwaarde (COGS) (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.")
         
         if st.button("Opslaan in Database", type="primary"):
             if db.save_daily_stats(user['email'], rev, spend, cogs):
-                st.success("Opgeslagen! Goed bezig.")
+                st.success("Opgeslagen! Check de grafieken hieronder.")
             else:
                 st.error("Kon niet opslaan (Database error).")
 
     # 2. Historie & Grafiek
     history = db.get_daily_stats_history(user['email'])
     if history:
-        st.markdown("### Laatste 7 Dagen")
+        st.markdown("### 📊 Trends & Cijfers (Laatste 7 dagen)")
         df = pd.DataFrame(history)
-        df['Profit'] = df['revenue'] - df['ad_spend'] - df['cogs']
         
-        # Metrics
+        # Berekeningen
+        df['Profit'] = df['revenue'] - df['ad_spend'] - df['cogs']
+        df['ROAS'] = df.apply(lambda x: x['revenue'] / x['ad_spend'] if x['ad_spend'] > 0 else 0, axis=1)
+        
+        # Totale metrics
         total_rev = df['revenue'].sum()
         total_profit = df['Profit'].sum()
-        col1, col2 = st.columns(2)
-        col1.metric("Totaal Omzet (7d)", f"€{total_rev:.2f}")
-        col2.metric("Totaal Winst (7d)", f"€{total_profit:.2f}", delta_color="normal")
+        avg_roas = df['ROAS'].mean()
         
-        # Grafiek
-        st.bar_chart(df, x="date", y="Profit")
-        st.dataframe(df)
+        col1, col2, col3 = st.columns(3)
+        col1.metric("Totaal Omzet", f"€{total_rev:.2f}")
+        col2.metric("Netto Winst", f"€{total_profit:.2f}", delta="Winstgevend" if total_profit > 0 else "Verlies", delta_color="normal")
+        col3.metric("Gemiddelde ROAS", f"{avg_roas:.2f}", delta="> 3.0 is top" if avg_roas > 3 else "Kan beter", delta_color="off")
+        
+        # Visuele grafiek (Winst vs Verlies)
+        st.bar_chart(df, x="date", y="Profit", color="#10B981") # Groene balken
+        
+        with st.expander("Bekijk ruwe data"):
+            st.dataframe(df)
     else:
-        st.info("Nog geen data. Vul hierboven je eerste dag in!")
+        st.info("Nog geen data. Vul hierboven je eerste dag in om de grafieken te zien!")
 
 elif pg == "Marketing Tools":
     st.markdown("<h1><i class='bi bi-megaphone-fill'></i> Marketing Tools</h1>", unsafe_allow_html=True)
@@ -776,26 +798,26 @@ elif pg == "Product ideeën":
             col_inp, col_btn = st.columns([3, 1])
             niche = col_inp.text_input("In welke niche zoek je een product?", "Gadgets")
             if col_btn.button("Zoek ideeën", type="primary", use_container_width=True):
-                if not niche: st.warning("Vul een niche in.")
-                else:
-                    results = ai_coach.find_real_winning_products(niche, "Viral")
-                    if results:
-                        st.markdown(f"**Resultaten voor '{niche}':**")
-                        for p in results:
-                            with st.container(border=True):
-                                st.markdown(f"### {p.get('title')}")
-                                st.caption(f"Richtprijs: €{p.get('price')}")
-                                st.write(f"💡 {p.get('hook')}")
-                                if p.get('search_links'):
-                                    c1, c2 = st.columns(2)
-                                    c1.link_button("TikTok", p['search_links']['tiktok'], use_container_width=True)
-                                    c2.link_button("AliExpress", p['search_links']['ali'], use_container_width=True)
+                results = ai_coach.find_real_winning_products(niche, "Viral")
+                if results:
+                    st.markdown(f"**Resultaten voor '{niche}':**")
+                    for p in results:
+                        with st.container(border=True):
+                            st.markdown(f"### {p.get('title')}")
+                            st.caption(f"Richtprijs: €{p.get('price')}")
+                            st.write(f"💡 {p.get('hook')}")
+                            if p.get('search_links'):
+                                c1, c2 = st.columns(2)
+                                c1.link_button("TikTok", p['search_links']['tiktok'], use_container_width=True)
+                                c2.link_button("AliExpress", p['search_links']['ali'], use_container_width=True)
 
-elif pg == "Winst Calculator":
-    st.markdown("<h1><i class='bi bi-calculator-fill'></i> Calculator</h1>", unsafe_allow_html=True)
-    tab_profit, tab_budget = st.tabs(["💶 Product Winst", "💰 Start Budget"])
+# --- AANGEPAST: MARGE CALCULATOR NAAM ---
+elif pg == "Marge Calculator":
+    st.markdown("<h1><i class='bi bi-calculator-fill'></i> Marge Calculator</h1>", unsafe_allow_html=True)
+    tab_profit, tab_budget = st.tabs(["💶 Product Marge", "💰 Start Budget"])
+    
     with tab_profit:
-        st.caption("Bereken hoeveel je overhoudt per sale.")
+        st.caption("Gebruik dit VOORDAT je gaat verkopen. Is dit product winstgevend?")
         with st.container(border=True):
             c1, c2 = st.columns(2)
             vp = c1.number_input("Verkoopprijs", value=29.95)
@@ -808,6 +830,7 @@ elif pg == "Winst Calculator":
             cc1, cc2, cc3 = st.columns(3)
             cc1.metric("Netto Winst", f"€{winst:.2f}")
             cc2.metric("Marge", f"{marge:.1f}%")
+            
     with tab_budget:
         st.caption("Kan ik starten met mijn spaargeld? Check het hier.")
         with st.container(border=True):
