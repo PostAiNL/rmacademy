@@ -19,9 +19,8 @@ def get_roadmap():
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
-                # NIEUW: NICHE FINDER (Punt 1)
                 {
-                    "id": "step_niche", "title": "Kies je Niche (Onderwerp of Productcategorie)", "icon": "🎯", "locked": False,
+                    "id": "step_niche", "title": "Kies je Niche", "icon": "🎯", "locked": False,
                     "content": "TOOL_NICHE_FINDER", "xp_reward": 100,
                     "teaser": "Weet je niet wat je moet verkopen? Gebruik de Niche Finder."
                 },
@@ -103,7 +102,6 @@ def get_roadmap():
                     "content": "TOOL_PIXELS", "xp_reward": 125,
                     "teaser": "Installeer de TikTok & Meta pixel, anders gooi je geld weg."
                 },
-                # AANGEPAST: EMAIL STEP
                 {
                     "id": "step_email", "title": "Email Geld Machine", "icon": "📧", "locked": False,
                     "content": "TOOL_EMAIL_GEN", "xp_reward": 150,
@@ -115,7 +113,6 @@ def get_roadmap():
             "title": "Fase 5: Marketing & Opschalen",
             "desc": "Je winkel is klaar. Tijd om bezoekers te kopen en winst te maken.",
             "steps": [
-                # NIEUW: PRE-FLIGHT CHECKLIST
                 {
                     "id": "step_preflight", "title": "De 'Eerste Sale' Checklist", "icon": "🛫", "locked": False,
                     "content": "TOOL_PREFLIGHT", "xp_reward": 100,
@@ -164,21 +161,29 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     </div>
     """, unsafe_allow_html=True)
 
-    # --- LOCKED STATE ---
+    # --- LOCKED STATE (FIXED: HTML FLATTENED) ---
     if is_locked:
         teaser_text = step.get('teaser', 'Upgrade voor toegang.')
-        st.markdown(f"""
-<div style="background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 12px; padding: 30px; text-align: center; margin-bottom: 20px;">
-    <div style="font-size: 24px; margin-bottom: 10px; opacity: 0.6;">🔒</div>
-    <h4 style="margin: 0 0 5px 0; color: #1E293B; font-size: 1rem;">Student only</h4>
-    <p style="font-size: 0.9rem; color: #64748B; margin: 0 auto 20px auto; max-width: 400px;">{teaser_text}</p>
-    <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
-        <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2); transition: transform 0.2s;">
-            📞 Plan gratis unlock call
+        # Alles op 1 regel of compacte strings om markdown code blocks te voorkomen
+        lock_html = f"""
+        <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
+            <div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;">
+                <h3 style="color: #64748B;">██████ ██████</h3>
+                <p style="color: #94A3B8;">█████ ████ ██████ ███ ████. ████ ██████ ██ █████.</p>
+                <div style="display:flex; gap:10px; margin-top:10px;"><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 100px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div></div>
+            </div>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.4); backdrop-filter: blur(4px);">
+                <div style="background: white; padding: 20px 30px; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #DBEAFE; max-width: 90%;">
+                    <div style="font-size: 28px; margin-bottom: 5px;">🔒</div>
+                    <h4 style="margin: 0; color: #1E293B; font-size: 1rem; font-weight: 700;">Student Only Tool</h4>
+                    <p style="font-size: 0.85rem; color: #64748B; margin: 5px 0 15px 0;">{teaser_text}</p>
+                    <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;"><div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 8px; font-weight: 600; font-size: 0.9rem; transition: transform 0.1s; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">🚀 Unlock via Shop Review Call</div></a>
+                    <div style="margin-top: 8px; font-size: 0.7rem; color: #94A3B8;"><i class="bi bi-people-fill"></i> Al door 550+ studenten gebruikt</div>
+                </div>
+            </div>
         </div>
-    </a>
-</div>
-""", unsafe_allow_html=True)
+        """
+        st.markdown(lock_html, unsafe_allow_html=True)
         return None, 0
 
     # --- OPEN STATE ---
@@ -195,7 +200,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
 
-        # --- NIEUW: NICHE FINDER ---
         elif step['content'] == "TOOL_NICHE_FINDER":
             st.write("Weet je niet wat je moet verkopen? Vul in wat je leuk vindt.")
             interest = st.text_input("Jouw interesses (bv. fitness, honden, gadgets, koken)")
@@ -226,7 +230,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.link_button("🚀 Claim €1 Shopify deal", "https://shopify.com", type="primary", use_container_width=True)
             if st.checkbox("✅ Account aangemaakt"): st.session_state[usage_key] = True
 
-        # --- OORSPRONKELIJKE THEMA STEP (EXTENDED) ---
         elif step['content'] == "TOOL_THEME_GUIDE":
             st.write("Een goede winkel ziet er betrouwbaar uit. Begin niet te moeilijk.")
             
@@ -361,7 +364,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.markdown("---")
             if st.checkbox("✅ Ik heb reviews"): st.session_state[usage_key] = True
 
-        # --- OORSPRONKELIJKE PIXEL STEP (EXTENDED) ---
         elif step['content'] == "TOOL_PIXELS":
             st.write("Een Pixel is een 'spion' die bijhoudt wie wat koopt. Zonder dit kun je niet winstgevend adverteren.")
             
@@ -400,7 +402,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             if st.checkbox("✅ Mijn pixels zijn gekoppeld en actief"): st.session_state[usage_key] = True
 
 
-        # --- AANGEPASTE EMAIL TOOL (PUNT 2 & 5 UIT ADVIES) ---
         elif step['content'] == "TOOL_EMAIL_GEN":
             st.markdown("""
             **Email Marketing is geen optie, het is noodzaak.** 
@@ -409,7 +410,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
 
             tab_strat, tab_gen, tab_pro_tool = st.tabs(["📚 Strategie & Flows", "✍️ AI Email Schrijver", "🎁 Student Tool (Gratis)"])
 
-            # TAB 1: STRATEGIE
             with tab_strat:
                 st.info("💡 **De 3 'Must-Have' Automations (Flows):**")
                 st.markdown("""
@@ -422,7 +422,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 c1.link_button("Shopify Email (Gratis start)", "https://apps.shopify.com/shopify-email", use_container_width=True)
                 c2.link_button("Klaviyo (Voor Pro's)", "https://www.klaviyo.com", use_container_width=True)
 
-            # TAB 2: AI GENERATOR
             with tab_gen:
                 st.write("Laat AI je emails schrijven zodat je ze direct kunt kopiëren.")
                 email_type = st.selectbox("Welke mail wil je schrijven?", ["Verlaten Winkelwagen", "Welkomstmail", "Review Verzoek"])
@@ -445,7 +444,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     st.success("Gegenereerd! Kopieer dit naar je email app.")
                     st.code(st.session_state[result_key], language="markdown")
 
-            # TAB 3: STUDENT VOORDEEL
             with tab_pro_tool:
                 st.markdown("### 🚀 RM Auto-Pilot (AI)")
                 st.write("Als student krijg je toegang tot onze exclusieve tool die **automatisch** koppelt met je Shopify store.")
@@ -460,7 +458,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             st.markdown("---")
             if st.checkbox("✅ Ik heb mijn automatische mails ingesteld"): st.session_state[usage_key] = True
 
-        # --- NIEUW: PRE-FLIGHT CHECKLIST (PUNT 4) ---
         elif step['content'] == "TOOL_PREFLIGHT":
             st.write("Gooi geen geld weg aan ads als je winkel niet werkt. Check dit:")
             with st.container(border=True):
