@@ -23,14 +23,14 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS) ---
+# --- 1. CSS ENGINE (MET MOBILE FIXES) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
-           1. ALGEMENE CONFIGURATIE
+           1. ALGEMENE CONFIGURATIE & MOBILE FIXES
            ============================================== */
         :root {
             --primary: #2563EB;
@@ -38,7 +38,9 @@ st.markdown("""
             --text-dark: #0F172A;
             --white: #FFFFFF;
             --border: #CBD5E1;
-            color-scheme: light !important;
+            
+            /* FORCEER LIGHT MODE (Samsung/iPhone fix) */
+            color-scheme: light !important; 
         }
 
         .stApp {
@@ -52,7 +54,7 @@ st.markdown("""
             vertical-align: -0.125em;
         }
         
-        /* Specifieke kleur voor titels */
+        /* Specifieke kleur voor titels (H1-H3) */
         h1, h2, h3 { color: #0F172A !important; }
         
         * { -webkit-tap-highlight-color: transparent !important; }
@@ -106,22 +108,49 @@ st.markdown("""
         }
 
         /* ==============================================
-           3. UI ELEMENTEN FIXES
+           3. UI ELEMENTEN FIXES (SAMSUNG/IPHONE)
            ============================================== */
-        input, textarea, select {
+        
+        /* IPHONE & SAMSUNG INPUT FIX: Zwarte tekst afdwingen */
+        input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
             border: 1px solid #CBD5E1 !important;
+            -webkit-text-fill-color: #0F172A !important; /* iPhone Safari Fix */
+            opacity: 1 !important; /* Voorkomt grijze waas */
         }
+
+        /* LABELS (Titels boven velden) - Echt Zwart maken */
+        .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
+            color: #0F172A !important;
+            font-weight: 600 !important;
+        }
+
+        /* DROPDOWN MENU FIX (Voorkom zwarte achtergrond) */
         div[data-baseweb="select"] > div {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
             border-color: #CBD5E1 !important;
         }
-        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
-        li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
-        li[data-baseweb="option"]:hover { background-color: #EFF6FF !important; }
-        input[type="checkbox"] { accent-color: #2563EB !important; }
+        
+        /* De lijst met opties in dropdown */
+        ul[data-baseweb="menu"] { 
+            background-color: #FFFFFF !important; 
+        }
+        li[data-baseweb="option"] { 
+            color: #0F172A !important; 
+            background-color: #FFFFFF !important; 
+        }
+        li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
+            background-color: #EFF6FF !important; 
+        }
+
+        /* CHECKBOX FIX (Geen zwart vierkantje) */
+        input[type="checkbox"] { 
+            accent-color: #2563EB !important; 
+            background-color: #FFFFFF !important;
+            border-color: #CBD5E1 !important;
+        }
 
         /* ==============================================
            4. LAYOUT & SIDEBAR COMPACT
@@ -408,9 +437,8 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True)
 
-# --- LOCK SCREEN COMPONENT (AANGEPAST: ZELFDE STIJL ALS ROADMAP) ---
+# --- LOCK SCREEN COMPONENT (BLURRED STYLE) ---
 def render_pro_lock(title, desc):
-    # Alles op 1 regel of compacte strings om markdown code blocks te voorkomen
     lock_html = f"""
     <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;">
         <div style="filter: blur(5px); opacity: 0.5; padding: 30px; pointer-events: none; user-select: none;">
