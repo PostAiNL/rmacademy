@@ -48,18 +48,18 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE (MET JOUW AANPASSINGEN) ---
+# --- 1. CSS ENGINE (HEADER FIX INBEGREPEN) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
-           1. ALGEMENE CONFIGURATIE & MOBILE FIXES
+           1. ALGEMENE CONFIGURATIE
            ============================================== */
         :root {
             --primary: #2563EB;
-            --bg-light: #F8FAFC;
+            --bg-light: #F8FAFC; /* Dit is de grijze achtergrondkleur */
             --text-dark: #0F172A;
             --white: #FFFFFF;
             --border: #CBD5E1;
@@ -76,11 +76,11 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER CLEAN & WHITESPACE FIX (GOAL 3)
+           2. HEADER CLEAN & BLEND-IN (FIXED)
            ============================================== */
         header[data-testid="stHeader"] {
-            background-color: #FFFFFF !important;
-            border-bottom: 1px solid #F1F5F9 !important;
+            background-color: #F8FAFC !important; /* AANGEPAST: Was wit, nu grijs */
+            border-bottom: none !important;       /* AANGEPAST: Geen rand meer */
             pointer-events: auto !important; 
             height: 60px !important;
         }
@@ -93,9 +93,9 @@ st.markdown("""
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
 
-        /* HIER IS DE WITRUIMTE FIX: */
+        /* Whitespace fix */
         .block-container {
-            padding-top: 2rem !important; /* Veel minder witruimte (was 5rem) */
+            padding-top: 2rem !important; 
             padding-bottom: 5rem !important;
             max-width: 1000px;
         }
@@ -104,9 +104,9 @@ st.markdown("""
         h1 { 
             font-size: 1.8rem !important; 
             font-weight: 800 !important; 
-            letter-spacing: -1px !important; 
+            letter-spacing: 0px !important; 
             color: #0F172A !important; 
-            margin-top: 3px !important; /* Negatieve marge trekt titel omhoog */
+            margin-top: 3px !important; 
             padding-top: 0px !important;
         }
 
@@ -118,7 +118,7 @@ st.markdown("""
         }
 
         /* ==============================================
-           3. UI ELEMENTEN FIXES (SAMSUNG/IPHONE)
+           3. UI ELEMENTEN FIXES
            ============================================== */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
@@ -166,26 +166,25 @@ st.markdown("""
         input[type="checkbox"] { accent-color: #2563EB !important; background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
 
         /* ==============================================
-           4. LAYOUT & STATS GRID (GOAL 2)
+           4. LAYOUT & STATS GRID
            ============================================== */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border-radius: 16px; background: var(--white); border: 1px solid var(--border);
-            padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         
-        /* DE NIEUWE 3-KOLOMS GRID (Ook op mobiel!) */
         .stat-grid {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr; /* Forceer 3 kolommen */
+            grid-template-columns: 1fr 1fr 1fr; 
             gap: 12px;
-            margin-bottom: 15px;
+            margin-bottom: 25px;
             margin-top: 10px;
         }
         .stat-card {
             background: white;
             border: 1px solid #E2E8F0;
             border-radius: 12px;
-            padding: 12px 4px; /* Iets minder padding zijkant voor kleine schermen */
+            padding: 12px 4px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0,0,0,0.02);
             display: flex;
@@ -217,13 +216,11 @@ st.markdown("""
             max-width: 100%;
         }
 
-        /* Mobile specifieke tweaks voor lettertypes in de grid */
         @media (max-width: 600px) {
             .stat-grid { gap: 8px; }
             .stat-value { font-size: 1.1rem; }
             .stat-icon { font-size: 0.65rem; }
             .stat-sub { font-size: 0.6rem; }
-            /* Extra check voor witruimte op mobiel */
             .block-container { padding-top: 1.5rem !important; }
         }
 
