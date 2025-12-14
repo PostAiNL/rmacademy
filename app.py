@@ -17,10 +17,9 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
-# Probeer het logo te laden, als het niet bestaat val je terug op de raket
+# Probeer het logo te laden
 fav_icon = "🚀"
 try:
-    # Zorg dat je logo.png vierkant is voor het beste resultaat in de tab
     fav_icon = Image.open("assets/logo.png") 
 except:
     pass
@@ -49,7 +48,7 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES & BLUE THEME) ---
+# --- 1. CSS ENGINE (MET JOUW AANPASSINGEN) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
@@ -64,8 +63,6 @@ st.markdown("""
             --text-dark: #0F172A;
             --white: #FFFFFF;
             --border: #CBD5E1;
-            
-            /* FORCEER LIGHT MODE (Samsung/iPhone fix) */
             color-scheme: light !important; 
         }
 
@@ -74,190 +71,163 @@ st.markdown("""
             color: var(--text-dark) !important;
         }
 
-        /* Iconen styling */
-        .bi {
-            margin-right: 6px;
-            vertical-align: -0.125em;
-        }
-        
-        /* Specifieke kleur voor titels (H1-H3) */
+        .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
-        
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER WEG & KNOP ZICHTBAAR
+           2. HEADER CLEAN & WHITESPACE FIX (GOAL 3)
            ============================================== */
-        
         header[data-testid="stHeader"] {
-            background-color: transparent !important;
-            border-bottom: none !important;
-            pointer-events: none !important;
-        }
-
-        [data-testid="stSidebarCollapseButton"] {
-            display: flex !important;
-            visibility: visible !important;
-            pointer-events: auto !important;
-            align-items: center !important;
-            justify-content: center !important;
-            position: fixed !important;
-            top: 15px !important;
-            left: 15px !important;
-            z-index: 1000005 !important;
             background-color: #FFFFFF !important;
-            border: 1px solid #CBD5E1 !important;
-            border-radius: 8px !important;
-            width: 44px !important;
-            height: 44px !important;
+            border-bottom: 1px solid #F1F5F9 !important;
+            pointer-events: auto !important; 
+            height: 60px !important;
         }
 
-        [data-testid="stSidebarCollapseButton"] svg {
-            fill: #2563EB !important;
-            stroke: #2563EB !important;
-        }
-
-        @media (min-width: 992px) {
-            [data-testid="stSidebarCollapseButton"] { display: none !important; }
-        }
-
+        [data-testid="stSidebarCollapseButton"] { color: #0F172A !important; }
+        [data-testid="stSidebarCollapseButton"] svg { fill: #2563EB !important; stroke: #2563EB !important; }
         [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="stToolbar"] { display: none !important; }
         [data-testid="stStatusWidget"] { visibility: hidden !important; }
-        footer { visibility: hidden !important; }
-        #MainMenu { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
+        #MainMenu { visibility: hidden !important; }
+        footer { visibility: hidden !important; }
+
+        /* HIER IS DE WITRUIMTE FIX: */
+        .block-container {
+            padding-top: 2rem !important; /* Veel minder witruimte (was 5rem) */
+            padding-bottom: 5rem !important;
+            max-width: 1000px;
+        }
         
-        .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, 
-        .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a { 
-            display: none !important; pointer-events: none; 
+        /* H1 strakker omhoog trekken */
+        h1 { 
+            font-size: 1.8rem !important; 
+            font-weight: 800 !important; 
+            letter-spacing: -1px !important; 
+            color: #0F172A !important; 
+            margin-top: 3px !important; /* Negatieve marge trekt titel omhoog */
+            padding-top: 0px !important;
+        }
+
+        /* Sidebar content padding */
+        [data-testid="stSidebar"] .block-container {
+            padding-top: 1.5rem !important; 
+            padding-left: 1rem !important; 
+            padding-right: 1rem !important;
         }
 
         /* ==============================================
            3. UI ELEMENTEN FIXES (SAMSUNG/IPHONE)
            ============================================== */
-        
-        /* IPHONE & SAMSUNG INPUT FIX: Zwarte tekst afdwingen */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
             border: 1px solid #CBD5E1 !important;
-            -webkit-text-fill-color: #0F172A !important; /* iPhone Safari Fix */
-            opacity: 1 !important; /* Voorkomt grijze waas */
+            -webkit-text-fill-color: #0F172A !important;
+            opacity: 1 !important;
         }
-
-        /* LABELS (Titels boven velden) - Echt Zwart maken */
         .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
             color: #0F172A !important;
             font-weight: 600 !important;
         }
-
-        /* --- TABS TEKST KLEUR --- */
         button[data-baseweb="tab"] div p {
-            color: #64748B !important; /* Donkergrijs voor niet-actief */
+            color: #64748B !important;
             font-weight: 600 !important;
         }
         button[data-baseweb="tab"][aria-selected="true"] div p {
-            color: #2563EB !important; /* Blauw voor actief */
+            color: #2563EB !important;
         }
-        button[data-baseweb="tab"] {
-            background-color: transparent !important;
+        div[data-baseweb="tab-highlight"] {
+            background-color: #2563EB !important;
         }
 
-        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (CRUCIAAL) --- */
-        /* 1. Normale staat */
+        /* EXPANDER FIX */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
             border: 2px solid #CBD5E1 !important;
             border-radius: 8px !important;
-            transition: all 0.2s;
         }
-        /* Specifieke tekstkleur voor normale staat */
         .streamlit-expanderHeader p, .streamlit-expanderHeader span, .streamlit-expanderHeader div { 
-            color: #0F172A !important; 
-            font-weight: 600 !important; 
+            color: #0F172A !important; font-weight: 600 !important; 
         }
-        .streamlit-expanderHeader svg { 
-            fill: #0F172A !important; 
-        }
-
-        /* 2. ACTIVE / HOVER / FOCUS STAAT -> ALLES WIT */
-        /* Zodra je klikt of hovert, wordt achtergrond donker */
-        .streamlit-expanderHeader:hover,
-        .streamlit-expanderHeader:active,
-        .streamlit-expanderHeader:focus,
-        .streamlit-expanderHeader:focus-visible {
+        .streamlit-expanderHeader svg { fill: #0F172A !important; }
+        .streamlit-expanderHeader:hover, .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus {
             background-color: #1E293B !important;
             border-color: #0F172A !important;
-            color: #FFFFFF !important;
         }
-
-        /* AGRESSIEVE FIX: Forceer ELK element (tekst, icoon, div) in de header naar WIT bij interactie */
-        .streamlit-expanderHeader:hover *,
-        .streamlit-expanderHeader:active *,
-        .streamlit-expanderHeader:focus *,
-        .streamlit-expanderHeader:focus-visible * {
-            color: #FFFFFF !important;
-            fill: #FFFFFF !important;
-            stroke: #FFFFFF !important;
+        .streamlit-expanderHeader:hover *, .streamlit-expanderHeader:active * {
+            color: #FFFFFF !important; fill: #FFFFFF !important; stroke: #FFFFFF !important;
         }
-
-        /* DROPDOWN MENU FIX */
-        div[data-baseweb="select"] > div {
-            background-color: #FFFFFF !important;
-            color: #0F172A !important;
-            border-color: #CBD5E1 !important;
-        }
+        div[data-baseweb="select"] > div { background-color: #FFFFFF !important; color: #0F172A !important; border-color: #CBD5E1 !important; }
         ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
         li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
-        li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
-            background-color: #EFF6FF !important; 
-        }
-
-        /* CHECKBOX FIX */
-        input[type="checkbox"] { 
-            accent-color: #2563EB !important; 
-            background-color: #FFFFFF !important;
-            border-color: #CBD5E1 !important;
-        }
+        input[type="checkbox"] { accent-color: #2563EB !important; background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
 
         /* ==============================================
-           4. LAYOUT & SIDEBAR COMPACT
+           4. LAYOUT & STATS GRID (GOAL 2)
            ============================================== */
-        .block-container {
-            padding-top: 3rem !important;
-            padding-bottom: 5rem !important;
-            max-width: 1000px;
-        }
-        [data-testid="stSidebar"] .block-container {
-            padding-top: 1.5rem !important; padding-bottom: 1rem !important;
-            padding-left: 1rem !important; padding-right: 1rem !important;
-        }
-        [data-testid="stSidebar"] div[data-testid="stVerticalBlock"] > div { gap: 0.5rem !important; }
-
-        @media (max-width: 992px) { .block-container { padding-top: 4rem !important; } }
-
-        /* TITELS */
-        h1 { font-size: 1.8rem !important; font-weight: 800 !important; letter-spacing: -1px !important; color: #0F172A !important; margin-top: 0px !important; }
-        .logo-text { font-weight: 800; font-size: 1.1rem; color: #0F172A; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-
-        /* Cards & Metrics */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             border-radius: 16px; background: var(--white); border: 1px solid var(--border);
-            padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            padding: 20px; margin-bottom: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .metric-container { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 15px; margin-bottom: 10px; }
-        .metric-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 15px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
-        .metric-value { font-size: 1.5rem; font-weight: 800; color: #0F172A; }
-        .metric-label { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; }
         
-        /* Lock & Expander Fixes */
-        .lock-container { text-align: center; padding: 30px 20px; background: white; border-radius: 16px; border: 1px solid #E2E8F0; box-shadow: 0 4px 20px rgba(0,0,0,0.02); margin-top: 10px; }
-        .stExpander { margin-bottom: -15px !important; border: none !important; box-shadow: none !important; }
-        div[data-testid="stExpander"] details summary p { font-weight: 600; }
-        
-        /* VISUAL ROADMAP STYLES */
+        /* DE NIEUWE 3-KOLOMS GRID (Ook op mobiel!) */
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr; /* Forceer 3 kolommen */
+            gap: 12px;
+            margin-bottom: 15px;
+            margin-top: 10px;
+        }
+        .stat-card {
+            background: white;
+            border: 1px solid #E2E8F0;
+            border-radius: 12px;
+            padding: 12px 4px; /* Iets minder padding zijkant voor kleine schermen */
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .stat-icon {
+            font-size: 0.75rem; 
+            color: #64748B; 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            margin-bottom: 4px;
+            white-space: nowrap;
+        }
+        .stat-value {
+            font-size: 1.4rem; 
+            font-weight: 800; 
+            color: #0F172A;
+            line-height: 1.2;
+        }
+        .stat-sub {
+            font-size: 0.7rem;
+            color: #94A3B8;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        /* Mobile specifieke tweaks voor lettertypes in de grid */
+        @media (max-width: 600px) {
+            .stat-grid { gap: 8px; }
+            .stat-value { font-size: 1.1rem; }
+            .stat-icon { font-size: 0.65rem; }
+            .stat-sub { font-size: 0.6rem; }
+            /* Extra check voor witruimte op mobiel */
+            .block-container { padding-top: 1.5rem !important; }
+        }
+
+        /* --- VISUAL ROADMAP STYLES --- */
         .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; }
         .progress-line { position: absolute; top: 50%; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; transform: translateY(-50%); }
         .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
@@ -265,31 +235,15 @@ st.markdown("""
         .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
         .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
 
-        @media (max-width: 600px) {
-            .metric-container { grid-template-columns: 1fr 1fr 1fr; gap: 8px; }
-            .metric-value { font-size: 1.1rem; }
-            .metric-label { font-size: 0.6rem; }
-        }
-
-        /* ==============================================
-           5. FORCEREN VAN BLAUW (OVERRIDE STREAMLIT RED)
-           ============================================== */
-        
-        /* 1. De Primary Button (Start direct knop) Blauw maken */
+        /* BUTTONS */
         div.stButton > button[kind="primary"] {
             background-color: #2563EB !important;
             border-color: #2563EB !important;
             color: white !important;
         }
-        
         div.stButton > button[kind="primary"]:hover {
-            background-color: #1D4ED8 !important; /* Iets donkerder blauw bij hover */
+            background-color: #1D4ED8 !important;
             border-color: #1D4ED8 !important;
-        }
-
-        /* 2. De Tabbladen lijntjes (Het actieve lijntje onder 'Start Challenge') */
-        div[data-baseweb="tab-highlight"] {
-            background-color: #2563EB !important;
         }
     </style>
 """, unsafe_allow_html=True)
@@ -433,8 +387,9 @@ with st.sidebar:
     if range_span <= 0: range_span = 1
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
     
+    # --- GOAL 1: ACHTERGROND LAADBALK TRANSPARANT ---
     st.markdown(textwrap.dedent(f"""
-    <div style="background: #E2E8F0; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px;">
+    <div style="background: transparent; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px; border: 1px solid #F1F5F9;">
         <div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 4px; transition: width 0.5s;"></div>
     </div>
     <div style="text-align:right; font-size:0.7rem; color:#94A3B8; margin-bottom:15px;">
@@ -516,6 +471,7 @@ def render_pro_lock(title, desc):
 if pg == "Dashboard":
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     
+    # H1 ZONDER OVERBODIGE WITRUIMTE DANKZIJ CSS
     st.markdown(f"<h1 style='margin-bottom: 15px;'>{get_greeting()}, {name} <i class='bi bi-hand-thumbs-up-fill' style='color:#FBBF24;'></i></h1>", unsafe_allow_html=True)
     
     completed_steps = auth.get_progress()
@@ -545,7 +501,7 @@ if pg == "Dashboard":
         if phase_done and idx == len(fase_keys) - 1:
             next_step_phase_index = 6 # Alles klaar
 
-    # --- NIEUWE FEATURE: VISUELE PROGRESS BAR (PUNT 3) ---
+    # --- NIEUWE FEATURE: VISUELE PROGRESS BAR ---
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Trust", "Scale"]
     
@@ -605,15 +561,29 @@ if pg == "Dashboard":
     needed = next_xp_goal - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
 
-    cols = st.columns(3) 
-    with cols[0]:
-        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-bar-chart-fill"></i> LEVEL</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['level']}</div><div style="font-size:0.75rem; color:#64748B;">{current_title}</div></div>""", unsafe_allow_html=True)
-    with cols[1]:
-        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-lightning-fill"></i> XP</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">{user['xp']}</div><div style="font-size:0.75rem; color:#64748B;">Nog {needed} tot next lvl</div></div>""", unsafe_allow_html=True)
-    with cols[2]:
-        st.markdown(f"""<div style="background:white; padding:15px; border-radius:12px; border:1px solid #E2E8F0; text-align:center;"><div style="font-size:0.75rem; color:#64748B; font-weight:700;"><i class="bi bi-gift-fill"></i> NEXT REWARD</div><div style="font-size:1.5rem; font-weight:800; color:#0F172A;">🎁</div><div style="font-size:0.75rem; color:#2563EB;">{next_reward}</div></div>""", unsafe_allow_html=True)
+    # --- GOAL 2: 3-KOLOMS LAYOUT (MOBIEL VRIENDELIJK) ---
+    st.markdown(f"""
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div>
+            <div class="stat-value">{user['level']}</div>
+            <div class="stat-sub">{current_title}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div>
+            <div class="stat-value">{user['xp']}</div>
+            <div class="stat-sub">{needed} tot next</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon"><i class="bi bi-gift-fill"></i> Reward</div>
+            <div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div>
+            <div class="stat-sub" style="color:#2563EB;">{next_reward}</div>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    st.markdown("<div id='mission' style='height: 20px;'></div>", unsafe_allow_html=True)
+    # Dit is de 'anker' div voor de scroll knop
+    st.markdown("<div id='mission' style='height: 0px;'></div>", unsafe_allow_html=True)
 
     # --- ROADMAP MET FOCUS MODE ---
     st.markdown("### 📍 Roadmap")
@@ -836,19 +806,20 @@ elif pg == "Instellingen":
 
     with tab2:
         stats = auth.get_affiliate_stats()
+        # DEZE METRIC CONTAINER HERGEBRUIKT NU DE NIEUWE CSS
         st.markdown(f"""
-        <div class="metric-container">
-            <div class="metric-card">
-                <div class="metric-label">Totaal aangemeld</div>
-                <div class="metric-value">{stats[0]}</div>
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-icon">Totaal</div>
+                <div class="stat-value">{stats[0]}</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Studenten via jou</div>
-                <div class="metric-value">{stats[1]}</div>
+            <div class="stat-card">
+                <div class="stat-icon">Studenten</div>
+                <div class="stat-value">{stats[1]}</div>
             </div>
-            <div class="metric-card">
-                <div class="metric-label">Geschat verdiend</div>
-                <div class="metric-value">€{stats[2]}</div>
+            <div class="stat-card">
+                <div class="stat-icon">Verdiend</div>
+                <div class="stat-value">€{stats[2]}</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
