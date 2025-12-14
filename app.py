@@ -49,7 +49,7 @@ st.markdown("""
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & MOBILE FIXES) ---
+# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & HIDE STATUS & MOBILE FIXES) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
@@ -76,9 +76,22 @@ st.markdown("""
         .bi { margin-right: 6px; vertical-align: -0.125em; }
 
         /* ==============================================
-           2. HEADER WEG & MENU KNOP ZICHTBAAR MAKEN
+           2. HEADER, STATUS & MENU KNOP
            ============================================== */
-        /* Header transparant maken, maar knoppen wel klikbaar houden */
+        
+        /* 2a. STATUS WIDGET VERBERGEN (Fietsje / Stop knop weg) */
+        /* We targeten hier alle mogelijke containers van de status widget */
+        [data-testid="stStatusWidget"],
+        div[class*="stStatusWidget"],
+        div[data-testid="stToolbar"] {
+            visibility: hidden !important;
+            display: none !important;
+            height: 0px !important;
+            width: 0px !important;
+            opacity: 0 !important;
+        }
+
+        /* 2b. Header transparant maken zodat knop er 'doorheen' zweeft */
         header[data-testid="stHeader"] { 
             background-color: transparent !important; 
             border-bottom: none !important; 
@@ -86,42 +99,40 @@ st.markdown("""
             height: auto !important;
         }
 
-        /* DE MENU KNOP (HAMBURGER) - Geforceerd zichtbaar */
+        /* 2c. DE MENU KNOP (HAMBURGER) - Geforceerd zichtbaar op mobiel */
         [data-testid="stSidebarCollapseButton"] {
             display: flex !important;
             visibility: visible !important;
             pointer-events: auto !important;
             align-items: center !important;
             justify-content: center !important;
-            position: fixed !important;
-            top: 10px !important;      /* Strak bovenin */
-            left: 10px !important;     /* Strak links */
-            z-index: 1000000 !important; /* Altijd bovenop */
+            position: fixed !important;        /* Geforceerde positie */
+            top: 12px !important;              /* Iets van de rand */
+            left: 12px !important;             /* Iets van de rand */
+            z-index: 1000005 !important;       /* Bovenop ALLES (ook modals) */
             background-color: #FFFFFF !important;
             border: 1px solid #CBD5E1 !important;
             border-radius: 8px !important;
-            width: 42px !important;
-            height: 42px !important;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1) !important;
+            width: 44px !important;
+            height: 44px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
         }
 
         /* Icoontje in de knop blauw maken */
         [data-testid="stSidebarCollapseButton"] svg { 
             fill: #2563EB !important; 
             stroke: #2563EB !important; 
-            width: 22px !important;
-            height: 22px !important;
+            width: 24px !important; 
+            height: 24px !important;
         }
 
-        /* Verberg knop op desktop (grote schermen) */
+        /* Verberg menu knop op desktop (grote schermen) */
         @media (min-width: 992px) { 
             [data-testid="stSidebarCollapseButton"] { display: none !important; } 
         }
 
-        /* Verberg de rest van de header rommel */
+        /* Verberg overige header rommel */
         [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="stToolbar"] { display: none !important; }
-        [data-testid="stStatusWidget"] { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
         footer { visibility: hidden !important; }
         .stMarkdown h1 a { display: none !important; pointer-events: none; }
@@ -129,7 +140,7 @@ st.markdown("""
         /* ==============================================
            3. DROPDOWN / EXPANDER FIX (BLAUWE MODUS)
            ============================================== */
-        /* 1. Normale staat (Dicht) -> Wit met donkere tekst */
+        /* Normale staat */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
@@ -141,27 +152,18 @@ st.markdown("""
         .streamlit-expanderHeader p { color: #0F172A !important; font-weight: 600 !important; }
         .streamlit-expanderHeader svg { fill: #0F172A !important; }
 
-        /* 2. ACTIEVE STAAT (Open of Hover) -> BLAUW met WITTE tekst */
+        /* Actieve staat (Blauw) */
         .streamlit-expanderHeader:hover,
         .streamlit-expanderHeader[aria-expanded="true"] {
-            background-color: #2563EB !important; /* Blauw */
+            background-color: #2563EB !important;
             border-color: #2563EB !important;
             color: white !important;
         }
-
-        /* Zorg dat ALLE tekst en iconen WIT worden als hij actief is */
         .streamlit-expanderHeader:hover *,
-        .streamlit-expanderHeader:hover p,
-        .streamlit-expanderHeader:hover svg,
-        .streamlit-expanderHeader[aria-expanded="true"] *,
-        .streamlit-expanderHeader[aria-expanded="true"] p,
-        .streamlit-expanderHeader[aria-expanded="true"] svg {
-            color: #FFFFFF !important;
-            fill: #FFFFFF !important;
-            stroke: #FFFFFF !important;
+        .streamlit-expanderHeader[aria-expanded="true"] * {
+            color: #FFFFFF !important; fill: #FFFFFF !important; stroke: #FFFFFF !important;
         }
 
-        /* Dropdown menu items */
         ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
         li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
         li[data-baseweb="option"]:hover, li[data-baseweb="option"][aria-selected="true"] { 
@@ -177,10 +179,10 @@ st.markdown("""
             max-width: 1000px;
         }
 
-        /* MOBIEL SPECIFIEK: Minder witruimte bovenin */
+        /* MOBIEL: Zorg dat de content niet onder de knop verdwijnt */
         @media (max-width: 992px) {
             .block-container {
-                padding-top: 3.5rem !important; /* Ruimte voor de menuknop, maar niet te veel */
+                padding-top: 4rem !important; /* Ruimte voor de fixed knop */
                 padding-left: 1rem !important;
                 padding-right: 1rem !important;
             }
@@ -214,7 +216,6 @@ st.markdown("""
         }
         div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
         
-        /* Titels hersteld */
         h1 { font-size: 1.8rem !important; font-weight: 800 !important; letter-spacing: -1px !important; color: #0F172A !important; margin-top: 0px !important; }
         .logo-text { font-weight: 800; font-size: 1.1rem; color: #0F172A; display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
 
