@@ -23,7 +23,7 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# --- 1. CSS ENGINE (MET MOBILE FIXES) ---
+# --- 1. CSS ENGINE (MET BOOTSTRAP ICONS & SAMSUNG FIXES) ---
 st.markdown("""
     <style>
         /* Import Bootstrap Icons */
@@ -126,7 +126,7 @@ st.markdown("""
             font-weight: 600 !important;
         }
 
-        /* --- NIEUW: TABS FIX (Voorkom onzichtbare tekst op mobiel) --- */
+        /* --- TABS FIX (Voorkom onzichtbare tekst op mobiel) --- */
         button[data-baseweb="tab"] div p {
             color: #64748B !important; /* Donkergrijs voor niet-actief */
             font-weight: 600 !important;
@@ -138,24 +138,47 @@ st.markdown("""
             background-color: transparent !important;
         }
 
-        /* --- NIEUW: EXPANDER FIX (Vriendencode Samsung fix) --- */
+        /* --- SAMSUNG EXPANDER / DROPDOWN FIX (CRUCIAAL) --- */
+        
+        /* 1. Normale staat: Duidelijke randen & Zwarte tekst */
         .streamlit-expanderHeader {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
-            border: 1px solid #E2E8F0 !important;
+            border: 2px solid #CBD5E1 !important; /* DIKKERE RAND (2px) */
             border-radius: 8px !important;
-        }
-        /* Forceer ook bij klikken (active/focus) wit met zwarte tekst */
-        .streamlit-expanderHeader:hover, .streamlit-expanderHeader:active, .streamlit-expanderHeader:focus {
-            background-color: #FFFFFF !important;
-            color: #0F172A !important;
+            transition: all 0.2s;
         }
         .streamlit-expanderHeader p {
             color: #0F172A !important;
-            font-weight: 500 !important;
+            font-weight: 600 !important;
+        }
+        .streamlit-expanderHeader svg {
+            fill: #0F172A !important;
         }
 
-        /* DROPDOWN MENU FIX (Voorkom zwarte achtergrond) */
+        /* 2. KLIK / ACTIVE STAAT: Donkere achtergrond & WITTE TEKST */
+        /* Dit lost het Samsung probleem op. Als Samsung de knop 'active' maakt, */
+        /* forceren we de tekst naar wit zodat het leesbaar blijft. */
+        .streamlit-expanderHeader:active, 
+        .streamlit-expanderHeader:focus,
+        .streamlit-expanderHeader:hover {
+            background-color: #1E293B !important; /* Donkerblauw/Zwart */
+            border-color: #0F172A !important;
+        }
+        
+        .streamlit-expanderHeader:active p, 
+        .streamlit-expanderHeader:focus p,
+        .streamlit-expanderHeader:hover p {
+            color: #FFFFFF !important; /* WITTE TEKST */
+        }
+        
+        .streamlit-expanderHeader:active svg, 
+        .streamlit-expanderHeader:focus svg,
+        .streamlit-expanderHeader:hover svg {
+            fill: #FFFFFF !important; /* WIT PIJLTJE */
+        }
+
+        /* DROPDOWN MENU FIX */
         div[data-baseweb="select"] > div {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
@@ -173,7 +196,7 @@ st.markdown("""
             background-color: #EFF6FF !important; 
         }
 
-        /* CHECKBOX FIX (Geen zwart vierkantje) */
+        /* CHECKBOX FIX */
         input[type="checkbox"] { 
             accent-color: #2563EB !important; 
             background-color: #FFFFFF !important;
