@@ -375,12 +375,13 @@ with st.sidebar:
     if is_temp_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#15803D; background:#DCFCE7; padding:8px; border-radius:6px; text-align:center; border:1px solid #BBF7D0;">🌟 <b>PRO Actief:</b> {time_left_str}</div>""", unsafe_allow_html=True)
     elif not is_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
-    options = ["Dashboard", "Academy", "Product Hunter", "Creator Tools", "Financiën", "Instellingen"]
+    # --- AANGEPASTE MENU NAMEN (Jip en Janneke) ---
+    options = ["Dashboard", "Academy", "Producten Zoeken", "Marketing & Design", "Financiën", "Instellingen"]
     icons = ["house-fill", "mortarboard-fill", "search", "palette-fill", "cash-stack", "gear-fill"]
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Product Hunter", "Creator Tools"]: 
+        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design"]: 
              menu_display_options.append(f"{opt} 🔒")
         else:
              menu_display_options.append(opt)
@@ -410,7 +411,7 @@ with st.sidebar:
         <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
             <div style="margin-top: 20px; background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); text-align: center; border: 1px solid #FCD34D;">
                 <div style="font-weight: 800; color: #78350F; font-size: 1.1rem; margin-bottom: 4px;">🚀 UNLOCK ALLES</div>
-                <div style="font-size: 0.8rem; color: #92400E; font-weight: 600;">Word Student & Domineer</div>
+                <div style="font-size: 0.8rem; color: #92400E; font-weight: 600;">Word Student & Groei</div>
             </div>
         </a>
         """, unsafe_allow_html=True)
@@ -453,7 +454,8 @@ if pg == "Dashboard":
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
     html_steps = ""
-    labels = ["Start", "Shop Setup", "Producten", "Sales", "Schalen", "Beheer"] 
+    # AANGEPAST: Jip en Janneke termen voor Roadmap
+    labels = ["Start", "Winkel Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"] 
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
@@ -465,7 +467,8 @@ if pg == "Dashboard":
     if is_step_pro:
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
     else:
-        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Instructies <i class='bi bi-arrow-right'></i>", "#FBBF24", "#mission", "_self", "bi-crosshair", "Focus op deze taak om verder te komen.", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
+        # AANGEPAST: Motiverende tekst in het blauwe vak
+        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#mission", "_self", "bi-crosshair", "Zonder KvK nummer mag je niets verkopen. Regel dit als eerste!", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
 
     next_unlock = "De Logo Maker"
     if next_step_phase_index == 2: next_unlock = "Winnende Producten"
@@ -478,7 +481,8 @@ if pg == "Dashboard":
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
 
-    st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">{needed} tot next</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Reward</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
+    # AANGEPAST: NL stats labels
+    st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog {needed} voor Level 2</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
     st.markdown("<div id='mission' style='height: 0px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📍 Roadmap")
     for fase_key, fase in full_map.items():
@@ -571,8 +575,8 @@ elif pg == "Financiën":
             cc1.metric("Netto Winst", f"€{winst:.2f}")
             cc2.metric("Marge", f"{marge:.1f}%")
 
-elif pg == "Creator Tools":
-    st.markdown("<h1><i class='bi bi-palette-fill'></i> Creator Tools</h1>", unsafe_allow_html=True)
+elif pg == "Marketing & Design": # Was: Creator Tools (Jip en Janneke)
+    st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
     tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Marketing AI", "Ads Check"])
     
     with tab1:
@@ -647,8 +651,8 @@ elif pg == "Creator Tools":
                 st.button("Diagnose starten", type="primary")
         else: render_pro_lock("Ads check", "Laat je advertenties beoordelen.")
 
-elif pg == "Product Hunter":
-    st.markdown("<h1><i class='bi bi-search'></i> Product Hunter</h1>", unsafe_allow_html=True)
+elif pg == "Producten Zoeken": # Was: Product Hunter (Jip en Janneke)
+    st.markdown("<h1><i class='bi bi-search'></i> Producten Zoeken</h1>", unsafe_allow_html=True)
     tab1, tab2 = st.tabs(["Ideeën", "Spy Tool"])
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet verkopen? Deze tool zoekt populaire 'winnende' producten voor je uit.")
