@@ -300,7 +300,7 @@ if "user" not in st.session_state:
                         st.warning("Vul alle velden in.")
                 # AANGEPAST: Margin verkleind naar 1px (super dicht op de knop)
                 st.markdown("""<div style='text-align:center; margin-top:1px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                # AANGEPAST: padding-bottom verkleind naar 8px (klein beetje witruimte)
+                # AANGEPAST: padding-bottom verkleind naar 4px (klein beetje witruimte)
                 st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 8px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
