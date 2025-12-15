@@ -82,7 +82,7 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER & SIDEBAR FIXES (SAMSUNG FIX)
+           2. HEADER & SIDEBAR FIXES (SAMSUNG FIX + FORCED BUTTON VISIBILITY)
            ============================================== */
         header[data-testid="stHeader"] {
             background-color: #F8FAFC !important;
@@ -92,56 +92,66 @@ st.markdown("""
             z-index: 999990 !important;
         }
 
-        /* FORCEER KLEUR VAN HAMBURGER MENU KNOP (Links boven) */
+        /* --- DE HAMBURGER KNOP (LINKS BOVEN) --- */
+        /* We geven hem een achtergrondkleur en rand zodat hij ALTIJD zichtbaar is */
         button[kind="header"] {
-            background-color: transparent !important;
-            border: none !important;
-            color: #0F172A !important; /* Donkerblauw/Zwart */
+            background-color: #EFF6FF !important; /* Lichtblauw blokje */
+            border: 1px solid #DBEAFE !important; /* Randje */
+            border-radius: 8px !important;
+            color: #0F172A !important;
+            opacity: 1 !important;
+            margin-top: 2px !important;
+            height: 40px !important;
+            width: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
         
-        /* SPECIFIEK VOOR DE SVG ICOONTJES (Dit fixt het wegvallen op Samsung) */
-        button[kind="header"] svg, 
-        [data-testid="stHeader"] svg,
-        [data-testid="stHeader"] path {
-            fill: #0F172A !important;
-            stroke: #0F172A !important;
+        /* Forceer het icoontje erin naar Zwart/Blauw */
+        button[kind="header"] svg {
+            fill: #2563EB !important;
+            stroke: #2563EB !important;
+            width: 24px !important;
+            height: 24px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX - COMPLEET */
+        /* MOBIELE SIDEBAR FIX */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
             
-            /* FORCEER ALLE KNOPPEN IN DE SIDEBAR HEADER OP ZWART */
-            [data-testid="stSidebar"] button, 
-            [data-testid="stSidebar"] [data-testid="stBaseButton-header"],
+            /* DE SLUIT KNOP (X) IN HET MENU */
             [data-testid="stSidebarCollapseButton"] {
+                background-color: #F1F5F9 !important; /* Grijs bolletje */
+                border-radius: 50% !important;
+                border: 1px solid #E2E8F0 !important;
                 color: #0F172A !important;
-                background-color: transparent !important;
-                border: none !important;
+                width: 36px !important;
+                height: 36px !important;
+                margin-right: 10px !important;
+                margin-top: 10px !important;
                 display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
                 z-index: 999999 !important;
             }
             
-            /* FORCEER DE SVG ICONEN (HET KRUISJE) OP ZWART */
-            [data-testid="stSidebar"] button svg,
-            [data-testid="stSidebar"] svg,
+            /* Het kruisje zelf */
             [data-testid="stSidebarCollapseButton"] svg {
                 fill: #0F172A !important;
-                color: #0F172A !important;
+                stroke: #0F172A !important;
             }
 
-            /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE BOVENIN ALS HIJ DICHT IS) */
+            /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE) - VANGNET */
             [data-testid="stSidebarCollapsedControl"] {
                 color: #0F172A !important;
                 background-color: white !important;
                 display: block !important;
                 z-index: 999999 !important;
-            }
-            [data-testid="stSidebarCollapsedControl"] svg {
-                 fill: #0F172A !important;
+                border: 1px solid #000 !important;
             }
         }
 
@@ -633,7 +643,7 @@ if pg == "Dashboard":
 
     html_steps = ""
     # AANGEPAST: Duidelijke actie-labels voor beginners
-    labels = ["Start", "Shop Setup", "Producten", "Sales", "Schalen", "Beheer"] 
+    labels = ["Start", "Shop Setup", "Producten", "Klaar voor Sales", "Schalen", "Beheer"] 
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
