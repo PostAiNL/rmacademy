@@ -73,6 +73,12 @@ st.markdown("""
 
         .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
+        
+        /* FIX VOOR ONZICHTBARE TEKST (Zoals Feedback caption) - GEFORCEERD ZWART */
+        p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small {
+            color: #0F172A !important; 
+        }
+
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
@@ -85,31 +91,47 @@ st.markdown("""
             height: 60px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX - AANGEPAST VOOR ZICHTBAARHEID KNOPJES */
+        /* MOBIELE SIDEBAR FIX - COMPLEET */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
-            /* Forceer kleur voor header knoppen (burger menu) en sidebar knoppen (kruisje/pijltje) */
-            button[kind="header"], 
-            [data-testid="stSidebarCollapseButton"], 
-            [data-testid="stSidebar"] button {
+            
+            /* DE KNOP OM SIDEBAR TE SLUITEN (KRUISJE) */
+            [data-testid="stSidebarCollapseButton"] {
                 color: #0F172A !important;
                 background-color: transparent !important;
                 border: none !important;
+                display: block !important;
+                z-index: 999999 !important;
             }
-            /* Forceer de kleur van de SVG iconen binnen de knoppen */
-            button[kind="header"] svg, 
-            [data-testid="stSidebarCollapseButton"] svg,
-            [data-testid="stSidebar"] button svg,
-            [data-testid="stSidebarNav"] svg {
+            [data-testid="stSidebarCollapseButton"] svg {
                 fill: #0F172A !important;
+                color: #0F172A !important;
+            }
+
+            /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE BOVENIN) */
+            [data-testid="stSidebarCollapsedControl"] {
+                color: #0F172A !important;
+                background-color: white !important;
+                display: block !important;
+            }
+            [data-testid="stSidebarCollapsedControl"] svg {
+                fill: #0F172A !important;
+                color: #0F172A !important;
+            }
+            
+            /* Header buttons algemeen */
+            button[kind="header"] {
                 color: #0F172A !important;
             }
         }
 
+        /* DESKTOP SIDEBAR KNOP */
         [data-testid="stSidebarCollapseButton"] { color: #0F172A !important; }
+        
+        /* VERBERG STANDAARD ELEMENTEN */
         [data-testid="stDecoration"] { display: none !important; }
         [data-testid="stStatusWidget"] { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
@@ -392,7 +414,7 @@ with st.sidebar:
         else:
             menu_display_options.append(opt)
 
-    # --- MENU FIX: STATIC KEY GEBRUIKEN & WITTE BACKGROUND VOOR MOBIEL ---
+    # --- MENU FIX: WHITE BG + MARGIN 0 (TEGEN HOEKJES) ---
     selected_display = option_menu(
         menu_title=None,
         options=menu_display_options,
@@ -400,12 +422,12 @@ with st.sidebar:
         default_index=0,
         orientation="vertical",
         styles={
-            "container": {"padding": "0!important", "background-color": "#FFFFFF"}, # WIT GEMAAKT IPV TRANSPARENT
+            "container": {"padding": "0!important", "background-color": "#FFFFFF"}, # TERUG NAAR WIT
             "icon": {"color": "#64748B", "font-size": "14px"}, 
-            "nav-link": {"font-size": "14px", "text-align": "left", "margin": "1px", "padding": "8px", "--hover-color": "#EFF6FF", "color": "#0F172A"},
+            "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "padding": "10px", "--hover-color": "#EFF6FF", "color": "#0F172A"}, # MARGIN 0px
             "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"},
         },
-        key="main_sidebar_menu" # Statische key voor stabiliteit
+        key="main_sidebar_menu"
     )
     
     if selected_display:
