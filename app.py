@@ -443,11 +443,46 @@ with st.sidebar:
     elif not is_pro:
         st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
-    options = ["Dashboard", "Gratis training", "Profit Tracker", "Marketing Tools", "Logo maker", "Product ideeën", "Marge Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
-    icons = ["house-fill", "mortarboard-fill", "cash-stack", "megaphone-fill", "palette-fill", "search", "calculator-fill", "bar-chart-fill", "camera-reels-fill", "bandaid-fill", "gear-fill"]
+    # --- NIEUWE MENU STRUCTUUR: FOCUS BOVENAAN ---
+    options = [
+        "Dashboard", 
+        "Gratis training", 
+        "Profit Tracker", 
+        "---",  # Divider visualisatie (wordt opgevangen in loop)
+        "Marketing Tools", 
+        "Logo maker", 
+        "Product ideeën", 
+        "Marge Calculator", 
+        "Concurrenten", 
+        "Video ideeën", 
+        "Ads check", 
+        "Instellingen"
+    ]
+    # Bijbehorende iconen (let op de volgorde!)
+    icons = [
+        "house-fill", 
+        "mortarboard-fill", 
+        "cash-stack", 
+        "dash", # Divider icon (wordt niet getoond)
+        "megaphone-fill", 
+        "palette-fill", 
+        "search", 
+        "calculator-fill", 
+        "bar-chart-fill", 
+        "camera-reels-fill", 
+        "bandaid-fill", 
+        "gear-fill"
+    ]
     
+    # Filter de divider eruit voor de option_menu logica, maar behoud visuele scheiding in gedachten
+    # Helaas ondersteunt option_menu geen echte dividers, dus we houden de lijst schoon en logisch.
+    # We zetten de belangrijkste items BOVENAAN.
+    
+    clean_options = ["Dashboard", "Gratis training", "Profit Tracker", "Marketing Tools", "Logo maker", "Product ideeën", "Marge Calculator", "Concurrenten", "Video ideeën", "Ads check", "Instellingen"]
+    clean_icons = ["house-fill", "mortarboard-fill", "cash-stack", "megaphone-fill", "palette-fill", "search", "calculator-fill", "bar-chart-fill", "camera-reels-fill", "bandaid-fill", "gear-fill"]
+
     menu_display_options = []
-    for opt in options:
+    for opt in clean_options:
         if not is_pro and opt in ["Logo maker", "Product ideeën", "Concurrenten", "Video ideeën", "Ads check"]:
             menu_display_options.append(f"{opt} 🔒")
         else:
@@ -457,7 +492,7 @@ with st.sidebar:
     selected_display = option_menu(
         menu_title=None,
         options=menu_display_options,
-        icons=icons,
+        icons=clean_icons,
         default_index=0,
         orientation="vertical",
         styles={
@@ -597,7 +632,8 @@ if pg == "Dashboard":
         if phase_done and idx == len(fase_keys) - 1: next_step_phase_index = 6 
 
     html_steps = ""
-    labels = ["Start", "Bouwen", "Product", "Trust", "Scale", "Daily"]
+    # AANGEPAST: Duidelijke actie-labels voor beginners
+    labels = ["Start", "Shop Setup", "Producten", "Klaar voor Sales", "Schalen", "Beheer"] 
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
@@ -605,8 +641,8 @@ if pg == "Dashboard":
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
 
-    logo_base64 = get_image_base64("assets/logo.png")
-    bg_icon_html = f"""<div style="position: absolute; top: 20px; right: 20px; width: 150px; opacity: 0.25; pointer-events: none;"><img src="{logo_base64}" style="width: 100%; height: auto;"></div>""" if logo_base64 else '<div style="position: absolute; top: 10px; right: 20px; font-size: 100px; opacity: 0.15; color: white;"><i class="bi bi-rocket-takeoff-fill"></i></div>'
+    # AANGEPAST: Geen logo meer in de achtergrond voor rustiger beeld
+    bg_icon_html = "" 
 
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
@@ -619,7 +655,8 @@ if pg == "Dashboard":
     elif next_step_phase_index == 3: next_unlock = "Profit Tracker"
     elif next_step_phase_index >= 4: next_unlock = "Viral Scripts"
 
-    mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;">{bg_icon_html}<div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a><div style="margin-top:15px; font-size:0.8rem; color:#DBEAFE;"><i class="bi bi-unlock-fill"></i> Voltooi dit om <b>{next_unlock}</b> te ontgrendelen</div></div></div>"""
+    # AANGEPAST: Achtergrond logo verwijderd
+    mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;"><div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a><div style="margin-top:15px; font-size:0.8rem; color:#DBEAFE;"><i class="bi bi-unlock-fill"></i> Voltooi dit om <b>{next_unlock}</b> te ontgrendelen</div></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
     needed = next_xp_goal_sidebar - user['xp']
