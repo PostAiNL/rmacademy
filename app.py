@@ -85,18 +85,25 @@ st.markdown("""
             height: 60px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX */
+        /* MOBIELE SIDEBAR FIX - AANGEPAST VOOR ZICHTBAARHEID KNOPJES */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
-            button[kind="header"], [data-testid="stSidebarCollapseButton"] {
+            /* Forceer kleur voor header knoppen (burger menu) en sidebar knoppen (kruisje/pijltje) */
+            button[kind="header"], 
+            [data-testid="stSidebarCollapseButton"], 
+            [data-testid="stSidebar"] button {
                 color: #0F172A !important;
-                fill: #0F172A !important;
                 background-color: transparent !important;
+                border: none !important;
             }
-            button[kind="header"] svg, [data-testid="stSidebarCollapseButton"] svg {
+            /* Forceer de kleur van de SVG iconen binnen de knoppen */
+            button[kind="header"] svg, 
+            [data-testid="stSidebarCollapseButton"] svg,
+            [data-testid="stSidebar"] button svg,
+            [data-testid="stSidebarNav"] svg {
                 fill: #0F172A !important;
                 color: #0F172A !important;
             }
@@ -385,7 +392,7 @@ with st.sidebar:
         else:
             menu_display_options.append(opt)
 
-    # --- MENU FIX: STATIC KEY GEBRUIKEN ---
+    # --- MENU FIX: STATIC KEY GEBRUIKEN & WITTE BACKGROUND VOOR MOBIEL ---
     selected_display = option_menu(
         menu_title=None,
         options=menu_display_options,
@@ -393,7 +400,7 @@ with st.sidebar:
         default_index=0,
         orientation="vertical",
         styles={
-            "container": {"padding": "0!important", "background-color": "transparent"},
+            "container": {"padding": "0!important", "background-color": "#FFFFFF"}, # WIT GEMAAKT IPV TRANSPARENT
             "icon": {"color": "#64748B", "font-size": "14px"}, 
             "nav-link": {"font-size": "14px", "text-align": "left", "margin": "1px", "padding": "8px", "--hover-color": "#EFF6FF", "color": "#0F172A"},
             "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"},
