@@ -74,7 +74,7 @@ st.markdown("""
         .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
         
-        /* FIX VOOR ONZICHTBARE TEKST (Zoals Feedback caption) - GEFORCEERD ZWART */
+        /* FIX VOOR ONZICHTBARE TEKST - GEFORCEERD ZWART */
         p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small {
             color: #0F172A !important; 
         }
@@ -82,16 +82,32 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER & SIDEBAR FIXES
+           2. HEADER & SIDEBAR FIXES (SAMSUNG FIX)
            ============================================== */
         header[data-testid="stHeader"] {
             background-color: #F8FAFC !important;
             border-bottom: none !important;
             pointer-events: auto !important; 
             height: 60px !important;
+            z-index: 999990 !important;
         }
 
-        /* MOBIELE SIDEBAR FIX - COMPLEET & FORCEER ZWART KRUISJE */
+        /* FORCEER KLEUR VAN HAMBURGER MENU KNOP (Links boven) */
+        button[kind="header"] {
+            background-color: transparent !important;
+            border: none !important;
+            color: #0F172A !important; /* Donkerblauw/Zwart */
+        }
+        
+        /* SPECIFIEK VOOR DE SVG ICOONTJES (Dit fixt het wegvallen op Samsung) */
+        button[kind="header"] svg, 
+        [data-testid="stHeader"] svg,
+        [data-testid="stHeader"] path {
+            fill: #0F172A !important;
+            stroke: #0F172A !important;
+        }
+
+        /* MOBIELE SIDEBAR FIX - COMPLEET */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
@@ -100,8 +116,9 @@ st.markdown("""
             
             /* FORCEER ALLE KNOPPEN IN DE SIDEBAR HEADER OP ZWART */
             [data-testid="stSidebar"] button, 
-            [data-testid="stSidebar"] [data-testid="stBaseButton-header"] {
-                color: #000000 !important;
+            [data-testid="stSidebar"] [data-testid="stBaseButton-header"],
+            [data-testid="stSidebarCollapseButton"] {
+                color: #0F172A !important;
                 background-color: transparent !important;
                 border: none !important;
                 display: flex !important;
@@ -110,17 +127,21 @@ st.markdown("""
             
             /* FORCEER DE SVG ICONEN (HET KRUISJE) OP ZWART */
             [data-testid="stSidebar"] button svg,
-            [data-testid="stSidebar"] svg {
-                fill: #000000 !important;
-                color: #000000 !important;
-                stroke: #000000 !important;
+            [data-testid="stSidebar"] svg,
+            [data-testid="stSidebarCollapseButton"] svg {
+                fill: #0F172A !important;
+                color: #0F172A !important;
             }
 
-            /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE BOVENIN) */
+            /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE BOVENIN ALS HIJ DICHT IS) */
             [data-testid="stSidebarCollapsedControl"] {
                 color: #0F172A !important;
                 background-color: white !important;
                 display: block !important;
+                z-index: 999999 !important;
+            }
+            [data-testid="stSidebarCollapsedControl"] svg {
+                 fill: #0F172A !important;
             }
         }
 
@@ -300,7 +321,7 @@ if "user" not in st.session_state:
                         st.warning("Vul alle velden in.")
                 # AANGEPAST: Margin verkleind naar 1px (super dicht op de knop)
                 st.markdown("""<div style='text-align:center; margin-top:1px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                # AANGEPAST: padding-bottom verkleind naar 4px (klein beetje witruimte)
+                # AANGEPAST: padding-bottom verkleind naar 8px (klein beetje witruimte)
                 st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 8px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
