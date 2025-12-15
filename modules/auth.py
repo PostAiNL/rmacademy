@@ -15,7 +15,10 @@ RANKS = {
     0: "🐣 Starter",
     200: "🔨 Bouwer",
     500: "🚀 Expert",       
-    1000: "👑 E-com Boss"
+    1000: "👑 E-com Boss",
+    3000: "💎 Legend",
+    5000: "🔥 Master",
+    10000: "🦄 Grandmaster"
 }
 
 # CONNECTIE MET SUPABASE
@@ -33,12 +36,21 @@ supabase = init_supabase()
 def get_rank_info(xp):
     current_title = "🐣 Starter"
     next_xp = 200
-    for threshold, title in sorted(RANKS.items()):
+    
+    # Sorteer levels om de juiste huidige en volgende te vinden
+    sorted_ranks = sorted(RANKS.items())
+    
+    for i, (threshold, title) in enumerate(sorted_ranks):
         if xp >= threshold:
             current_title = title
+            # Volgende doel bepalen
+            if i + 1 < len(sorted_ranks):
+                next_xp = sorted_ranks[i+1][0]
+            else:
+                next_xp = threshold * 2 # Fallback als max level bereikt is
         else:
-            next_xp = threshold
             break
+            
     return current_title, next_xp
 
 # --- DATA OPHALEN VOOR LEADERBOARD & TICKER ---
@@ -73,26 +85,12 @@ def get_leaderboard_data():
         print(f"Leaderboard error: {e}")
         return []
 
-def get_real_activity():
-    """Geeft realistische 'fake' activiteit (Social Proof)"""
-    names = ["Sophie", "Mark", "Jeroen", "Lisa", "Kevin", "Sanne", "Mohammed", "Tom", "Eva"]
-    activities = [
-        "heeft net het eerste product gevonden!",
-        "is gestegen naar level 'Bouwer'.",
-        "heeft +50 XP verdiend.",
-        "is bezig met de winst calculator.",
-        "heeft een video script gegenereerd.",
-        "is net ingeschreven bij de KVK."
-    ]
-    
-    random_name = random.choice(names)
-    random_act = random.choice(activities)
-    
-    return f"{random_name} {random_act}"
-
-# --- MAIL FUNCTIE 1: WELKOM (MET FOOTER UPDATE) ---
+# --- MAIL FUNCTIE 1: WELKOM ---
 def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
     try:
+        # Check of mail secrets bestaan
+        if "email" not in st.secrets: return False
+        
         smtp_server = st.secrets["email"]["smtp_server"]
         smtp_port = st.secrets["email"]["smtp_port"]
         smtp_user = st.secrets["email"]["smtp_user"]
@@ -123,9 +121,7 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
                         🔗 Kopieer Jouw Link
                     </a>
                 </div>
-                <!-- ADVIES C: UNSUBSCRIBE FOOTER -->
                 <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                    <p>Wil je geen updates meer? Antwoord op deze mail met 'STOP'.</p>
                     <p>&copy; 2024 RM Ecom Academy.</p>
                 </div>
             </div>
@@ -139,8 +135,6 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
 
-# NIEUWE VERSIE (Strato SSL Fix)
-        # Let op: SMTP_SSL gebruiken en GEEN starttls()
         server = smtplib.SMTP_SSL(smtp_server, smtp_port)
         server.login(smtp_user, smtp_password)
         text = msg.as_string()
@@ -151,9 +145,11 @@ def send_welcome_email(to_email, referral_code, first_name="Ondernemer"):
         print(f"Mail Fout: {e}")
         return False
 
-# --- MAIL FUNCTIE 2: LEVEL UP (NIEUW TOEGEVOEGD) ---
+# --- MAIL FUNCTIE 2: LEVEL UP ---
 def send_levelup_email(to_email, first_name, new_rank):
     try:
+        if "email" not in st.secrets: return False
+        
         smtp_server = st.secrets["email"]["smtp_server"]
         smtp_port = st.secrets["email"]["smtp_port"]
         smtp_user = st.secrets["email"]["smtp_user"]
@@ -185,10 +181,6 @@ def send_levelup_email(to_email, first_name, new_rank):
                         👉 Ga naar Dashboard
                     </a>
                 </div>
-                <!-- ADVIES C: UNSUBSCRIBE FOOTER -->
-                <div style="background-color: #f8fafc; padding: 20px; text-align: center; font-size: 11px; color: #94a3b8; border-top: 1px solid #e2e8f0;">
-                    <p>Wil je geen updates meer? Antwoord op deze mail met 'STOP'.</p>
-                </div>
             </div>
           </body>
         </html>
@@ -200,8 +192,6 @@ def send_levelup_email(to_email, first_name, new_rank):
         msg['Subject'] = subject
         msg.attach(MIMEText(body, 'html'))
 
-# NIEUWE VERSIE (Strato SSL Fix)
-        # Let op: SMTP_SSL gebruiken en GEEN starttls()
         server = smtplib.SMTP_SSL(smtp_server, smtp_port)
         server.login(smtp_user, smtp_password)
         text = msg.as_string()
@@ -218,67 +208,73 @@ def generate_referral_code(name):
     return f"{prefix}-{suffix}"
 
 def login_or_register(email, license_input=None, ref_code_input=None, name_input=None):
+    """Haalt gebruiker op uit sessie state, of haalt uit DB."""
     email = email.lower().strip()
-    try:
-        res = supabase.table('users').select("*").eq('email', email).execute()
-        user = res.data[0] if res.data else None
-    except: user = None
-
-    if not user:
-        # --- NIEUWE GEBRUIKER REGISTREREN ---
-        referrer_id = None
-        if ref_code_input:
-            ref_res = supabase.table('users').select("id").eq('referral_code', ref_code_input).execute()
-            if ref_res.data: referrer_id = ref_res.data[0]['id']
-
-        clean_name = name_input.strip() if name_input else email.split('@')[0].capitalize()
-
-        new_data = {
-            "email": email,
-            "first_name": clean_name,
-            "referral_code": generate_referral_code(clean_name),
-            "role": "student",
-            "is_pro": False,
-            "level": 1,
-            "xp": 0,
-            "referred_by": referrer_id
-        }
-        
-        if license_input and license_input.startswith("PRO-"):
-            new_data['is_pro'] = True
-            new_data['license_key'] = license_input
-            new_data['xp'] = 500
-            
-        res = supabase.table('users').insert(new_data).execute()
-        user = res.data[0]
-        
-        st.toast(f"🎉 Account aangemaakt!", icon="📧")
-        send_welcome_email(email, user['referral_code'], clean_name)
-
-    st.session_state.user = user
-    st.session_state.is_pro = user['is_pro']
     
-    if license_input and not user['is_pro']:
+    # Probeer gebruiker uit DB te halen
+    user = None
+    if supabase:
+        try:
+            res = supabase.table('users').select("*").eq('email', email).execute()
+            if res.data: user = res.data[0]
+        except: pass
+
+    # Als gebruiker nog niet bestaat (zou via db.create_user moeten gaan, dit is fallback)
+    if not user:
+         st.session_state.user = {
+            "id": "temp",
+            "email": email,
+            "first_name": name_input or "Gast",
+            "xp": 0,
+            "level": 1,
+            "is_pro": False,
+            "referral_code": "TEMP"
+         }
+         return
+
+    # Sla op in sessie
+    st.session_state.user = user
+    st.session_state.is_pro = user.get('is_pro', False)
+    
+    # License activatie logica
+    if license_input and not user.get('is_pro'):
         if license_input.startswith("PRO-"):
-            supabase.table('users').update({"is_pro": True, "license_key": license_input}).eq('id', user['id']).execute()
+            if supabase:
+                supabase.table('users').update({"is_pro": True, "license_key": license_input}).eq('id', user['id']).execute()
             st.session_state.user['is_pro'] = True
             st.session_state.is_pro = True
             st.balloons()
 
     st.toast("Succesvol ingelogd!", icon="🚀")
-    time.sleep(0.5)
 
 def get_progress():
-    if "user" not in st.session_state: return []
+    if "user" not in st.session_state or not supabase: return []
     try:
+        # Als user ID 'temp' is (geen DB), return leeg
+        if st.session_state.user['id'] == 'temp': return []
+        
         res = supabase.table('progress').select("step_id").eq('user_id', st.session_state.user['id']).execute()
         return [r['step_id'] for r in res.data]
     except: return []
 
 # --- PROGRESSIE MET AUTOMATISCHE LEVEL-UP MAIL ---
 def mark_step_complete(step_id, xp_reward):
+    # Als offline/temp user
+    if "user" not in st.session_state: return
+    if st.session_state.user['id'] == 'temp':
+        st.session_state.user['xp'] += xp_reward
+        st.toast(f"✅ Voltooid! +{xp_reward} XP (Demo Mode)", icon="🔥")
+        return
+
     uid = st.session_state.user['id']
+    if not supabase: return
+
     try:
+        # Check of al gedaan
+        check = supabase.table('progress').select('*').eq('user_id', uid).eq('step_id', step_id).execute()
+        if check.data: return
+
+        # Voeg toe aan progress
         supabase.table('progress').insert({"user_id": uid, "step_id": step_id}).execute()
         
         current_xp = st.session_state.user['xp']
@@ -288,48 +284,34 @@ def mark_step_complete(step_id, xp_reward):
         old_title, _ = get_rank_info(current_xp)
         new_title, _ = get_rank_info(new_xp)
         
+        # Check speciale unlocks
         if current_xp < 500 and new_xp >= 500:
-            update_data["level"] = 2
-            st.session_state.user['level'] = 2
-            now = datetime.now(timezone.utc)
-            end_time = now + timedelta(hours=24)
-            update_data["spy_unlock_until"] = end_time.isoformat()
-            st.session_state.user['spy_unlock_until'] = end_time.isoformat()
             st.balloons()
-            st.success("🔓 GEFELICITEERD! Spy Tool 24u ontgrendeld!")
-            time.sleep(3)
-
-        elif current_xp < 550 and new_xp >= 550:
-            now = datetime.now(timezone.utc)
-            end_time = now + timedelta(hours=24)
-            update_data["scripts_unlock_until"] = end_time.isoformat()
-            st.session_state.user['scripts_unlock_until'] = end_time.isoformat()
-            st.snow()
-            st.success("Video Scripts Tool Ontgrendeld!")
-            time.sleep(4)
+            st.success("🔓 GEFELICITEERD! Je bent nu een Builder!")
+            time.sleep(2)
         
-        # PUNT 4: STUUR MAIL BIJ PROMOTIE
-        elif new_title != old_title:
+        # Stuur mail bij promotie
+        if new_title != old_title:
             st.toast(f"🆙 PROMOTIE! Je bent nu: {new_title}", icon="⭐")
             st.balloons()
             
-            # Hier wordt de mail gestuurd!
             user_email = st.session_state.user.get('email')
             user_name = st.session_state.user.get('first_name') or "Topper"
             
             if user_email:
                 send_levelup_email(user_email, user_name, new_title)
             
-            time.sleep(2)
-            
         supabase.table('users').update(update_data).eq('id', uid).execute()
         st.session_state.user['xp'] = new_xp
         st.toast(f"✅ Voltooid! +{xp_reward} XP", icon="🔥")
              
     except Exception as e:
-        print(f"Error: {e}")
+        print(f"Error marking complete: {e}")
 
 def get_affiliate_stats():
+    if "user" not in st.session_state or st.session_state.user['id'] == 'temp' or not supabase: 
+        return 0, 0, 0
+    
     uid = st.session_state.user['id']
     try:
         res = supabase.table('users').select("is_pro").eq('referred_by', uid).execute()
@@ -337,12 +319,3 @@ def get_affiliate_stats():
         pro = sum(1 for u in res.data if u['is_pro'])
         return total, pro, pro * 250
     except: return 0, 0, 0
-
-def get_user_by_email(email):
-    try:
-        res = supabase.table('users').select("*").eq('email', email).execute()
-        if res.data:
-            return res.data[0]
-    except:
-        return None
-    return None

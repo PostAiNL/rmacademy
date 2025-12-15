@@ -17,20 +17,17 @@ def get_client():
         return create_client(url, key)
     except: return None
 
-# --- AUTHENTICATIE MET WACHTWOORD (DEZE MISTE JE) ---
+# --- AUTHENTICATIE ---
 
 def hash_password(password):
-    """Simpele hashing voor veiligheid."""
     return hashlib.sha256(password.encode()).hexdigest()
 
 def create_user(email, password, name=""):
-    """Maakt een gebruiker aan in Supabase users tabel."""
     client = get_client()
     if not client: return "ERROR"
     
     hashed_pw = hash_password(password)
     
-    # We voegen nu ook wachtwoord en naam toe
     data = {
         "email": email, 
         "password": hashed_pw,
@@ -52,7 +49,6 @@ def create_user(email, password, name=""):
         return "ERROR"
 
 def verify_user(email, password):
-    """Checkt of email en wachtwoord kloppen."""
     client = get_client()
     if not client: return False
     
@@ -60,15 +56,13 @@ def verify_user(email, password):
     try:
         res = client.table("users").select("password").eq("email", email).execute()
         if res.data:
-            # Check of het wachtwoord in de database matcht met de hash
-            stored_pw = res.data[0].get('password')
-            if stored_pw == hashed_pw:
+            # Gebruik .get() om crash te voorkomen bij oude accounts zonder wachtwoord
+            if res.data[0].get('password') == hashed_pw:
                 return True
     except: pass
     return False
 
 def get_user_data(email):
-    """Haalt extra data op (zoals naam)."""
     client = get_client()
     if not client: return {}
     try:
@@ -77,57 +71,64 @@ def get_user_data(email):
     except: pass
     return {}
 
-# --- PRO / FEEDBACK / STATS FUNCTIES ---
+# --- PRO & REWARDS SYSTEEM (HIER ZAT DE FOUT) ---
 
 def give_temp_pro_access(email, hours=24):
     client = get_client()
     if not client: return False
     expiry_time = (datetime.now(timezone.utc) + timedelta(hours=hours)).isoformat()
     try:
-        # Upsert zorgt dat het werkt, ook als de user nog niet bestond (zou niet moeten kunnen nu, maar voor zekerheid)
-        data = {"email": email, "pro_expiry": expiry_time}
-        client.table("users").upsert(data).execute()
+        client.table("users").update({"pro_expiry": expiry_time}).eq("email", email).execute()
         return True
     except: return False
 
 def check_pro_status_db(email):
+    """Checkt of de PRO tijd nog geldig is."""
     client = get_client()
     if not client: return False
     try:
         res = client.table("users").select("pro_expiry").eq("email", email).execute()
         if res.data and res.data[0].get('pro_expiry'):
             expiry_str = res.data[0]['pro_expiry']
+            # Convert string to datetime
             expiry_dt = datetime.fromisoformat(expiry_str.replace('Z', '+00:00'))
-            if expiry_dt > datetime.now(timezone.utc): return True
+            if expiry_dt > datetime.now(timezone.utc):
+                return True
     except: pass
     return False
+
+def get_pro_expiry_date(email):
+    """Haalt de exacte datum op voor de countdown timer."""
+    client = get_client()
+    if not client: return None
+    try:
+        res = client.table("users").select("pro_expiry").eq("email", email).execute()
+        if res.data and res.data[0].get('pro_expiry'):
+            return datetime.fromisoformat(res.data[0]['pro_expiry'].replace('Z', '+00:00'))
+    except: pass
+    return None
 
 def claim_feedback_reward(email):
     client = get_client()
     if not client: return "ERROR"
     try:
-        # Check status
         res = client.table("users").select("has_claimed_feedback_reward").eq("email", email).execute()
         if res.data and res.data[0].get('has_claimed_feedback_reward'): 
             return "ALREADY_CLAIMED"
         
-        # Geef reward en zet vinkje
-        give_temp_pro_access(email, 24)
-        client.table("users").update({"has_claimed_feedback_reward": True}).eq("email", email).execute()
-        return "SUCCESS"
-    except Exception as e: 
-        print(e)
+        # Geef reward
+        if give_temp_pro_access(email, 24):
+            client.table("users").update({"has_claimed_feedback_reward": True}).eq("email", email).execute()
+            return "SUCCESS"
         return "ERROR"
+    except: return "ERROR"
+
+# --- STATS & FEEDBACK ---
 
 def save_feedback(email, content, is_valid):
     client = get_client()
     if client:
-        try: 
-            client.table("feedback").insert({
-                "email": email, 
-                "content": content, 
-                "is_valid": is_valid
-            }).execute()
+        try: client.table("feedback").insert({"email": email, "content": content, "is_valid": is_valid}).execute()
         except: pass
 
 def save_daily_stats(email, revenue, spend, cogs):
@@ -143,9 +144,7 @@ def save_daily_stats(email, revenue, spend, cogs):
                 "cogs": cogs
             }).execute()
             return True
-        except Exception as e: 
-            print(e)
-            return False
+        except: return False
     return False
 
 def get_daily_stats_history(email):
