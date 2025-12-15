@@ -422,15 +422,36 @@ def render_pro_lock(title, desc):
 
 # --- CONTENT PAGES ---
 
+# --- ZOEK DIT STUKJE IN APP.PY EN VERVANG HET ---
+
 if pg == "Dashboard":
+    
+    # --- LEVEL UP EFFECT ---
     if user['level'] > st.session_state.prev_level:
         st.balloons()
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
+    # --- WELKOM HEADER ---
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     st.markdown(f"<h1 style='margin-bottom: 15px;'>{get_greeting()}, {name} <i class='bi bi-hand-thumbs-up-fill' style='color:#FBBF24;'></i></h1>", unsafe_allow_html=True)
     
+    # --- NIEUW: DAILY WINNER TEASER (DE TIKTOK HOOK) ---
+    # Dit blokje verleid de gebruiker om naar de 'Producten Zoeken' tab te gaan
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border: 1px solid #FED7AA; border-radius: 12px; padding: 16px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+        <div style="display: flex; align-items: center; gap: 15px;">
+            <div style="background: #F97316; color: white; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2);"><i class="bi bi-fire"></i></div>
+            <div>
+                <div style="font-size: 0.75rem; color: #C2410C; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Product van de dag</div>
+                <div style="font-size: 1rem; color: #7C2D12; font-weight: 700;">Galaxy Star Projector 2.0 🚀</div>
+            </div>
+        </div>
+        <div style="background: white; color: #EA580C; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid #FFEDD5;">Bekijk &rarr;</div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # --- EERSTE KEER BEZOEKER INTRO ---
     if user['xp'] == 0:
         st.markdown(f"""<div style="background:#EFF6FF; border:1px solid #DBEAFE; border-radius:12px; padding:20px; margin-bottom:20px;"><h3 style="color:#1E40AF; margin-top:0;">Welkom bij RM Ecom! 🚀</h3><p style="color:#1E3A8A; margin-bottom:10px;">Je staat aan het begin van je avontuur. Hier is hoe het werkt:</p><ul style="color:#1E3A8A; padding-left:20px;"><li>Volg de <b>Roadmap</b> hieronder stap voor stap.</li><li>Gebruik de <b>Tools</b> in het menu om tijd te besparen.</li><li>Verdien <b>XP</b> om nieuwe levels te bereiken.</li></ul></div>""", unsafe_allow_html=True)
         if st.button("🚀 Start & Claim 50 XP", type="primary", use_container_width=True):
@@ -440,9 +461,12 @@ if pg == "Dashboard":
             time.sleep(1)
             st.rerun()
 
+    # --- LOGICA VOOR ROADMAP PROGRESSIE ---
     completed_steps = auth.get_progress()
     full_map = roadmap.get_roadmap()
     next_step_title, next_step_phase_index, next_step_id, next_step_locked = "Alles afgerond! 🎉", 0, None, False
+    
+    # Zoek de eerstvolgende onvoltooide stap
     for idx, (fase_key, fase) in enumerate(full_map.items()):
         phase_done = True
         for s in fase['steps']:
@@ -453,22 +477,24 @@ if pg == "Dashboard":
         if not phase_done: break
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
+    # --- VISUELE PROGRESS BAR ---
     html_steps = ""
-    # AANGEPAST: Jip en Janneke termen voor Roadmap
-    labels = ["Start", "Winkel Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"] 
+    labels = ["Start", "Winkel Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"]
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
-    bg_icon_html = "" 
+
+    # --- HET BLAUWE ACTIE VAK (NEXT STEP) ---
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
+        # PRO VERSIE (Donker)
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
     else:
-        # AANGEPAST: Motiverende tekst in het blauwe vak
-        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#mission", "_self", "bi-crosshair", "Zonder KvK nummer mag je niets verkopen. Regel dit als eerste!", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
+        # GRATIS VERSIE (Blauw)
+        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#mission", "_self", "bi-crosshair", "Focus op deze taak om verder te komen.", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
 
     next_unlock = "De Logo Maker"
     if next_step_phase_index == 2: next_unlock = "Winnende Producten"
@@ -478,12 +504,15 @@ if pg == "Dashboard":
     mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;"><div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a><div style="margin-top:15px; font-size:0.8rem; color:#DBEAFE;"><i class="bi bi-unlock-fill"></i> Voltooi dit om <b>{next_unlock}</b> te ontgrendelen</div></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
+    # --- STATISTIEKEN GRID ---
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
 
-    # AANGEPAST: NL stats labels
     st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog {needed} voor Level 2</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
+    
     st.markdown("<div id='mission' style='height: 0px;'></div>", unsafe_allow_html=True)
+
+    # --- ROADMAP LIJST (Accordion) ---
     st.markdown("### 📍 Roadmap")
     for fase_key, fase in full_map.items():
         st.markdown(f"#### {fase['title']}")
@@ -491,6 +520,7 @@ if pg == "Dashboard":
         for step in fase['steps']:
             is_done = step['id'] in completed_steps
             is_active = step['id'] == next_step_id
+            
             if is_done:
                 with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
             elif is_active:
