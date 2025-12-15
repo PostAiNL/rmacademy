@@ -633,7 +633,7 @@ if pg == "Dashboard":
 
     html_steps = ""
     # AANGEPAST: Duidelijke actie-labels voor beginners
-    labels = ["Start", "Shop Setup", "Producten", "Klaar voor Sales", "Schalen", "Beheer"] 
+    labels = ["Start", "Shop Setup", "Producten", "Sales", "Schalen", "Beheer"] 
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
