@@ -532,15 +532,15 @@ elif pg == "Academy":
 
 elif pg == "Financiën":
     st.markdown("<h1><i class='bi bi-cash-stack'></i> Financiën</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["Profit Tracker", "Marge Calculator"])
+    tab1, tab2 = st.tabs(["Dagelijkse Winst", "Winst Berekenen"]) # AANGEPAST: Jip en Janneke
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nHier zie je in één oogopslag of je vandaag winst of verlies hebt gemaakt. Vul elke ochtend je cijfers in.")
         with st.container(border=True):
             st.markdown("#### 📅 Resultaten van vandaag")
             c1, c2, c3 = st.columns(3)
             rev = c1.number_input("Totale Omzet (€)", 0.0, step=10.0, help="Alles wat Shopify zegt dat je hebt verkocht.")
-            spend = c2.number_input("Ad Spend (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.")
-            cogs = c3.number_input("Inkoopwaarde (COGS) (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.")
+            spend = c2.number_input("Advertentiekosten (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.") # AANGEPAST
+            cogs = c3.number_input("Inkoopkosten (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.") # AANGEPAST
             if st.button("Opslaan in Database", type="primary"):
                 if db.save_daily_stats(user['email'], rev, spend, cogs): st.success("Opgeslagen! Check de grafieken hieronder.")
                 else: st.error("Kon niet opslaan (Database error).")
@@ -575,9 +575,9 @@ elif pg == "Financiën":
             cc1.metric("Netto Winst", f"€{winst:.2f}")
             cc2.metric("Marge", f"{marge:.1f}%")
 
-elif pg == "Marketing & Design": # Was: Creator Tools (Jip en Janneke)
+elif pg == "Marketing & Design":
     st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
-    tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Marketing AI", "Ads Check"])
+    tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check"]) # AANGEPAST: Jip en Janneke
     
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nMaak binnen 10 seconden een uniek logo voor je merk. Typ je naam in en kies een stijl.")
@@ -649,11 +649,11 @@ elif pg == "Marketing & Design": # Was: Creator Tools (Jip en Janneke)
                 st.info("Upload screenshot van Ads Manager.")
                 st.file_uploader("Bestand")
                 st.button("Diagnose starten", type="primary")
-        else: render_pro_lock("Ads check", "Laat je advertenties beoordelen.")
+        else: render_pro_lock("Advertentie Check", "Laat je advertenties beoordelen.")
 
-elif pg == "Producten Zoeken": # Was: Product Hunter (Jip en Janneke)
+elif pg == "Producten Zoeken":
     st.markdown("<h1><i class='bi bi-search'></i> Producten Zoeken</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["Ideeën", "Spy Tool"])
+    tab1, tab2 = st.tabs(["Winnende Producten", "Concurrenten Check"]) # AANGEPAST: Jip en Janneke
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet verkopen? Deze tool zoekt populaire 'winnende' producten voor je uit.")
         if not is_pro:
@@ -702,7 +702,7 @@ elif pg == "Producten Zoeken": # Was: Product Hunter (Jip en Janneke)
                                      c2.markdown(f"**{p['title']}**")
                                      c2.caption(f"Prijs: €{p['price']}")
                                      c2.markdown(f"[Bekijk]({p['original_url']})")
-        else: render_pro_lock("Spy tool", "Zie bestsellers van andere shops.")
+        else: render_pro_lock("Concurrenten Check", "Zie bestsellers van andere shops.")
 
 elif pg == "Instellingen":
     st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
