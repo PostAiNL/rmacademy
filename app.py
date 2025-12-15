@@ -267,23 +267,83 @@ if "user" not in st.session_state:
         auth.login_or_register(cookie_email)
         st.rerun()
 
-# --- 3. LOGIN SCHERM (FINAL POLISH) ---
+# --- 3. LOGIN SCHERM (COMPACT DESKTOP & MOBILE FIX) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
+    
+    # --- CSS: FORCEREN VAN COMPACTHEID ---
+    st.markdown("""
+    <style>
+        /* ORANJE KNOP */
+        div.stButton > button[kind="primary"] { 
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+            border: 1px solid #B45309 !important;
+            color: white !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s;
+            margin-top: 5px !important;
+        }
+        div.stButton > button[kind="primary"]:hover { 
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+        }
+
+        /* VERWIJDER ONNODIGE PADDING IN HET KADER */
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            padding: 20px !important; /* Minder lucht binnenin het vak */
+            padding-top: 10px !important;
+        }
+        
+        /* STRAKKERE TABS */
+        .stTabs [data-baseweb="tab-list"] {
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .stTabs [data-baseweb="tab"] {
+            padding-top: 0px !important;
+            padding-bottom: 0px !important;
+        }
+
+        /* TEXT STYLING */
+        .compact-title {
+            font-size: 1.8rem !important; /* Iets kleiner voor desktop */
+            line-height: 1.2 !important;
+            margin-bottom: 5px !important;
+            margin-top: 0px !important;
+            font-weight: 800 !important;
+        }
+        .compact-sub {
+            font-size: 0.95rem !important;
+            color: #64748B !important;
+            line-height: 1.4 !important;
+            margin-bottom: 15px !important;
+        }
+
+        /* MOBIEL AANPASSINGEN */
+        @media only screen and (max-width: 600px) {
+            .compact-title { font-size: 1.5rem !important; margin-bottom: 5px !important; }
+            .compact-sub { font-size: 0.9rem !important; margin-bottom: 10px !important; }
+            div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 15px !important; }
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
     
     with col_left:
-        # Logo iets groter en duidelijker
-        st.markdown("<div class='logo-text' style='font-size: 1rem; font-weight: 600; color: #475569; margin-bottom: 5px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
+        # Logo
+        st.markdown("<div class='logo-text' style='font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
         
-        # AANGEPAST: €15k is nu GROEN (#16A34A) voor geld-associatie en contrast.
-        # AANGEPAST: Marges extreem verkleind (margin-bottom: 8px) zodat het strak op de box staat.
+        # Titel & Subtitel (Compacter gemaakt)
         st.markdown("""
-        <h1 style='margin-bottom: 5px; line-height: 1.1; font-size: 2.2rem !important;'>
-            Van 0 naar <span style='color:#16A34A; background: #DCFCE7; padding: 0 5px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
+        <h1 class='compact-title'>
+            Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
         </h1>
-        <p style='color:#64748B; font-size:1.0rem; margin-top: 8px; margin-bottom: 12px; line-height: 1.5;'>
+        <p class='compact-sub'>
             De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
         </p>
         """, unsafe_allow_html=True)
@@ -301,9 +361,7 @@ if "user" not in st.session_state:
                 with st.expander("Heb je een vriendencode?"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 
-                st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
-                
-                # De knop
+                # De knop (Oranje)
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
                     if email and "@" in email and first_name and password:
                         with st.spinner("Account aanmaken..."):
@@ -317,9 +375,9 @@ if "user" not in st.session_state:
                     else:
                         st.warning("Vul alle velden in.")
                 
-                # Trust signals strakker
-                st.markdown("""<div style='text-align:center; margin-top:6px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; opacity: 0.9; padding-bottom: 5px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+                # Footer tekstjes
+                st.markdown("""<div style='text-align:center; margin-top:5px; line-height:1.2;'><div style='font-size:0.75rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             
             # TAB 2: INLOGGEN
             with tab_pro:
@@ -341,18 +399,21 @@ if "user" not in st.session_state:
         # De 'USP' box rechts
         raw_html = """
         <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
-            <h3 style="margin-top:0; color:#0F172A; font-size:1.15rem; font-weight: 700;">Dit krijg je gratis:</h3>
-            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
-                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
-                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar sales' roadmap</h4></div>
+            <h3 style="margin-top:0; color:#0F172A; font-size:1.1rem; font-weight: 700; margin-bottom: 15px;">Dit krijg je gratis:</h3>
+            
+            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
+                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">De 'Van 0 naar sales' roadmap</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Stap-voor-stap handleiding.</p></div>
             </div>
-            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
-                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
-                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI coach</h4></div>
+            
+            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
+                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Jouw eigen AI coach</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">24/7 hulp bij al je vragen.</p></div>
             </div>
+            
             <div style="display:flex; gap:16px; align-items:center;">
-                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
-                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Level-based groei</h4></div>
+                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Level-based groei</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Verdien tools door actie te nemen.</p></div>
             </div>
         </div>
         """
