@@ -267,23 +267,43 @@ if "user" not in st.session_state:
         auth.login_or_register(cookie_email)
         st.rerun()
 
-# --- 3. LOGIN SCHERM ---
+# --- 3. LOGIN SCHERM (FINAL POLISH) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
+    
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
+    
     with col_left:
-        st.markdown("<div class='logo-text'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
-        st.markdown("""<h1>Van 0 naar <span style='color:#2563EB'>€15k/maand</span> met je eigen webshop.</h1><p style='color:#64748B; font-size:1.05rem; margin-bottom: 30px; line-height: 1.6;'>De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.</p>""", unsafe_allow_html=True)
+        # Logo iets groter en duidelijker
+        st.markdown("<div class='logo-text' style='font-size: 1rem; font-weight: 600; color: #475569; margin-bottom: 5px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
+        
+        # AANGEPAST: €15k is nu GROEN (#16A34A) voor geld-associatie en contrast.
+        # AANGEPAST: Marges extreem verkleind (margin-bottom: 8px) zodat het strak op de box staat.
+        st.markdown("""
+        <h1 style='margin-bottom: 5px; line-height: 1.1; font-size: 2.2rem !important;'>
+            Van 0 naar <span style='color:#16A34A; background: #DCFCE7; padding: 0 5px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
+        </h1>
+        <p style='color:#64748B; font-size:1.0rem; margin-top: 8px; margin-bottom: 12px; line-height: 1.5;'>
+            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
+        </p>
+        """, unsafe_allow_html=True)
+        
         with st.container(border=True):
             tab_free, tab_pro = st.tabs(["Nieuw Account", "Inloggen"])
+            
+            # TAB 1: REGISTREREN
             with tab_free:
                 col_name, col_email = st.columns(2)
                 first_name = col_name.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
                 email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
                 password = st.text_input("Wachtwoord verzinnen", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
+                
                 with st.expander("Heb je een vriendencode?"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
-                st.markdown("<div style='height: 5px;'></div>", unsafe_allow_html=True)
+                
+                st.markdown("<div style='height: 8px;'></div>", unsafe_allow_html=True)
+                
+                # De knop
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
                     if email and "@" in email and first_name and password:
                         with st.spinner("Account aanmaken..."):
@@ -294,13 +314,19 @@ if "user" not in st.session_state:
                                 st.rerun()
                             elif status == "EXISTS": st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
                             else: st.error("Er ging iets mis met de database.")
-                    else: st.warning("Vul alle velden in.")
-                st.markdown("""<div style='text-align:center; margin-top:1px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 8px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+                    else:
+                        st.warning("Vul alle velden in.")
+                
+                # Trust signals strakker
+                st.markdown("""<div style='text-align:center; margin-top:6px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 8px; opacity: 0.9; padding-bottom: 5px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+            
+            # TAB 2: INLOGGEN
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
                 log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
                 st.markdown("<br>", unsafe_allow_html=True)
+                
                 if st.button("Inloggen", type="primary", use_container_width=True):
                     if log_email and log_pass:
                         if db.verify_user(log_email, log_pass):
@@ -309,9 +335,27 @@ if "user" not in st.session_state:
                             st.rerun()
                         else: st.error("Onjuiste gegevens.")
                     else: st.warning("Vul alles in.")
+    
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        raw_html = """<div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;"><h3 style="margin-top:0; color:#0F172A; font-size:1.15rem; font-weight: 700;">Dit krijg je gratis:</h3><div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;"><div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div><div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar sales' roadmap</h4></div></div><div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;"><div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-robot" style="color:#16A34A;"></i></div><div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI coach</h4></div></div><div style="display:flex; gap:16px; align-items:center;"><div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div><div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Level-based groei</h4></div></div></div>"""
+        # De 'USP' box rechts
+        raw_html = """
+        <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
+            <h3 style="margin-top:0; color:#0F172A; font-size:1.15rem; font-weight: 700;">Dit krijg je gratis:</h3>
+            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
+                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
+                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">De 'Van 0 naar sales' roadmap</h4></div>
+            </div>
+            <div style="display:flex; gap:16px; margin-bottom:24px; align-items:center;">
+                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
+                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Jouw eigen AI coach</h4></div>
+            </div>
+            <div style="display:flex; gap:16px; align-items:center;">
+                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
+                <div><h4 style="margin:0; font-size:0.95rem; font-weight:600; color:#0F172A;">Level-based groei</h4></div>
+            </div>
+        </div>
+        """
         st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
     st.stop()
 
