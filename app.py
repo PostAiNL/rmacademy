@@ -91,24 +91,29 @@ st.markdown("""
             height: 60px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX - COMPLEET */
+        /* MOBIELE SIDEBAR FIX - COMPLEET & FORCEER ZWART KRUISJE */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
             
-            /* DE KNOP OM SIDEBAR TE SLUITEN (KRUISJE) */
-            [data-testid="stSidebarCollapseButton"] {
-                color: #0F172A !important;
+            /* FORCEER ALLE KNOPPEN IN DE SIDEBAR HEADER OP ZWART */
+            [data-testid="stSidebar"] button, 
+            [data-testid="stSidebar"] [data-testid="stBaseButton-header"] {
+                color: #000000 !important;
                 background-color: transparent !important;
                 border: none !important;
-                display: block !important;
+                display: flex !important;
                 z-index: 999999 !important;
             }
-            [data-testid="stSidebarCollapseButton"] svg {
-                fill: #0F172A !important;
-                color: #0F172A !important;
+            
+            /* FORCEER DE SVG ICONEN (HET KRUISJE) OP ZWART */
+            [data-testid="stSidebar"] button svg,
+            [data-testid="stSidebar"] svg {
+                fill: #000000 !important;
+                color: #000000 !important;
+                stroke: #000000 !important;
             }
 
             /* DE KNOP OM SIDEBAR TE OPENEN (PIJLTJE BOVENIN) */
@@ -116,15 +121,6 @@ st.markdown("""
                 color: #0F172A !important;
                 background-color: white !important;
                 display: block !important;
-            }
-            [data-testid="stSidebarCollapsedControl"] svg {
-                fill: #0F172A !important;
-                color: #0F172A !important;
-            }
-            
-            /* Header buttons algemeen */
-            button[kind="header"] {
-                color: #0F172A !important;
             }
         }
 
@@ -302,10 +298,10 @@ if "user" not in st.session_state:
                             else: st.error("Er ging iets mis met de database.")
                     else:
                         st.warning("Vul alle velden in.")
-                # AANGEPAST: Margin verkleind naar 4px voor 'vlak onder de knop'
-                st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                # AANGEPAST: padding-bottom toegevoegd voor witruimte naar rand
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 25px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+                # AANGEPAST: Margin verkleind naar 1px (super dicht op de knop)
+                st.markdown("""<div style='text-align:center; margin-top:1px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                # AANGEPAST: padding-bottom verkleind naar 8px (klein beetje witruimte)
+                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 8px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
                 log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
