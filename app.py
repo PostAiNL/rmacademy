@@ -211,8 +211,28 @@ st.markdown("""
         }
 
         /* BUTTONS */
-        div.stButton > button[kind="primary"] { background-color: #2563EB !important; border-color: #2563EB !important; color: white !important; }
-        div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
+        /* Primary (Blauw) */
+        div.stButton > button[kind="primary"] { 
+            background-color: #2563EB !important; 
+            border-color: #2563EB !important; 
+            color: white !important; 
+        }
+        div.stButton > button[kind="primary"]:hover { 
+            background-color: #1D4ED8 !important; 
+            border-color: #1D4ED8 !important; 
+        }
+
+        /* Secondary/Standaard (Wit met donkere tekst) - FIX VOOR ZWARTE KNOP SIDEBAR */
+        div.stButton > button:not([kind="primary"]) {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1px solid #CBD5E1 !important;
+        }
+        div.stButton > button:not([kind="primary"]):hover {
+            border-color: #2563EB !important;
+            color: #2563EB !important;
+            background-color: #F8FAFC !important;
+        }
 
         /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -282,8 +302,10 @@ if "user" not in st.session_state:
                             else: st.error("Er ging iets mis met de database.")
                     else:
                         st.warning("Vul alle velden in.")
-                st.markdown("""<div style='text-align:center; margin-top:8px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+                # AANGEPAST: Margin verkleind naar 4px voor 'vlak onder de knop'
+                st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.4;'><div style='font-size:0.75rem; color:#64748B; font-weight:500;'><i class="bi bi-lock-fill" style="font-size:10px; color:#64748B;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                # AANGEPAST: padding-bottom toegevoegd voor witruimte naar rand
+                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 10px; opacity: 0.9; padding-bottom: 25px;'><div style="color: #F59E0B; font-size: 0.8rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #64748B; font-weight: 500;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
                 log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
