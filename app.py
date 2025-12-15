@@ -82,7 +82,7 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER & SIDEBAR FIXES (SAMSUNG FIX + FORCED BUTTON VISIBILITY)
+           2. HEADER & SIDEBAR FIXES
            ============================================== */
         header[data-testid="stHeader"] {
             background-color: #F8FAFC !important;
@@ -366,6 +366,7 @@ def get_image_base64(path):
 
 # --- SIDEBAR ---
 with st.sidebar:
+    if "nav_index" not in st.session_state: st.session_state.nav_index = 0
     display_name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     st.markdown(f"""<div style="margin-bottom: 2px; padding-left: 5px;"><h3 style="margin:0; font-size:1.0rem; color:#0F172A;"><i class="bi bi-person-circle"></i> {display_name}</h3><p style="margin:0; font-size: 0.75rem; color: #64748B;"><span style="background:#EFF6FF; padding:2px 6px; border-radius:4px; border:1px solid #DBEAFE; color:#2563EB; font-weight:600;">Lvl {user['level']}</span> {rank_title}</p></div>""", unsafe_allow_html=True)
     range_span = next_xp_goal_sidebar - prev_threshold
@@ -375,7 +376,6 @@ with st.sidebar:
     if is_temp_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#15803D; background:#DCFCE7; padding:8px; border-radius:6px; text-align:center; border:1px solid #BBF7D0;">🌟 <b>PRO Actief:</b> {time_left_str}</div>""", unsafe_allow_html=True)
     elif not is_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
-    # --- AANGEPASTE MENU NAMEN (Jip en Janneke) ---
     options = ["Dashboard", "Academy", "Producten Zoeken", "Marketing & Design", "Financiën", "Instellingen"]
     icons = ["house-fill", "mortarboard-fill", "search", "palette-fill", "cash-stack", "gear-fill"]
     
@@ -390,7 +390,7 @@ with st.sidebar:
         menu_title=None,
         options=menu_display_options,
         icons=icons,
-        default_index=0,
+        default_index=st.session_state.nav_index,
         orientation="vertical",
         styles={
             "container": {"padding": "0!important", "background-color": "#FFFFFF"}, 
@@ -416,30 +416,58 @@ with st.sidebar:
         </a>
         """, unsafe_allow_html=True)
 
-def render_pro_lock(title, desc):
-    lock_html = f"""<div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC;"><div style="filter: blur(5px); opacity: 0.5; padding: 30px; pointer-events: none; user-select: none;"><h3 style="color: #64748B; margin-bottom: 15px;">██████ ██████</h3><div style="height: 15px; background: #CBD5E1; width: 80%; margin-bottom: 10px; border-radius: 4px;"></div><div style="height: 15px; background: #E2E8F0; width: 60%; margin-bottom: 10px; border-radius: 4px;"></div><div style="height: 15px; background: #E2E8F0; width: 70%; margin-bottom: 20px; border-radius: 4px;"></div><div style="display:flex; gap:15px;"><div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 120px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div></div></div><div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; background: rgba(255,255,255,0.4); backdrop-filter: blur(4px);"><div style="background: white; padding: 30px 40px; border-radius: 16px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border: 1px solid #DBEAFE; max-width: 400px;"><div style="font-size: 32px; margin-bottom: 10px;">🔒</div><h3 style="margin: 0 0 5px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3><p style="font-size: 0.9rem; color: #64748B; margin: 0 0 20px 0; line-height: 1.5;">{desc}</p><a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;"><div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 12px 28px; border-radius: 50px; font-weight: 600; font-size: 0.95rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">🚀 Unlock via Shop Review Call</div></a></div></div></div>"""
+# --- AANGEPASTE RENDER PRO LOCK - MET GROTERE ACHTERGROND ZODAT HET PAST ---
+def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten een oneerlijk voordeel. Daarom is dit afgeschermd."):
+    lock_html = f"""
+    <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC; min-height: 320px;">
+        
+        <!-- Geblurde achtergrond inhoud (GROTER GEMAAKT: 220px hoog totaal) -->
+        <div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;">
+            <div style="height: 20px; background: #CBD5E1; width: 60%; margin-bottom: 15px; border-radius: 4px;"></div>
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <div style="height: 150px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
+                <div style="height: 150px; background: #E2E8F0; width: 70%; border-radius: 8px;"></div>
+            </div>
+            <div style="height: 15px; background: #E2E8F0; width: 90%; margin-bottom: 8px; border-radius: 4px;"></div>
+            <div style="height: 15px; background: #E2E8F0; width: 80%; border-radius: 4px;"></div>
+        </div>
+
+        <!-- Witte Box (Overlay) - GEEN VASTE HOOGTE, MAAR PAST NU IN DE ACHTERGROND -->
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 400px; z-index: 10;">
+            <div style="background: white; padding: 25px; border-radius: 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #E2E8F0;">
+                <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+                <h3 style="margin: 0 0 8px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3>
+                <p style="font-size: 0.85rem; color: #64748B; margin: 0 0 15px 0; line-height: 1.4;">{desc}</p>
+                
+                <div style="background: #FEF2F2; color: #991B1B; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 15px; border: 1px solid #FECACA; font-weight: 600; line-height: 1.3;">
+                    ⚠️ {warning_text}
+                </div>
+
+                <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
+                    <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
+                        🚀 Unlock via Shop Review Call
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    """
     st.markdown(lock_html.replace("\n", ""), unsafe_allow_html=True)
 
 # --- CONTENT PAGES ---
 
-# --- ZOEK DIT STUKJE IN APP.PY EN VERVANG HET ---
-
 if pg == "Dashboard":
-    
-    # --- LEVEL UP EFFECT ---
     if user['level'] > st.session_state.prev_level:
         st.balloons()
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
-    # --- WELKOM HEADER ---
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     st.markdown(f"<h1 style='margin-bottom: 15px;'>{get_greeting()}, {name} <i class='bi bi-hand-thumbs-up-fill' style='color:#FBBF24;'></i></h1>", unsafe_allow_html=True)
     
-    # --- NIEUW: DAILY WINNER TEASER (DE TIKTOK HOOK) ---
-    # Dit blokje verleid de gebruiker om naar de 'Producten Zoeken' tab te gaan
+    # --- DAILY WINNER TEASER (Klikbaar gemaakt) ---
     st.markdown(f"""
-    <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border: 1px solid #FED7AA; border-radius: 12px; padding: 16px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between; cursor: pointer;">
+    <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border: 1px solid #FED7AA; border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 15px;">
             <div style="background: #F97316; color: white; width: 45px; height: 45px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 20px; box-shadow: 0 4px 6px rgba(249, 115, 22, 0.2);"><i class="bi bi-fire"></i></div>
             <div>
@@ -447,11 +475,15 @@ if pg == "Dashboard":
                 <div style="font-size: 1rem; color: #7C2D12; font-weight: 700;">Galaxy Star Projector 2.0 🚀</div>
             </div>
         </div>
-        <div style="background: white; color: #EA580C; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 700; border: 1px solid #FFEDD5;">Bekijk &rarr;</div>
     </div>
     """, unsafe_allow_html=True)
+    
+    if st.button("🔥 Bekijk dit Product Nu (Gratis)", type="primary", use_container_width=True):
+        st.session_state.nav_index = 2 # 2 is index voor Producten Zoeken
+        st.rerun()
 
-    # --- EERSTE KEER BEZOEKER INTRO ---
+    st.markdown("<br>", unsafe_allow_html=True)
+
     if user['xp'] == 0:
         st.markdown(f"""<div style="background:#EFF6FF; border:1px solid #DBEAFE; border-radius:12px; padding:20px; margin-bottom:20px;"><h3 style="color:#1E40AF; margin-top:0;">Welkom bij RM Ecom! 🚀</h3><p style="color:#1E3A8A; margin-bottom:10px;">Je staat aan het begin van je avontuur. Hier is hoe het werkt:</p><ul style="color:#1E3A8A; padding-left:20px;"><li>Volg de <b>Roadmap</b> hieronder stap voor stap.</li><li>Gebruik de <b>Tools</b> in het menu om tijd te besparen.</li><li>Verdien <b>XP</b> om nieuwe levels te bereiken.</li></ul></div>""", unsafe_allow_html=True)
         if st.button("🚀 Start & Claim 50 XP", type="primary", use_container_width=True):
@@ -461,12 +493,9 @@ if pg == "Dashboard":
             time.sleep(1)
             st.rerun()
 
-    # --- LOGICA VOOR ROADMAP PROGRESSIE ---
     completed_steps = auth.get_progress()
     full_map = roadmap.get_roadmap()
     next_step_title, next_step_phase_index, next_step_id, next_step_locked = "Alles afgerond! 🎉", 0, None, False
-    
-    # Zoek de eerstvolgende onvoltooide stap
     for idx, (fase_key, fase) in enumerate(full_map.items()):
         phase_done = True
         for s in fase['steps']:
@@ -477,24 +506,20 @@ if pg == "Dashboard":
         if not phase_done: break
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
-    # --- VISUELE PROGRESS BAR ---
     html_steps = ""
-    labels = ["Start", "Winkel Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"]
+    labels = ["Start", "Shop Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"] 
     for i in range(1, 7):
         status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
         icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
-
-    # --- HET BLAUWE ACTIE VAK (NEXT STEP) ---
+    bg_icon_html = "" 
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
-        # PRO VERSIE (Donker)
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
     else:
-        # GRATIS VERSIE (Blauw)
-        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#mission", "_self", "bi-crosshair", "Focus op deze taak om verder te komen.", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
+        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#mission", "_self", "bi-crosshair", "Zonder KvK nummer mag je niets verkopen. Regel dit als eerste!", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
 
     next_unlock = "De Logo Maker"
     if next_step_phase_index == 2: next_unlock = "Winnende Producten"
@@ -504,15 +529,11 @@ if pg == "Dashboard":
     mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;"><div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a><div style="margin-top:15px; font-size:0.8rem; color:#DBEAFE;"><i class="bi bi-unlock-fill"></i> Voltooi dit om <b>{next_unlock}</b> te ontgrendelen</div></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
-    # --- STATISTIEKEN GRID ---
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
 
     st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog {needed} voor Level 2</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
-    
     st.markdown("<div id='mission' style='height: 0px;'></div>", unsafe_allow_html=True)
-
-    # --- ROADMAP LIJST (Accordion) ---
     st.markdown("### 📍 Roadmap")
     for fase_key, fase in full_map.items():
         st.markdown(f"#### {fase['title']}")
@@ -520,7 +541,6 @@ if pg == "Dashboard":
         for step in fase['steps']:
             is_done = step['id'] in completed_steps
             is_active = step['id'] == next_step_id
-            
             if is_done:
                 with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
             elif is_active:
@@ -562,15 +582,15 @@ elif pg == "Academy":
 
 elif pg == "Financiën":
     st.markdown("<h1><i class='bi bi-cash-stack'></i> Financiën</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["Dagelijkse Winst", "Winst Berekenen"]) # AANGEPAST: Jip en Janneke
+    tab1, tab2 = st.tabs(["Dagelijkse Winst", "Winst Berekenen"])
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nHier zie je in één oogopslag of je vandaag winst of verlies hebt gemaakt. Vul elke ochtend je cijfers in.")
         with st.container(border=True):
             st.markdown("#### 📅 Resultaten van vandaag")
             c1, c2, c3 = st.columns(3)
             rev = c1.number_input("Totale Omzet (€)", 0.0, step=10.0, help="Alles wat Shopify zegt dat je hebt verkocht.")
-            spend = c2.number_input("Advertentiekosten (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.") # AANGEPAST
-            cogs = c3.number_input("Inkoopkosten (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.") # AANGEPAST
+            spend = c2.number_input("Advertentiekosten (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.")
+            cogs = c3.number_input("Inkoopkosten (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.")
             if st.button("Opslaan in Database", type="primary"):
                 if db.save_daily_stats(user['email'], rev, spend, cogs): st.success("Opgeslagen! Check de grafieken hieronder.")
                 else: st.error("Kon niet opslaan (Database error).")
@@ -605,15 +625,15 @@ elif pg == "Financiën":
             cc1.metric("Netto Winst", f"€{winst:.2f}")
             cc2.metric("Marge", f"{marge:.1f}%")
 
-elif pg == "Marketing & Design":
+elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
     st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
-    tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check"]) # AANGEPAST: Jip en Janneke
+    tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check"])
     
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nMaak binnen 10 seconden een uniek logo voor je merk. Typ je naam in en kies een stijl.")
         if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
         has_access = is_pro or st.session_state.logo_generations < 3
-        if not has_access: render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.")
+        if not has_access: render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.", "Concurrenten betalen €200 voor een logo. Jij krijgt dit gratis.")
         else:
             if not is_pro: st.info(f"🎁 Je hebt nog **{3 - st.session_state.logo_generations}** gratis logo generaties over.")
             with st.container(border=True):
@@ -646,7 +666,7 @@ elif pg == "Marketing & Design":
                     for h in res['hooks']: st.info(h)
                     with st.expander("Script"): st.text_area("Script", res['full_script'])
                     with st.expander("Briefing"): st.code(res['creator_brief'])
-        else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.")
+        else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
     with tab3:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
         t_desc, t_inf = st.tabs(["🛍️ Beschrijvingen", "🤳 Influencer Script"])
@@ -679,11 +699,11 @@ elif pg == "Marketing & Design":
                 st.info("Upload screenshot van Ads Manager.")
                 st.file_uploader("Bestand")
                 st.button("Diagnose starten", type="primary")
-        else: render_pro_lock("Advertentie Check", "Laat je advertenties beoordelen.")
+        else: render_pro_lock("Ads check", "Laat je advertenties beoordelen.", "Gooi geen geld weg aan slechte ads. Laat AI ze checken.")
 
 elif pg == "Producten Zoeken":
     st.markdown("<h1><i class='bi bi-search'></i> Producten Zoeken</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["Winnende Producten", "Concurrenten Check"]) # AANGEPAST: Jip en Janneke
+    tab1, tab2 = st.tabs(["Winnende Producten", "Concurrenten Check"]) 
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet verkopen? Deze tool zoekt populaire 'winnende' producten voor je uit.")
         if not is_pro:
@@ -696,7 +716,7 @@ elif pg == "Producten Zoeken":
                 c1.link_button("TikTok Voorbeelden", "https://www.tiktok.com/search?q=galaxy+projector", use_container_width=True)
                 c2.link_button("AliExpress Inkoop", "https://www.aliexpress.com/wholesale?SearchText=galaxy+projector", use_container_width=True)
             st.write("") 
-            render_pro_lock("Ontgrendel alle winnende producten", "Krijg toegang tot de volledige database met dagelijks nieuwe producten.")
+            render_pro_lock("Ontgrendel alle winnende producten", "Krijg toegang tot de volledige database met dagelijks nieuwe producten.", "Studenten vinden hier producten die €10k/maand draaien.")
         else:
             with st.container(border=True):
                 col_inp, col_btn = st.columns([3, 1])
@@ -732,7 +752,7 @@ elif pg == "Producten Zoeken":
                                      c2.markdown(f"**{p['title']}**")
                                      c2.caption(f"Prijs: €{p['price']}")
                                      c2.markdown(f"[Bekijk]({p['original_url']})")
-        else: render_pro_lock("Concurrenten Check", "Zie bestsellers van andere shops.")
+        else: render_pro_lock("Spy tool", "Zie bestsellers van andere shops.", "Zie EXACT hoeveel omzet je concurrent draait. Oneerlijk voordeel.")
 
 elif pg == "Instellingen":
     st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
