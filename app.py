@@ -17,10 +17,19 @@ STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
-# Probeer het logo te laden
+# Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
+def get_base64_image(image_path):
+    try:
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except:
+        return None
+
+# Probeer het logo te laden als PIL image (voor Streamlit config)
 fav_icon = "🚀"
+logo_path = "assets/logo.png"
 try:
-    fav_icon = Image.open("assets/logo.png") 
+    fav_icon = Image.open(logo_path) 
 except:
     pass
 
@@ -31,21 +40,35 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# --- 1.5 META TAGS & PWA NAAM FIX ---
-st.markdown("""
+# --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
+# We injecteren het icoon als code, zodat het altijd werkt (ook op mobiel)
+logo_b64 = get_base64_image(logo_path)
+if logo_b64:
+    icon_html = f'<link rel="icon" type="image/png" href="data:image/png;base64,{logo_b64}">'
+    apple_icon_html = f'<link rel="apple-touch-icon" href="data:image/png;base64,{logo_b64}">'
+else:
+    icon_html = "" # Fallback als logo niet bestaat
+    apple_icon_html = ""
+
+st.markdown(f"""
+<head>
+    {icon_html}
+    {apple_icon_html}
+    <meta name="application-name" content="RM Ecom">
+    <meta name="apple-mobile-web-app-title" content="RM Ecom">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
 <script>
+    // Forceer favicon update voor hardnekkige browsers
     var link = document.querySelector("link[rel~='icon']");
-    if (!link) {
+    if (!link) {{
         link = document.createElement('link');
         link.rel = 'icon';
         document.getElementsByTagName('head')[0].appendChild(link);
-    }
-    link.href = 'assets/logo.png';
+    }}
+    link.href = 'data:image/png;base64,{logo_b64 if logo_b64 else ""}';
 </script>
-<meta name="application-name" content="RM Ecom Academy">
-<meta name="apple-mobile-web-app-title" content="RM Ecom">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
 """, unsafe_allow_html=True)
 
 # --- 1. CSS ENGINE ---
