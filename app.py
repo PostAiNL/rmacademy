@@ -267,11 +267,11 @@ if "user" not in st.session_state:
         auth.login_or_register(cookie_email)
         st.rerun()
 
-# --- 3. LOGIN SCHERM (COMPACT DESKTOP & MOBILE FIX) ---
+# --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     
-    # --- CSS: FORCEREN VAN COMPACTHEID ---
+    # --- CSS: ULTIEME COMPACTHEID ---
     st.markdown("""
     <style>
         /* ORANJE KNOP */
@@ -285,32 +285,16 @@ if "user" not in st.session_state:
             padding-bottom: 0.5rem !important;
             box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
             transition: all 0.2s;
-            margin-top: 5px !important;
+            margin-top: 0px !important; /* Geen extra marge boven knop */
         }
         div.stButton > button[kind="primary"]:hover { 
             transform: scale(1.02);
             box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
         }
 
-        /* VERWIJDER ONNODIGE PADDING IN HET KADER */
-        div[data-testid="stVerticalBlockBorderWrapper"] > div {
-            padding: 20px !important; /* Minder lucht binnenin het vak */
-            padding-top: 10px !important;
-        }
-        
-        /* STRAKKERE TABS */
-        .stTabs [data-baseweb="tab-list"] {
-            gap: 10px;
-            margin-bottom: 10px;
-        }
-        .stTabs [data-baseweb="tab"] {
-            padding-top: 0px !important;
-            padding-bottom: 0px !important;
-        }
-
-        /* TEXT STYLING */
+        /* DEFAULT (Desktop) */
         .compact-title {
-            font-size: 1.8rem !important; /* Iets kleiner voor desktop */
+            font-size: 1.8rem !important;
             line-height: 1.2 !important;
             margin-bottom: 5px !important;
             margin-top: 0px !important;
@@ -322,12 +306,52 @@ if "user" not in st.session_state:
             line-height: 1.4 !important;
             margin-bottom: 15px !important;
         }
+        
+        /* PADDING BINNEN HET KADER */
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            padding: 20px !important;
+            padding-top: 15px !important;
+            padding-bottom: 15px !important;
+        }
 
-        /* MOBIEL AANPASSINGEN */
+        /* MOBIEL SPECIFIEK (AGRESSIEF COMPACT) */
         @media only screen and (max-width: 600px) {
-            .compact-title { font-size: 1.5rem !important; margin-bottom: 5px !important; }
-            .compact-sub { font-size: 0.9rem !important; margin-bottom: 10px !important; }
-            div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 15px !important; }
+            /* Minder ruimte bovenin de app */
+            .block-container { 
+                padding-top: 1rem !important; 
+                padding-bottom: 1rem !important; 
+            }
+            
+            /* Titel kleiner zodat hij op 2 regels past */
+            .compact-title { 
+                font-size: 1.35rem !important; 
+                margin-bottom: 4px !important; 
+                line-height: 1.2 !important;
+            }
+            
+            /* Subtekst kleiner */
+            .compact-sub { 
+                font-size: 0.85rem !important; 
+                margin-bottom: 8px !important; 
+                line-height: 1.3 !important;
+            }
+            
+            /* Logo kleiner */
+            .logo-text { 
+                font-size: 0.8rem !important; 
+                margin-bottom: 0px !important; 
+            }
+            
+            /* Kader padding strakker */
+            div[data-testid="stVerticalBlockBorderWrapper"] > div { 
+                padding: 12px !important; 
+                padding-top: 10px !important;
+            }
+            
+            /* Ruimte tussen elementen verkleinen */
+            div[data-testid="stExpander"] { margin-bottom: 0px !important; }
+            .stTextInput { margin-bottom: 0px !important; }
+            div[class*="stGap"] { gap: 0.5rem !important; }
         }
     </style>
     """, unsafe_allow_html=True)
@@ -338,7 +362,7 @@ if "user" not in st.session_state:
         # Logo
         st.markdown("<div class='logo-text' style='font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
         
-        # Titel & Subtitel (Compacter gemaakt)
+        # Titel & Subtitel
         st.markdown("""
         <h1 class='compact-title'>
             Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
@@ -361,6 +385,9 @@ if "user" not in st.session_state:
                 with st.expander("Heb je een vriendencode?"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 
+                # Minimale witruimte boven knop
+                st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
+                
                 # De knop (Oranje)
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
                     if email and "@" in email and first_name and password:
@@ -375,9 +402,9 @@ if "user" not in st.session_state:
                     else:
                         st.warning("Vul alle velden in.")
                 
-                # Footer tekstjes
-                st.markdown("""<div style='text-align:center; margin-top:5px; line-height:1.2;'><div style='font-size:0.75rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 4px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+                # Footer tekstjes (Heel compact)
+                st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.2;'><div style='font-size:0.7rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
+                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             
             # TAB 2: INLOGGEN
             with tab_pro:
