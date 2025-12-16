@@ -473,13 +473,17 @@ if "user" not in st.session_state:
 # --- 4. INGELOGDE DATA ---
 user = st.session_state.user
 is_pro_license = user.get('is_pro', False)
+
+# Haal verse status op
 is_temp_pro = db.check_pro_status_db(user['email'])
 pro_expiry_dt = db.get_pro_expiry_date(user['email'])
 
 time_left_str = ""
 if pro_expiry_dt:
+    # Huidige tijd in UTC
     now = datetime.now(timezone.utc)
-    # Zorg dat beide datums timezone-aware zijn voor vergelijking
+    
+    # Zorg dat de database datum ook UTC is (timezone aware maken indien nodig)
     if pro_expiry_dt.tzinfo is None:
         pro_expiry_dt = pro_expiry_dt.replace(tzinfo=timezone.utc)
         
@@ -491,8 +495,9 @@ if pro_expiry_dt:
         mins = (total_seconds % 3600) // 60
         time_left_str = f"nog {hours}u {mins}m"
     else:
-        is_temp_pro = False # Expliciet uitzetten als tijd voorbij is
+        is_temp_pro = False # Tijd is op
 
+# Combineer de licentie status
 is_pro = is_pro_license or is_temp_pro
 
 def calculate_level_data(current_xp):
@@ -621,15 +626,17 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
 # --- CONTENT PAGES ---
 
 if pg == "Dashboard":
+    # 1. Check Level Up
     if user['level'] > st.session_state.prev_level:
         st.balloons()
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
+    # 2. Header
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     st.markdown(f"<h1 style='margin-bottom: 15px;'>{get_greeting()}, {name} <i class='bi bi-hand-thumbs-up-fill' style='color:#FBBF24;'></i></h1>", unsafe_allow_html=True)
     
-    # --- DAILY WINNER TEASER (Klikbaar gemaakt) ---
+    # 3. Daily Winner
     st.markdown(f"""
     <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border: 1px solid #FED7AA; border-radius: 12px; padding: 16px; margin-bottom: 10px; display: flex; align-items: center; justify-content: space-between;">
         <div style="display: flex; align-items: center; gap: 15px;">
@@ -643,23 +650,34 @@ if pg == "Dashboard":
     """, unsafe_allow_html=True)
     
     if st.button("🔥 Bekijk dit Product Nu (Gratis)", type="primary", use_container_width=True):
-        st.session_state.nav_index = 2 # 2 is index voor Producten Zoeken
+        st.session_state.nav_index = 2 
         st.rerun()
 
     st.markdown("<br>", unsafe_allow_html=True)
 
+    # 4. Intro Bonus
     if user['xp'] == 0:
         st.markdown(f"""<div style="background:#EFF6FF; border:1px solid #DBEAFE; border-radius:12px; padding:20px; margin-bottom:20px;"><h3 style="color:#1E40AF; margin-top:0;">Welkom bij RM Ecom! 🚀</h3><p style="color:#1E3A8A; margin-bottom:10px;">Je staat aan het begin van je avontuur. Hier is hoe het werkt:</p><ul style="color:#1E3A8A; padding-left:20px;"><li>Volg de <b>Roadmap</b> hieronder stap voor stap.</li><li>Gebruik de <b>Tools</b> in het menu om tijd te besparen.</li><li>Verdien <b>XP</b> om nieuwe levels te bereiken.</li></ul></div>""", unsafe_allow_html=True)
         if st.button("🚀 Start & Claim 50 XP", type="primary", use_container_width=True):
             auth.mark_step_complete("intro_bonus", 50)
+            if "force_completed" not in st.session_state: st.session_state.force_completed = []
+            st.session_state.force_completed.append("intro_bonus") # Directe fix
+            st.cache_data.clear() 
             st.balloons()
             st.toast("Gefeliciteerd! Je eerste 50 XP zijn binnen! 🎉", icon="🚀")
             time.sleep(1)
             st.rerun()
 
-    completed_steps = auth.get_progress()
+    # 5. Roadmap Logica (MET DIRECTE UPDATE FIX)
+    if "force_completed" not in st.session_state: st.session_state.force_completed = []
+    
+    db_progress = auth.get_progress() # Haalt data uit DB (kan traag zijn)
+    # We combineren DB data met de lokale sessie data. Dit zorgt voor de "instant unlock".
+    completed_steps = list(set(db_progress + st.session_state.force_completed))
+    
     full_map = roadmap.get_roadmap()
     next_step_title, next_step_phase_index, next_step_id, next_step_locked = "Alles afgerond! 🎉", 0, None, False
+    
     for idx, (fase_key, fase) in enumerate(full_map.items()):
         phase_done = True
         for s in fase['steps']:
@@ -670,6 +688,7 @@ if pg == "Dashboard":
         if not phase_done: break
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
+    # 6. Progress Bar
     html_steps = ""
     labels = ["Start", "Shop Bouwen", "Producten", "Verkopen", "Schalen", "Beheer"] 
     for i in range(1, 7):
@@ -678,7 +697,8 @@ if pg == "Dashboard":
         html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
-    bg_icon_html = "" 
+    
+    # 7. Next Step Card
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
@@ -693,36 +713,45 @@ if pg == "Dashboard":
     mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;"><div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> JOUW VOLGENDE STAP</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a><div style="margin-top:15px; font-size:0.8rem; color:#DBEAFE;"><i class="bi bi-unlock-fill"></i> Voltooi dit om <b>{next_unlock}</b> te ontgrendelen</div></div></div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
+    # 8. Stats
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
-
     st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog {needed} voor Level 2</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
+    
     st.markdown("<div id='mission' style='height: 0px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📍 Roadmap")
+    
+    # 9. Roadmap Render Loop
     for fase_key, fase in full_map.items():
         st.markdown(f"#### {fase['title']}")
         st.caption(fase['desc'])
         for step in fase['steps']:
             is_done = step['id'] in completed_steps
             is_active = step['id'] == next_step_id
+            
             if is_done:
-                with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
+                with st.expander(f"✅ {step['title']}", expanded=False): 
+                    st.info("Deze stap heb je al afgerond. Goed bezig!")
             elif is_active:
                 just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=True)
                 if just_completed_id:
-                    # UPDATE DATABASE
+                    # 1. Update Database
                     auth.mark_step_complete(just_completed_id, xp)
                     
-                    # BELANGRIJK: CACHE LEGEN & HERLADEN
-                    st.cache_data.clear()  # Forceer verse data bij reload
+                    # 2. Update Directe Sessie (De FIX)
+                    if "force_completed" not in st.session_state: st.session_state.force_completed = []
+                    st.session_state.force_completed.append(just_completed_id)
                     
+                    # 3. Cache legen en herladen
+                    st.cache_data.clear()
                     st.toast(f"🎉 Lekker bezig! +{xp} XP", icon="🚀") 
-                    time.sleep(1)
+                    time.sleep(1.0)
                     st.rerun()
             else:
                 icon = "bi-lock-fill" if step.get('locked', False) else "bi-circle"
                 st.markdown(f"""<div style="padding: 12px 16px; background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 8px; color: #94A3B8; font-size: 0.9rem; margin-bottom: 8px; display: flex; align-items: center; gap: 10px;"><i class="bi {icon}"></i> {step['title']}</div>""", unsafe_allow_html=True)
-        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
 elif pg == "Academy":
     st.markdown("<h1><i class='bi bi-mortarboard-fill'></i> Academy</h1>", unsafe_allow_html=True)
@@ -926,6 +955,7 @@ elif pg == "Producten Zoeken":
 elif pg == "Instellingen":
     st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
+    
     with tab1:
         with st.container(border=True):
             display_name = user.get('first_name') or user['email'].split('@')[0].capitalize()
@@ -961,7 +991,8 @@ elif pg == "Instellingen":
         st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
         fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=120, key="fb_settings")
         
-if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
+        # HIER STAAT DE KNOP NU VEILIG BINNEN DE TAB
+        if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
             if len(fb_text) > 10:
                 with st.spinner("Checken..."):
                     # 1. Valideer en sla op
@@ -974,25 +1005,20 @@ if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
                         
                         if status == "SUCCESS":
                             st.balloons()
+                            st.success("🎉 PRO Geactiveerd! 24u toegang gestart.")
                             
-                            # Direct feedback geven over de tijd
-                            st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur volledige toegang.")
-                            st.info("🕒 De timer loopt vanaf NU. Je ziet de resterende tijd in het menu.")
-                            
-                            # CRUCIALE FIX: Update direct de sessie zodat de reload het ziet
+                            # Update Sessie & Cache
                             user['is_pro'] = True 
                             st.session_state.user['is_pro'] = True
-                            
-                            # Cache legen zodat database calls vers zijn
                             st.cache_data.clear()
                             
-                            time.sleep(3) # Iets langer wachten zodat gebruiker de tekst kan lezen
+                            time.sleep(2)
                             st.rerun() 
                         elif status == "ALREADY_CLAIMED":
                             st.info("Je hebt deze beloning al eens geclaimd.")
                         else: 
                             st.error("Database fout bij activeren PRO.")
                     else: 
-                        st.warning("Feedback te kort of onduidelijk. Probeer iets specifiekers.")
+                        st.warning("Feedback te kort of onduidelijk.")
             else: 
                 st.warning("Typ minimaal 10 letters.")
