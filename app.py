@@ -946,20 +946,33 @@ elif pg == "Instellingen":
         st.markdown("#### 💡 Jouw mening telt")
         st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
         fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=120, key="fb_settings")
+        
         if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
             if len(fb_text) > 10:
                 with st.spinner("Checken..."):
+                    # 1. Valideer en sla op
                     is_valid = ai_coach.validate_feedback(fb_text)
                     db.save_feedback(user['email'], fb_text, is_valid)
+                    
                     if is_valid:
+                        # 2. Claim de reward in de database
                         status = db.claim_feedback_reward(user['email'])
+                        
                         if status == "SUCCESS":
                             st.balloons()
-                            st.success("🎉 PRO Geactiveerd!")
-                            time.sleep(1)
+                            st.success("🎉 PRO Geactiveerd! Pagina wordt ververst...")
+                            
+                            # CRUCIALE FIX: Update direct de sessie zodat de reload het ziet
+                            user['is_pro'] = True 
+                            st.session_state.user['is_pro'] = True
+                            
+                            time.sleep(2)
                             st.rerun() 
                         elif status == "ALREADY_CLAIMED":
-                            st.info("Je hebt dit al eens geclaimd.")
-                        else: st.error("Database fout.")
-                    else: st.warning("Te kort of onduidelijk.")
-            else: st.warning("Typ minimaal 10 letters.")
+                            st.info("Je hebt deze beloning al eens geclaimd.")
+                        else: 
+                            st.error("Database fout bij activeren PRO.")
+                    else: 
+                        st.warning("Feedback te kort of onduidelijk. Probeer iets specifiekers.")
+            else: 
+                st.warning("Typ minimaal 10 letters.")
