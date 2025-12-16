@@ -475,15 +475,24 @@ user = st.session_state.user
 is_pro_license = user.get('is_pro', False)
 is_temp_pro = db.check_pro_status_db(user['email'])
 pro_expiry_dt = db.get_pro_expiry_date(user['email'])
+
 time_left_str = ""
 if pro_expiry_dt:
     now = datetime.now(timezone.utc)
+    # Zorg dat beide datums timezone-aware zijn voor vergelijking
+    if pro_expiry_dt.tzinfo is None:
+        pro_expiry_dt = pro_expiry_dt.replace(tzinfo=timezone.utc)
+        
     if pro_expiry_dt > now:
         is_temp_pro = True
         diff = pro_expiry_dt - now
-        hours = diff.seconds // 3600
-        mins = (diff.seconds % 3600) // 60
+        total_seconds = int(diff.total_seconds())
+        hours = total_seconds // 3600
+        mins = (total_seconds % 3600) // 60
         time_left_str = f"nog {hours}u {mins}m"
+    else:
+        is_temp_pro = False # Expliciet uitzetten als tijd voorbij is
+
 is_pro = is_pro_license or is_temp_pro
 
 def calculate_level_data(current_xp):
@@ -701,7 +710,12 @@ if pg == "Dashboard":
             elif is_active:
                 just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=True)
                 if just_completed_id:
+                    # UPDATE DATABASE
                     auth.mark_step_complete(just_completed_id, xp)
+                    
+                    # BELANGRIJK: CACHE LEGEN & HERLADEN
+                    st.cache_data.clear()  # Forceer verse data bij reload
+                    
                     st.toast(f"🎉 Lekker bezig! +{xp} XP", icon="🚀") 
                     time.sleep(1)
                     st.rerun()
@@ -947,7 +961,7 @@ elif pg == "Instellingen":
         st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
         fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=120, key="fb_settings")
         
-        if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
+if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
             if len(fb_text) > 10:
                 with st.spinner("Checken..."):
                     # 1. Valideer en sla op
@@ -960,13 +974,19 @@ elif pg == "Instellingen":
                         
                         if status == "SUCCESS":
                             st.balloons()
-                            st.success("🎉 PRO Geactiveerd! Pagina wordt ververst...")
+                            
+                            # Direct feedback geven over de tijd
+                            st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur volledige toegang.")
+                            st.info("🕒 De timer loopt vanaf NU. Je ziet de resterende tijd in het menu.")
                             
                             # CRUCIALE FIX: Update direct de sessie zodat de reload het ziet
                             user['is_pro'] = True 
                             st.session_state.user['is_pro'] = True
                             
-                            time.sleep(2)
+                            # Cache legen zodat database calls vers zijn
+                            st.cache_data.clear()
+                            
+                            time.sleep(3) # Iets langer wachten zodat gebruiker de tekst kan lezen
                             st.rerun() 
                         elif status == "ALREADY_CLAIMED":
                             st.info("Je hebt deze beloning al eens geclaimd.")
