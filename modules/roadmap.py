@@ -162,9 +162,9 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     # --- 1. STATUS & KLEUREN BEPALEN ---
     
     # Standaard waardes (voor toekomstige stappen - Rustig grijs)
-    bg_color = "#F8FAFC"      # Off-white / Lichtgrijs (Rustig)
+    bg_color = "#F8FAFC"      # Off-white / Lichtgrijs
     border_color = "#E2E8F0"  # Standaard rand
-    title_color = "#64748B"   # Donkergrijs
+    title_color = "#0F172A"   # Donkerblauw/zwart
     badge = ""
     shadow = "none"
     opacity = "0.9"
@@ -204,7 +204,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     st.markdown(f"""
     <div style="{card_style}">
         <div style="font-weight:600; font-size:1rem; display:flex; align-items:center; gap:12px; color:{title_color};">
-            <span style="font-size:1.4rem;">{step['icon']}</span> 
             <span>{step['title']}</span>
         </div>
         <div>{badge}</div>
@@ -212,20 +211,15 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     """, unsafe_allow_html=True)
 
     # --- 3. INHOUD (ALTIJD BESCHIKBAAR VIA EXPANDER) ---
-    
     if is_locked:
-        # Als het op slot zit, tonen we de lock melding
         teaser_text = step.get('teaser', 'Upgrade voor toegang.')
         lock_html = f"""<div style="background:#F8FAFC; padding:15px; border:1px solid #E2E8F0; border-top:none; border-radius: 0 0 12px 12px; text-align:center; color:#64748B; margin-bottom:12px; font-size:0.9rem;"><i class="bi bi-lock"></i> {teaser_text} <a href="{STRATEGY_CALL_URL}" target="_blank" style="font-weight:bold; color:#2563EB; text-decoration:none; margin-left:5px;">Unlock 🔓</a></div>"""
         st.markdown(lock_html, unsafe_allow_html=True)
         return None, 0
     else:
-        # Als het open is, tonen we de expander
-        # We geven de expander een label zodat mensen weten dat ze moeten klikken
         expander_label = "🔽 Opdracht & Tools bekijken"
         
         with st.expander(expander_label, expanded=expanded):
-            # Container voor nette inspringing
             with st.container():
                 st.markdown(f"<div style='border-left: 2px solid {border_color}; padding-left: 15px; margin-left: 5px; margin-bottom: 20px;'>", unsafe_allow_html=True)
                 
@@ -243,12 +237,15 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                 elif step['content'] == "TOOL_KVK_GUIDE":
                     st.info("💡 Tip: Maak eerst een afspraak, het is vaak druk bij de KVK!")
                     st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl/inschrijven", use_container_width=True)
-                    if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld", key=f"kvk_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_NICHE_FINDER":
                     st.write("Weet je niet wat je moet verkopen?")
-                    interest = st.text_input("Jouw interesses (bv. fitness, honden, gadgets)")
-                    if st.button("🔍 Vraag AI om suggesties"):
+                    # FIX: Unieke keys
+                    interest = st.text_input("Jouw interesses (bv. fitness, honden, gadgets)", key=f"niche_in_{step['id']}")
+                    if st.button("🔍 Vraag AI om suggesties", key=f"niche_btn_{step['id']}"):
                         st.session_state[usage_key] = True
                         if not interest: st.warning("Vul iets in!")
                         else:
@@ -260,89 +257,116 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     c1, c2 = st.columns(2)
                     c1.link_button("Knab (Bank)", "https://knab.nl", use_container_width=True)
                     c2.link_button("N26 (Creditcard)", "https://n26.com", use_container_width=True)
-                    if st.checkbox("✅ Ik heb dit geregeld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Ik heb dit geregeld", key=f"bank_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_DOMAIN_CHECK":
                     st.link_button("🔎 Check TransIP", "https://www.transip.nl", use_container_width=True)
-                    if st.checkbox("✅ Domeinnaam vastgelegd"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Domeinnaam vastgelegd", key=f"domain_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_SHOPIFY_GUIDE":
                     st.info("💰 **Actie:** Eerste 3 maanden voor €1/maand.")
                     st.link_button("🚀 Claim €1 Shopify deal", "https://shopify.com", type="primary", use_container_width=True)
-                    if st.checkbox("✅ Account aangemaakt"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Account aangemaakt", key=f"shopify_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_THEME_GUIDE":
                     st.info("💡 Advies: Gebruik 'Dawn' of 'Sense' (Gratis).")
                     st.link_button("Shopify Themes", "https://themes.shopify.com", use_container_width=True)
-                    if st.checkbox("✅ Thema ingesteld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Thema ingesteld", key=f"theme_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_PAYMENTS":
                     st.link_button("Maak Mollie account", "https://www.mollie.com", use_container_width=True)
-                    if st.checkbox("✅ Betaalmethode actief"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Betaalmethode actief", key=f"pay_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_LEGAL_SAFE_NEW":
-                    c_name = st.text_input("Bedrijfsnaam")
-                    c_mail = st.text_input("Contact Email")
-                    if st.button("📝 Genereer Teksten"):
+                    # FIX: Unieke keys
+                    c_name = st.text_input("Bedrijfsnaam", key=f"legal_name_{step['id']}")
+                    c_mail = st.text_input("Contact Email", key=f"legal_mail_{step['id']}")
+                    if st.button("📝 Genereer Teksten", key=f"legal_btn_{step['id']}"):
                         if c_name and c_mail:
                             res = ai_coach.generate_legal_text(c_name)
-                            st.text_area("Privacy Policy", res, height=150)
+                            st.text_area("Privacy Policy", res, height=150, key=f"legal_area_{step['id']}")
                             st.session_state[usage_key] = True
                         else: st.warning("Vul beide velden in.")
 
                 elif step['content'] == "TOOL_SUPPLIER_HUB":
                     st.info("💎 Student Only: Private Agent toegang.")
-                    if st.checkbox("✅ Leverancier geregeld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Leverancier geregeld", key=f"supplier_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_PROFIT_CALC":
-                    p = st.number_input("Verkoopprijs", 30.0)
-                    c = st.number_input("Inkoop", 10.0)
-                    if st.button("Bereken Marge"):
+                    # FIX: Unieke keys
+                    p = st.number_input("Verkoopprijs", 30.0, key=f"prof_p_{step['id']}")
+                    c = st.number_input("Inkoop", 10.0, key=f"prof_c_{step['id']}")
+                    if st.button("Bereken Marge", key=f"prof_btn_{step['id']}"):
                         st.session_state[usage_key] = True
                         st.metric("Winst", f"€{p-c}")
 
                 elif step['content'] == "TOOL_ABOUT_US":
-                    nm = st.text_input("Jouw Naam")
-                    if st.button("Schrijf Over Ons"):
+                    # FIX: Unieke keys
+                    nm = st.text_input("Jouw Naam", key=f"about_name_{step['id']}")
+                    if st.button("Schrijf Over Ons", key=f"about_btn_{step['id']}"):
                         st.session_state[usage_key] = True
-                        st.text_area("Tekst", ai_coach.generate_about_us(nm, "General"))
+                        st.text_area("Tekst", ai_coach.generate_about_us(nm, "General"), key=f"about_res_{step['id']}")
 
                 elif step['content'] == "TOOL_REVIEWS":
                     st.link_button("Installeer Judge.me", "https://apps.shopify.com/judgeme", use_container_width=True)
-                    if st.checkbox("✅ Reviews ingesteld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Reviews ingesteld", key=f"rev_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_PIXELS":
                     st.info("Installeer TikTok & Facebook apps in Shopify.")
-                    if st.checkbox("✅ Pixels gekoppeld"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Pixels gekoppeld", key=f"pixel_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_EMAIL_GEN":
                     st.write("Verlaten winkelwagen mail:")
                     st.code("Onderwerp: Je bent iets vergeten!\nHier is 10% korting: WELKOM10", language="text")
-                    if st.button("✅ Gedaan"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.button("✅ Gedaan", key=f"email_btn_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_24H_CHECK":
-                    if st.checkbox("✅ Testbestelling gedaan") and st.checkbox("✅ Mobiel gecheckt"):
+                    # FIX: Unieke keys
+                    c1 = st.checkbox("✅ Testbestelling gedaan", key=f"check24_1_{step['id']}")
+                    c2 = st.checkbox("✅ Mobiel gecheckt", key=f"check24_2_{step['id']}")
+                    if c1 and c2:
                         st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_INFLUENCER_OUTREACH":
                     st.write("Ga naar 'Marketing' in het menu.")
-                    if st.checkbox("✅ Gedaan"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Gedaan", key=f"inf_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 elif step['content'] == "TOOL_PRODUCT_SPY":
                     st.write("Ga naar 'Producten Zoeken'.")
-                    if st.checkbox("✅ Gedaan"): st.session_state[usage_key] = True
+                    # FIX: Unieke key
+                    if st.checkbox("✅ Gedaan", key=f"spy_check_{step['id']}"): 
+                        st.session_state[usage_key] = True
 
                 st.markdown("</div>", unsafe_allow_html=True)
 
-                # ACTIE KNOPPEN
+                # ACTIE KNOPPEN (Unieke keys ook hier!)
                 if not is_completed:
                     if st.session_state.get(usage_key, False):
-                        if st.button(f"🎉 Taak Afronden (+{step['xp_reward']} XP)", key=f"btn_{step['id']}", type="primary", use_container_width=True):
+                        if st.button(f"🎉 Taak Afronden (+{step['xp_reward']} XP)", key=f"btn_finish_{step['id']}", type="primary", use_container_width=True):
                             return step['id'], step['xp_reward']
                     else:
-                        st.button("Voltooi eerst de stappen hierboven ☝️", disabled=True, key=f"dis_{step['id']}", use_container_width=True)
+                        st.button("Voltooi eerst de stappen hierboven ☝️", disabled=True, key=f"dis_finish_{step['id']}", use_container_width=True)
         
-        # Leegte voor spacing na de expander
         st.markdown("<div style='margin-bottom: 12px;'></div>", unsafe_allow_html=True)
 
     return None, 0
