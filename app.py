@@ -600,6 +600,61 @@ if pg == "Dashboard":
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
+    # --- NIEUW: ONBOARDING WIZARD ---
+    if user['xp'] == 0 and "wizard_complete" not in st.session_state:
+        st.markdown("<br>", unsafe_allow_html=True)
+        
+        with st.container(border=True):
+            # 1. Eerst de naam ophalen in een variabele
+            welcome_name = user.get('first_name', 'Ondernemer')
+            
+            # 2. Dan de tekst tonen met een f-string (f"...")
+            st.markdown(f"""
+            <div style="text-align: center; padding: 20px;">
+                <h1 style="color: #2563EB; margin-bottom: 10px;">👋 Welkom bij de Academy, {welcome_name}!</h1>
+                <p style="font-size: 1.1rem; color: #64748B;">Laten we kort je profiel instellen voor maximaal succes.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            c1, c2, c3 = st.columns([1, 2, 1])
+            with c2:
+                shop_name = st.text_input("Hoe gaat je webshop heten? (Of verzin een werknaam)", placeholder="Bijv. Nova Gadgets")
+                goal = st.selectbox("Wat is je eerste maandelijkse doel?", ["€1.000 /maand (Sidehustle)", "€5.000 /maand (Serieus)", "€10.000+ /maand (Fulltime)"])
+                
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                if st.button("🚀 Start Mijn Avontuur (+10 XP)", type="primary", use_container_width=True):
+                    if shop_name:
+                        st.session_state.shop_name = shop_name
+                        st.session_state.income_goal = goal
+                        st.session_state.wizard_complete = True
+                        
+                        auth.mark_step_complete("onboarding_done", 10)
+                        
+                        st.balloons()
+                        time.sleep(1)
+                        st.rerun()
+                    else:
+                        st.warning("Vul een naam in voor je shop!")
+        
+        st.stop()
+
+    # --- NIEUW: COMMUNITY LIVE STATUS ---
+    live_users = random.randint(42, 89)
+    sales_today = random.randint(8, 24)
+    
+    st.markdown(f"""
+    <div style="display: flex; gap: 15px; margin-bottom: 10px; flex-wrap: wrap;">
+        <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #15803D; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            <span style="height: 8px; width: 8px; background-color: #22C55E; border-radius: 50%; display: inline-block;"></span>
+            {live_users} studenten online
+        </div>
+        <div style="background: #FFF7ED; border: 1px solid #FED7AA; padding: 6px 12px; border-radius: 20px; font-size: 0.8rem; color: #9A3412; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+            🔥 {sales_today} studenten haalden vandaag hun eerste sale
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
     # --- DATABEREKENING VOORAF ---
     if "force_completed" not in st.session_state: st.session_state.force_completed = []
     
@@ -630,21 +685,33 @@ if pg == "Dashboard":
         if not phase_done: break
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
-    # 2. Header
+# 2. Header
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
+    
+    # Ophalen uit sessie (wat ze net in de wizard hebben ingevuld)
+    user_goal = st.session_state.get('income_goal', '€15k/maand')
+    user_shop = st.session_state.get('shop_name', None) # <--- DEZE HALEN WE OP
+    
     c_head, c_prog = st.columns([2, 1], vertical_alignment="bottom")
     with c_head:
         st.markdown(f"<h1 style='margin-bottom: 5px;'>Goedemorgen, {name} 👋</h1>", unsafe_allow_html=True)
+        
+        # We maken de ondertitel persoonlijker
         if is_temp_pro and time_left_str:
-            st.markdown(f"<span style='background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600; border:1px solid #BBF7D0;'>⚡ PRO ACTIEF: Nog {time_left_str}</span>", unsafe_allow_html=True)
+             st.markdown(f"<span style='background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600; border:1px solid #BBF7D0;'>⚡ PRO ACTIEF: Nog {time_left_str}</span>", unsafe_allow_html=True)
         else:
-            st.caption(f"🚀 Missie: €15k/maand | 📈 Voortgang: **{progress_pct}%**")
+            # Als er een shopnaam is, gebruiken we die!
+            if user_shop:
+                st.caption(f"🚀 {user_shop}: **{user_goal}** | 📈 Voortgang: **{progress_pct}%**")
+            else:
+                st.caption(f"🚀 Jouw Doel: **{user_goal}** | 📈 Voortgang: **{progress_pct}%**")
+                
     with c_prog:
         st.progress(progress_pct / 100)
 
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-    # 3. Intro Bonus
+    # 3. Intro Bonus (Alleen zichtbaar als ze de wizard hebben gedaan maar nog geen bonus hebben geclaimd - zeldzaam, maar voor de zekerheid)
     if user['xp'] == 0:
         with st.container(border=True):
             col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
@@ -984,7 +1051,7 @@ elif pg == "Instellingen":
         
         # Check of we in deze sessie al succesvol feedback hebben gegeven
         if st.session_state.get("feedback_done", False):
-            # --- DE 'LOCKED' / SUCCES STATUS (Groene kaart) ---
+            # --- DE 'LOCKED' / SUCCES STATUS ---
             st.markdown("""
             <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 20px; text-align: center;">
                 <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
@@ -1016,9 +1083,9 @@ elif pg == "Instellingen":
             
             fb_text = st.text_area("Feedback", placeholder="Ik mis functie X... / Ik vind dit lastig...", height=120, key="fb_settings")
             
-            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True):
-                if len(fb_text) > 20: 
-                    with st.spinner("Inzenden voor winactie..."):
+            if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
+                if len(fb_text) > 10:
+                    with st.spinner("Checken..."):
                         # 1. Valideer en sla op
                         is_valid = ai_coach.validate_feedback(fb_text)
                         db.save_feedback(user['email'], fb_text, is_valid)
@@ -1029,26 +1096,26 @@ elif pg == "Instellingen":
                             
                             if status == "SUCCESS":
                                 st.balloons()
-                                st.success("🎉 Ontvangen! Je doet mee aan de winactie én je hebt nu 24u PRO.")
+                                st.success("🎉 PRO Geactiveerd! 24u toegang gestart.")
                                 
                                 # Update Sessie, Cache EN zet de Feedback Vlag op True
                                 user['is_pro'] = True 
                                 st.session_state.user['is_pro'] = True
-                                st.session_state.feedback_done = True 
+                                st.session_state.feedback_done = True # <--- DIT ZORGT VOOR DE LOCK
                                 st.cache_data.clear()
                                 
-                                time.sleep(2.5)
+                                time.sleep(2)
                                 st.rerun() 
                                 
                             elif status == "ALREADY_CLAIMED":
                                 st.session_state.feedback_done = True 
-                                st.warning("Je hebt je 24u al gehad, maar je feedback telt mee voor de winactie! 🏆")
-                                time.sleep(3)
+                                st.warning("Je hebt deze beloning al eens geclaimd.")
+                                time.sleep(2)
                                 st.rerun()
                                 
                             else: 
-                                st.error("Database fout.")
+                                st.error("Database fout bij activeren PRO.")
                         else: 
                             st.warning("Feedback te kort of onduidelijk.")
                 else: 
-                    st.warning("Typ minimaal 20 tekens om mee te doen aan de winactie.")
+                    st.warning("Typ minimaal 10 letters.")
