@@ -307,11 +307,18 @@ st.markdown("""
 
 # --- 2. COOKIE MANAGER ---
 cookie_manager = stx.CookieManager()
+
+# Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
+    
     if cookie_email:
-        auth.login_or_register(cookie_email)
-        st.rerun()
+        # HIER DE MELDING: Laat zien dat de app bezig is
+        with st.spinner(f"👋 Welkom terug! Automatisch inloggen als {cookie_email}..."):
+            # We geven de gebruiker 0.3 sec om te lezen wat er gebeurt (anders flitst het te snel)
+            time.sleep(0.3) 
+            auth.login_or_register(cookie_email)
+            st.rerun()
 
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
