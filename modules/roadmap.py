@@ -14,22 +14,22 @@ def get_roadmap():
             "desc": "Zonder fundering stort je huis in. Regel eerst de administratie en je adres op het web.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK Nummer Regelen", "icon": "📝", "locked": False,
+                    "id": "step_kvk", "title": "KVK Nummer Regelen", "icon": "", "locked": False,
                     "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
                     "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
                 },
                 {
-                    "id": "step_niche", "title": "Wat ga je verkopen?", "icon": "🎯", "locked": False,
+                    "id": "step_niche", "title": "Wat ga je verkopen?", "icon": "", "locked": False,
                     "content": "TOOL_NICHE_FINDER", "xp_reward": 100,
                     "teaser": "Weet je niet wat je moet verkopen? Vraag de AI om hulp."
                 },
                 {
-                    "id": "step_bank", "title": "Zakelijke Rekening", "icon": "💳", "locked": False,
+                    "id": "step_bank", "title": "Zakelijke Rekening", "icon": "", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/financieel"
                 },
                 {
-                    "id": "step_domain", "title": "Domeinnaam Kiezen", "icon": "🌐", "locked": False,
+                    "id": "step_domain", "title": "Domeinnaam Kiezen", "icon": "", "locked": False,
                     "content": "TOOL_DOMAIN_CHECK", "xp_reward": 50,
                     "teaser": "Check of je naam nog vrij is als .nl of .com"
                 }
@@ -40,22 +40,22 @@ def get_roadmap():
             "desc": "Zet de techniek en het design klaar voor je eerste bezoekers.",
             "steps": [
                 {
-                    "id": "step_shopify_setup", "title": "Shopify Account Maken", "icon": "🛍️", "locked": False,
+                    "id": "step_shopify_setup", "title": "Shopify Account Maken", "icon": "", "locked": False,
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 },
                 {
-                    "id": "step_theme", "title": "Logo & Huisstijl", "icon": "🎨", "locked": False,
+                    "id": "step_theme", "title": "Logo & Huisstijl", "icon": "", "locked": False,
                     "content": "TOOL_THEME_GUIDE", "xp_reward": 100,
                     "teaser": "Kies een conversie-gericht thema. Studenten krijgen een Premium Thema t.w.v. €350."
                 },
                 {
-                    "id": "step_payments", "title": "Betalingen Instellen", "icon": "💶", "locked": False,
+                    "id": "step_payments", "title": "Betalingen Instellen", "icon": "", "locked": False,
                     "content": "TOOL_PAYMENTS", "xp_reward": 125,
                     "teaser": "Kies hoe klanten betalen: Mollie, Stripe of Shopify Payments."
                 },
                 {
-                    "id": "step_legal_safe", "title": "Juridisch & Regels", "icon": "🛡️", "locked": False,
+                    "id": "step_legal_safe", "title": "Juridisch & Regels", "icon": "", "locked": False,
                     "content": "TOOL_LEGAL_SAFE_NEW", "xp_reward": 150,
                     "teaser": "Voorkom boetes. Genereer je Algemene Voorwaarden & Privacy Policy."
                 }
@@ -66,12 +66,12 @@ def get_roadmap():
             "desc": "Wat ga je verkopen en hoe komt het bij de klant?",
             "steps": [
                 {
-                    "id": "step_supplier", "title": "Leverancier Koppelen", "icon": "📦", "locked": False,
+                    "id": "step_supplier", "title": "Leverancier Koppelen", "icon": "", "locked": False,
                     "content": "TOOL_SUPPLIER_HUB", "xp_reward": 100,
                     "teaser": "Gebruik onze gratis Private Agent voor snelle levertijden (5-8 dagen)."
                 },
                 {
-                    "id": "step_pricing", "title": "Verkoopprijs Bepalen", "icon": "🧮", "locked": False,
+                    "id": "step_pricing", "title": "Verkoopprijs Bepalen", "icon": "", "locked": False,
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 75,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
                 }
@@ -82,22 +82,22 @@ def get_roadmap():
             "desc": "Maak je shop betrouwbaar zodat mensen durven te kopen.",
             "steps": [
                 {
-                    "id": "step_about_us", "title": "'Over ons' Pagina", "icon": "✍️", "locked": False, 
+                    "id": "step_about_us", "title": "'Over ons' Pagina", "icon": "", "locked": False, 
                     "content": "TOOL_ABOUT_US", "xp_reward": 100,
                     "video_url": "https://rmacademy.huddlecommunity.com/module/copywriting"
                 },
                 {
-                    "id": "step_reviews", "title": "Reviews Instellen", "icon": "⭐", "locked": False,
+                    "id": "step_reviews", "title": "Reviews Instellen", "icon": "", "locked": False,
                     "content": "TOOL_REVIEWS", "xp_reward": 100,
                     "teaser": "Genereer eigen reviews, importeer uit China of start met Trustpilot."
                 },
                 {
-                    "id": "step_pixels", "title": "Bezoekers Meten (Pixels)", "icon": "🎯", "locked": False,
+                    "id": "step_pixels", "title": "Bezoekers Meten (Pixels)", "icon": "", "locked": False,
                     "content": "TOOL_PIXELS", "xp_reward": 125,
                     "teaser": "Installeer de TikTok & Meta pixel, anders gooi je geld weg."
                 },
                 {
-                    "id": "step_email", "title": "Automatische E-mails", "icon": "📧", "locked": False,
+                    "id": "step_email", "title": "Automatische E-mails", "icon": "", "locked": False,
                     "content": "TOOL_EMAIL_GEN", "xp_reward": 150,
                     "teaser": "Zet automatische mails aan die geld verdienen terwijl je slaapt."
                 }
@@ -108,7 +108,7 @@ def get_roadmap():
             "desc": "Je winkel is klaar. Tijd om bezoekers te trekken en te verkopen.",
             "steps": [
                 {
-                    "id": "step_24h_live", "title": "Launch Checklist", "icon": "🚀", "locked": False,
+                    "id": "step_24h_live", "title": "Launch Checklist", "icon": "", "locked": False,
                     "content": "TOOL_24H_CHECK", "xp_reward": 150,
                     "teaser": "Je shop is live, wat nu? Check deze lijst om niks te vergeten."
                 },
@@ -118,7 +118,7 @@ def get_roadmap():
                     "teaser": "Gebruik de Spy Tool om bewezen bestsellers te vinden."
                 },
                 {
-                    "id": "step_influencer", "title": "Influencers Benaderen", "icon": "🤳", "locked": False,
+                    "id": "step_influencer", "title": "Influencers Benaderen", "icon": "", "locked": False,
                     "content": "TOOL_INFLUENCER_OUTREACH", "xp_reward": 100,
                     "teaser": "Laat AI een bericht schrijven om influencers te benaderen."
                 }
@@ -129,17 +129,17 @@ def get_roadmap():
             "desc": "De shop staat. Nu begint het echte werk: Testen, Analyseren en Winst pakken.",
             "steps": [
                 {
-                    "id": "step_testing_ads", "title": "Dag 1: Advertenties Starten", "icon": "🧪", "locked": False,
+                    "id": "step_testing_ads", "title": "Dag 1: Advertenties Starten", "icon": "", "locked": False,
                     "content": "TEXT_ONLY", "text": "Start met €20-€50 per dag. Test minimaal 3 verschillende video's. Zet alles uit wat na €15 geen 'Winkelwagen toevoeging' heeft.",
                     "xp_reward": 150
                 },
                 {
-                    "id": "step_analysis", "title": "Dag 3: Resultaten Bekijken", "icon": "📊", "locked": False,
+                    "id": "step_analysis", "title": "Dag 3: Resultaten Bekijken", "icon": "", "locked": False,
                     "content": "TEXT_ONLY", "text": "Kijk naar je CPC (onder €0.50?), CTR (boven 1%?) en ROAS. Slechte cijfers? Nieuwe video's maken. Goede cijfers? Budget verhogen.",
                     "xp_reward": 150
                 },
                 {
-                    "id": "step_kill_scale", "title": "Dag 7: Doorgaan of Stoppen?", "icon": "⚖️", "locked": False,
+                    "id": "step_kill_scale", "title": "Dag 7: Doorgaan of Stoppen?", "icon": "", "locked": False,
                     "content": "TEXT_ONLY", "text": "Heb je winst? Schaal op (20% budget erbij per dag). Geen winst? Stop met dit product en begin opnieuw met Fase 3.",
                     "xp_reward": 200
                 }
