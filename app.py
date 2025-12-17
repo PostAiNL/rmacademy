@@ -637,16 +637,31 @@ if pg == "Dashboard":
     st.caption("Laten we vandaag weer stappen zetten richting die €15k/maand.")
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-    # 3. Intro Bonus
+# 3. Intro Bonus (COMPACTE VERSIE)
     if user['xp'] == 0:
-        st.markdown(f"""<div style="background:#EFF6FF; border:1px solid #DBEAFE; border-radius:12px; padding:20px; margin-bottom:20px;"><h3 style="color:#1E40AF; margin-top:0;">Welkom bij RM Ecom! 🚀</h3><p style="color:#1E3A8A; margin-bottom:10px;">Je staat aan het begin van je avontuur. Hier is hoe het werkt:</p><ul style="color:#1E3A8A; padding-left:20px;"><li>Kies hieronder zelf aan welke stap je wilt werken.</li><li>Gebruik de <b>Tools</b> in het menu om tijd te besparen.</li><li>Verdien <b>XP</b> om nieuwe levels te bereiken.</li></ul></div>""", unsafe_allow_html=True)
-        if st.button("🚀 Start & Claim 50 XP", type="primary", use_container_width=True):
-            auth.mark_step_complete("intro_bonus", 50)
-            if "force_completed" not in st.session_state: st.session_state.force_completed = []
-            st.session_state.force_completed.append("intro_bonus")
-            st.balloons()
-            st.toast("Gefeliciteerd! Je eerste 50 XP zijn binnen! 🎉", icon="🚀")
-            st.rerun()
+        # We maken een strakke container met een randje
+        with st.container(border=True):
+            col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
+            
+            with col_text:
+                st.markdown("""
+                <div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">
+                    🚀 Nieuw hier? Start je avontuur!
+                </div>
+                <div style="font-size: 0.85rem; color: #64748B;">
+                    Klik op de knop om je eerste punten te verdienen en de roadmap te openen.
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_btn:
+                if st.button("Claim 50 XP ✨", type="primary", use_container_width=True):
+                    auth.mark_step_complete("intro_bonus", 50)
+                    if "force_completed" not in st.session_state: st.session_state.force_completed = []
+                    st.session_state.force_completed.append("intro_bonus")
+                    st.balloons()
+                    st.toast("Gefeliciteerd! Je eerste 50 XP zijn binnen! 🎉", icon="🚀")
+                    time.sleep(0.5)
+                    st.rerun()
 
     # 4. Roadmap Data Ophalen
     if "force_completed" not in st.session_state: st.session_state.force_completed = []
