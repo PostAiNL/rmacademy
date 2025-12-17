@@ -74,26 +74,11 @@ st.markdown(f"""
 # --- 1. CSS ENGINE ---
 st.markdown("""
     <style>
-        /* Import Bootstrap Icons */
-/* ==============================================
-           SNELHEID FIXES (Wazigheid weg)
-           ============================================== */
-        /* Verberg de standaard laad-animatie bovenin */
-        .stApp > header { z-index: 1 !important; }
-        
-        /* Verberg de grijze waas over het scherm tijdens laden */
-        [data-testid="stOverlay"], [data-testid="stDecoration"] {
-            display: none !important;
-        }
-        
-        /* Zorg dat knoppen niet 'dood' lijken als je klikt */
-        div.stButton > button:active {
-            transform: scale(0.98);
-        }
+        /* 1. BELANGRIJK: Icoontjes inladen */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
-           1. ALGEMENE CONFIGURATIE
+           2. ALGEMENE CONFIGURATIE
            ============================================== */
         :root {
             --primary: #2563EB;
@@ -112,7 +97,7 @@ st.markdown("""
         .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
         
-        /* FIX VOOR ONZICHTBARE TEKST - GEFORCEERD ZWART */
+        /* FIX VOOR ONZICHTBARE TEKST */
         p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small {
             color: #0F172A !important; 
         }
@@ -120,7 +105,7 @@ st.markdown("""
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           2. HEADER & SIDEBAR FIXES
+           3. HEADER & SIDEBAR FIXES
            ============================================== */
         header[data-testid="stHeader"] {
             background-color: #F8FAFC !important;
@@ -130,7 +115,6 @@ st.markdown("""
             z-index: 999990 !important;
         }
 
-        /* --- DE HAMBURGER KNOP (LINKS BOVEN) --- */
         button[kind="header"] {
             background-color: #EFF6FF !important; 
             border: 1px solid #DBEAFE !important; 
@@ -152,13 +136,11 @@ st.markdown("""
             height: 24px !important;
         }
 
-        /* MOBIELE SIDEBAR FIX */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
                 border-right: 1px solid #E2E8F0 !important;
             }
-            
             [data-testid="stSidebarCollapseButton"] {
                 background-color: #F1F5F9 !important;
                 border-radius: 50% !important;
@@ -173,12 +155,10 @@ st.markdown("""
                 justify-content: center !important;
                 z-index: 999999 !important;
             }
-            
             [data-testid="stSidebarCollapseButton"] svg {
                 fill: #0F172A !important;
                 stroke: #0F172A !important;
             }
-
             [data-testid="stSidebarCollapsedControl"] {
                 color: #0F172A !important;
                 background-color: white !important;
@@ -187,8 +167,6 @@ st.markdown("""
                 border: 1px solid #000 !important;
             }
         }
-
-        [data-testid="stSidebarCollapseButton"] { color: #0F172A !important; }
         
         [data-testid="stDecoration"] { display: none !important; }
         [data-testid="stStatusWidget"] { visibility: hidden !important; }
@@ -196,7 +174,6 @@ st.markdown("""
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
 
-        /* Whitespace fix */
         .block-container {
             padding-top: 2rem !important; 
             padding-bottom: 5rem !important;
@@ -220,7 +197,7 @@ st.markdown("""
         }
 
         /* ==============================================
-           3. UI ELEMENTEN FIXES
+           4. UI ELEMENTEN FIXES
            ============================================== */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
@@ -294,6 +271,13 @@ st.markdown("""
         .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1) !important; }
         .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
         .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
+
+        /* ==============================================
+           SNELHEID FIXES (Wazigheid weg)
+           ============================================== */
+        .stApp > header { z-index: 1 !important; }
+        [data-testid="stOverlay"], [data-testid="stDecoration"] { display: none !important; }
+        div.stButton > button:active { transform: scale(0.98); }
     </style>
 """, unsafe_allow_html=True)
 
