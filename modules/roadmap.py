@@ -150,26 +150,41 @@ def get_roadmap():
 def render_step_card(step, is_completed, is_pro, expanded=False):
     # --- 1. BADGES & KLEUREN ---
     if is_completed:
+        # Als het af is: Groene badge
         badge = "<span style='background:#DCFCE7; color:#166534; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #BBF7D0;'>✅ GEDAAN</span>"
         border_color = "#BBF7D0"
         bg_color = "#FFFFFF"
+        title_color = "#1E293B"
+        opacity = "1"
     elif step['locked'] and not is_pro:
-        badge = "" 
+        # Als het op slot zit: Slotje
+        badge = "<span style='color:#94A3B8; font-size:0.9rem;'><i class='bi bi-lock-fill'></i></span>" 
         border_color = "#E2E8F0"
-        bg_color = "#FFFFFF"
+        bg_color = "#F8FAFC" # Iets grijzer
+        title_color = "#94A3B8"
+        opacity = "0.7"
     else:
-        badge = "<span style='background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #DBEAFE;'>👇Start hieronder👇</span>"
+        # Als het open is (Nieuw): GEEN knop-achtige badge meer!
+        # Optie A: Helemaal leeg laten (aanbevolen)
+        badge = "" 
+        
+        # Optie B: Wil je toch IETS? Gebruik dan een subtiel pijltje:
+        # badge = "<span style='color:#CBD5E1; font-size:1.2rem;'>🔽</span>"
+        
         border_color = "#2563EB" if expanded else "#E2E8F0"
         bg_color = "#FFFFFF"
+        title_color = "#1E293B"
+        opacity = "1"
 
     is_locked = step['locked'] and not is_pro
     usage_key = f"tool_used_{step['id']}"
     
     # --- RENDER CARD HEADER ---
+    # Ik heb de styling iets aangepast zodat de titel wat meer opvalt nu de badge weg is
     st.markdown(f"""
-    <div style="border: 1px solid {border_color}; border-radius: 12px; padding: 16px; background: {bg_color}; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s;">
-        <div style="font-weight:600; font-size:1rem; display:flex; align-items:center; gap:12px; color:{'#94A3B8' if is_locked else '#1E293B'};">
-            <span style="font-size:1.4rem; opacity:{'0.5' if is_locked else '1'};">{step['icon']}</span> {step['title']}
+    <div style="border: 1px solid {border_color}; border-radius: 12px; padding: 16px; background: {bg_color}; margin-bottom: 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.03); display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; opacity: {opacity};">
+        <div style="font-weight:600; font-size:1rem; display:flex; align-items:center; gap:12px; color:{title_color};">
+            <span style="font-size:1.4rem;">{step['icon']}</span> {step['title']}
         </div>
         <div>{badge}</div>
     </div>
@@ -199,7 +214,10 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         return None, 0
 
     # --- OPEN STATE ---
-    with st.expander("Open opdracht & tools", expanded=expanded):
+    # Tekst van de expander iets actiegerichter gemaakt
+    expander_title = "🔽 Opdracht & Tools bekijken" 
+    
+    with st.expander(expander_title, expanded=expanded):
         
         if step.get('video_url'):
             if is_pro:
@@ -213,7 +231,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
 
         elif step['content'] == "TOOL_KVK_GUIDE":
             st.info("💡 Tip: Maak eerst een afspraak, het is vaak druk bij de KVK!")
-            st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl/inschrijven/", use_container_width=True)
+            st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_NICHE_FINDER":
