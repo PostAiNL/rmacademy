@@ -242,20 +242,40 @@ st.markdown("""
         button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; }
         div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
 
-        /* EXPANDER FIX */
-        .streamlit-expanderHeader {
-            background-color: #FFFFFF !important;
-            color: #0F172A !important;
-            border: 2px solid #CBD5E1 !important;
+/* ==============================================
+           EXPANDER FIX (FASE BALKEN KLEUR)
+           ============================================== */
+        
+        /* Dit pakt de balk zelf aan (ongeacht de Streamlit versie) */
+        details > summary {
+            background-color: #EFF6FF !important; /* Zachtblauw */
+            border: 1px solid #DBEAFE !important; /* Blauw randje */
             border-radius: 8px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            color: #0F172A !important;
+            transition: all 0.2s ease-in-out;
         }
-        .streamlit-expanderHeader p, .streamlit-expanderHeader span, .streamlit-expanderHeader div { color: #0F172A !important; font-weight: 600 !important; }
-        .streamlit-expanderHeader:hover { background-color: #1E293B !important; border-color: #0F172A !important; }
-        .streamlit-expanderHeader:hover * { color: #FFFFFF !important; fill: #FFFFFF !important; }
-        div[data-baseweb="select"] > div { background-color: #FFFFFF !important; color: #0F172A !important; border-color: #CBD5E1 !important; }
-        ul[data-baseweb="menu"] { background-color: #FFFFFF !important; }
-        li[data-baseweb="option"] { color: #0F172A !important; background-color: #FFFFFF !important; }
-        input[type="checkbox"] { accent-color: #2563EB !important; background-color: #FFFFFF !important; border-color: #CBD5E1 !important; }
+
+        /* Hover effect (als je muis erop staat) */
+        details > summary:hover {
+            background-color: #DBEAFE !important; /* Iets donkerder blauw */
+            border-color: #2563EB !important;     /* Felblauwe rand */
+            color: #2563EB !important;            /* Tekst wordt blauw */
+        }
+
+        /* Zorg dat de tekst in de balk de juiste kleur houdt */
+        details > summary p, details > summary span {
+            color: inherit !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+        }
+
+        /* Verwijder standaard Streamlit styling die in de weg zit */
+        .streamlit-expanderHeader {
+            background-color: transparent !important;
+            border: none !important;
+        }
 
         /* STATS GRID */
         div[data-testid="stVerticalBlockBorderWrapper"] {
