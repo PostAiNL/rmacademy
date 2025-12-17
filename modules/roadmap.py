@@ -10,7 +10,7 @@ COMMUNITY_URL = "https://discord.com"
 def get_roadmap():
     return {
         "fase_1": {
-            "title": "Fase 1: De Fundering", # Titel iets sterker gemaakt
+            "title": "Fase 1: De Fundering", 
             "desc": "Zonder fundering stort je huis in. Regel eerst de administratie en je strategie.", 
             "steps": [
                 {
@@ -24,7 +24,7 @@ def get_roadmap():
                     "teaser": "Weet je niet wat je moet verkopen? Vraag de AI om hulp."
                 },
                 {
-                    "id": "step_avatar", "title": "Wie is je Droomklant?", "icon": "", "locked": False, # NIEUW!
+                    "id": "step_avatar", "title": "Wie is je Droomklant?", "icon": "", "locked": False, 
                     "content": "TEXT_ONLY", "xp_reward": 125,
                     "text": "Stop! Voordat je bouwt: Wie gaat dit kopen? Bedenk een naam (bv. 'Linda'), leeftijd en hobby's. Zonder dit wordt adverteren onmogelijk duur."
                 },
@@ -61,7 +61,7 @@ def get_roadmap():
             ]
         },
         "fase_3": {
-            "title": "Fase 3: Het Aanbod", # Naam gewijzigd van 'Producten'
+            "title": "Fase 3: Het Aanbod",
             "desc": "Een product is nog geen business. Hier maak je er een onweerstaanbare deal van.",
             "steps": [
                 {
@@ -69,19 +69,19 @@ def get_roadmap():
                     "content": "TOOL_SUPPLIER_HUB", "xp_reward": 100,
                 },
                 {
-                    "id": "step_sample", "title": "Sample Bestellen (Verplicht)", "icon": "", "locked": False, # NIEUW!
+                    "id": "step_sample", "title": "Sample Bestellen (Verplicht)", "icon": "", "locked": False, 
                     "content": "TEXT_ONLY", "xp_reward": 150,
                     "text": "Bestel het product ZELF naar je eigen huis. Waarom? 1. Kwaliteitscheck (voorkom refunds). 2. Zelf video's maken met je telefoon. Zonder eigen content ben je kansloos op TikTok."
                 },
                 {
-                    "id": "step_offer", "title": "Onweerstaanbaar Aanbod", "icon": "", "locked": False, # GEWIJZIGD
+                    "id": "step_offer", "title": "Onweerstaanbaar Aanbod", "icon": "", "locked": False, 
                     "content": "TOOL_PROFIT_CALC", "xp_reward": 100,
                     "text": "Verkoop je alleen een lamp? Saai. Maak een bundel: 'Lamp + Batterijen + E-book'. Bereken hier je marge."
                 }
             ]
         },
         "fase_4": {
-            "title": "Fase 4: Vertrouwen & Content", # Naam iets aangepast
+            "title": "Fase 4: Vertrouwen & Content",
             "desc": "Zorg dat je shop er betrouwbaar uitziet en dat alles werkt.",
             "steps": [
                 {
@@ -91,6 +91,11 @@ def get_roadmap():
                 {
                     "id": "step_reviews", "title": "Reviews Instellen", "icon": "", "locked": False,
                     "content": "TOOL_REVIEWS", "xp_reward": 100,
+                },
+                {
+                    "id": "step_support", "title": "Klantenservice Setup", "icon": "", "locked": False,
+                    "content": "TEXT_ONLY", "xp_reward": 100,
+                    "text": "Zorg voor een professioneel e-mailadres (support@jouwdomein.nl) en stel een automatische bevestiging in. Dit voorkomt bans bij PayPal en advertentieplatforms."
                 },
                 {
                     "id": "step_pixels", "title": "Bezoekers Meten (Pixels)", "icon": "", "locked": False,
@@ -111,13 +116,18 @@ def get_roadmap():
                     "content": "TOOL_24H_CHECK", "xp_reward": 150,
                 },
                 {
-                    "id": "step_content_creation", "title": "Je Eerste Video Maken", "icon": "", "locked": False, # NIEUW!
+                    "id": "step_content_creation", "title": "Je Eerste Video Maken", "icon": "", "locked": False, 
                     "content": "TEXT_ONLY", "xp_reward": 150,
                     "text": "Pak je sample. Film 3 hoeken: 1. Het probleem (donkere kamer). 2. De oplossing (jouw lamp). 3. Het resultaat (sfeer). Dit is je advertentie."
                 },
                 {
                     "id": "step_winning_prod", "title": "Spy: Wat werkt er nu?", "icon": "", "locked": True,
                     "content": "TOOL_PRODUCT_SPY", "xp_reward": 200,
+                },
+                {
+                    "id": "step_fulfillment", "title": "Je Eerste Order Verwerken", "icon": "", "locked": False,
+                    "content": "TEXT_ONLY", "xp_reward": 100,
+                    "text": "PANIEK? Neehoor! 🎉 Je hebt een sale. Wat nu?\n1. Ga naar je leverancier (AliExpress/Agent).\n2. Bestel het product en vul het adres van JOUW KLANT in.\n3. De leverancier stuurt het direct naar de klant.\n4. Jij houdt het verschil (winst)!"
                 },
                 {
                     "id": "step_influencer", "title": "Influencers (Gratis bereik)", "icon": "", "locked": False,
@@ -152,7 +162,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     # --- 1. STATUS & KLEUREN BEPALEN ---
     
     # Standaard waardes (voor toekomstige stappen - Rustig grijs)
-    bg_color = "#F8FAFC"      # Off-white / Lichtgrijs
+    bg_color = "#F8FAFC"      # Off-white / Lichtgrijs (Rustig)
     border_color = "#E2E8F0"  # Standaard rand
     title_color = "#64748B"   # Donkergrijs
     badge = ""
@@ -188,7 +198,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     is_locked = step.get('locked', False) and not is_pro
 
     # --- 2. RENDER DE KAART (HEADER) ---
-    # We gebruiken CSS variabelen in de string om fouten te voorkomen
+    # CSS variabele voor styling om HTML bugs te voorkomen
     card_style = f"border: 1px solid {border_color}; background-color: {bg_color}; border-radius: 12px; padding: 16px; margin-bottom: 0px; box-shadow: {shadow}; display: flex; justify-content: space-between; align-items: center; transition: all 0.2s; opacity: {opacity};"
     
     st.markdown(f"""
@@ -202,7 +212,6 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
     """, unsafe_allow_html=True)
 
     # --- 3. INHOUD (ALTIJD BESCHIKBAAR VIA EXPANDER) ---
-    # Hier zat de fout: we gebruiken nu weer 'st.expander' zodat je ALTIJD kunt klikken.
     
     if is_locked:
         # Als het op slot zit, tonen we de lock melding
