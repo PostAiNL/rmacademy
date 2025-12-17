@@ -10,8 +10,8 @@ COMMUNITY_URL = "https://discord.com"
 def get_roadmap():
     return {
         "fase_1": {
-            "title": "Fase 1: De Start",
-            "desc": "Zonder fundering stort je huis in. Regel eerst de administratie en je adres op het web.", 
+            "title": "Fase 1: De Fundering", # Titel iets sterker gemaakt
+            "desc": "Zonder fundering stort je huis in. Regel eerst de administratie en je strategie.", 
             "steps": [
                 {
                     "id": "step_kvk", "title": "KVK Nummer Regelen", "icon": "", "locked": False,
@@ -24,14 +24,17 @@ def get_roadmap():
                     "teaser": "Weet je niet wat je moet verkopen? Vraag de AI om hulp."
                 },
                 {
+                    "id": "step_avatar", "title": "Wie is je Droomklant?", "icon": "", "locked": False, # NIEUW!
+                    "content": "TEXT_ONLY", "xp_reward": 125,
+                    "text": "Stop! Voordat je bouwt: Wie gaat dit kopen? Bedenk een naam (bv. 'Linda'), leeftijd en hobby's. Zonder dit wordt adverteren onmogelijk duur."
+                },
+                {
                     "id": "step_bank", "title": "Zakelijke Rekening", "icon": "", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/financieel"
                 },
                 {
                     "id": "step_domain", "title": "Domeinnaam Kiezen", "icon": "", "locked": False,
                     "content": "TOOL_DOMAIN_CHECK", "xp_reward": 50,
-                    "teaser": "Check of je naam nog vrij is als .nl of .com"
                 }
             ]
         },
@@ -42,105 +45,103 @@ def get_roadmap():
                 {
                     "id": "step_shopify_setup", "title": "Shopify Account Maken", "icon": "", "locked": False,
                     "content": "TOOL_SHOPIFY_GUIDE", "xp_reward": 150,
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/shopify-setup"
                 },
                 {
                     "id": "step_theme", "title": "Logo & Huisstijl", "icon": "", "locked": False,
                     "content": "TOOL_THEME_GUIDE", "xp_reward": 100,
-                    "teaser": "Kies een conversie-gericht thema. Studenten krijgen een Premium Thema t.w.v. €350."
                 },
                 {
                     "id": "step_payments", "title": "Betalingen Instellen", "icon": "", "locked": False,
                     "content": "TOOL_PAYMENTS", "xp_reward": 125,
-                    "teaser": "Kies hoe klanten betalen: Mollie, Stripe of Shopify Payments."
                 },
                 {
                     "id": "step_legal_safe", "title": "Juridisch & Regels", "icon": "", "locked": False,
                     "content": "TOOL_LEGAL_SAFE_NEW", "xp_reward": 150,
-                    "teaser": "Voorkom boetes. Genereer je Algemene Voorwaarden & Privacy Policy."
                 }
             ]
         },
         "fase_3": {
-            "title": "Fase 3: Producten",
-            "desc": "Wat ga je verkopen en hoe komt het bij de klant?",
+            "title": "Fase 3: Het Aanbod", # Naam gewijzigd van 'Producten'
+            "desc": "Een product is nog geen business. Hier maak je er een onweerstaanbare deal van.",
             "steps": [
                 {
                     "id": "step_supplier", "title": "Leverancier Koppelen", "icon": "", "locked": False,
                     "content": "TOOL_SUPPLIER_HUB", "xp_reward": 100,
-                    "teaser": "Gebruik onze gratis Private Agent voor snelle levertijden (5-8 dagen)."
                 },
                 {
-                    "id": "step_pricing", "title": "Verkoopprijs Bepalen", "icon": "", "locked": False,
-                    "content": "TOOL_PROFIT_CALC", "xp_reward": 75,
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/pricing"
+                    "id": "step_sample", "title": "Sample Bestellen (Verplicht)", "icon": "", "locked": False, # NIEUW!
+                    "content": "TEXT_ONLY", "xp_reward": 150,
+                    "text": "Bestel het product ZELF naar je eigen huis. Waarom? 1. Kwaliteitscheck (voorkom refunds). 2. Zelf video's maken met je telefoon. Zonder eigen content ben je kansloos op TikTok."
+                },
+                {
+                    "id": "step_offer", "title": "Onweerstaanbaar Aanbod", "icon": "", "locked": False, # GEWIJZIGD
+                    "content": "TOOL_PROFIT_CALC", "xp_reward": 100,
+                    "text": "Verkoop je alleen een lamp? Saai. Maak een bundel: 'Lamp + Batterijen + E-book'. Bereken hier je marge."
                 }
             ]
         },
         "fase_4": {
-            "title": "Fase 4: Klaar voor Bezoekers",
-            "desc": "Maak je shop betrouwbaar zodat mensen durven te kopen.",
+            "title": "Fase 4: Vertrouwen & Content", # Naam iets aangepast
+            "desc": "Zorg dat je shop er betrouwbaar uitziet en dat alles werkt.",
             "steps": [
                 {
                     "id": "step_about_us", "title": "'Over ons' Pagina", "icon": "", "locked": False, 
                     "content": "TOOL_ABOUT_US", "xp_reward": 100,
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/copywriting"
                 },
                 {
                     "id": "step_reviews", "title": "Reviews Instellen", "icon": "", "locked": False,
                     "content": "TOOL_REVIEWS", "xp_reward": 100,
-                    "teaser": "Genereer eigen reviews, importeer uit China of start met Trustpilot."
                 },
                 {
                     "id": "step_pixels", "title": "Bezoekers Meten (Pixels)", "icon": "", "locked": False,
                     "content": "TOOL_PIXELS", "xp_reward": 125,
-                    "teaser": "Installeer de TikTok & Meta pixel, anders gooi je geld weg."
                 },
                 {
                     "id": "step_email", "title": "Automatische E-mails", "icon": "", "locked": False,
                     "content": "TOOL_EMAIL_GEN", "xp_reward": 150,
-                    "teaser": "Zet automatische mails aan die geld verdienen terwijl je slaapt."
                 }
             ]
         },
         "fase_5": {
-            "title": "Fase 5: Je Eerste Sales",
-            "desc": "Je winkel is klaar. Tijd om bezoekers te trekken en te verkopen.",
+            "title": "Fase 5: Go Live & Traffic",
+            "desc": "De sluizen gaan open. We gaan bezoekers naar je winkel sturen.",
             "steps": [
                 {
                     "id": "step_24h_live", "title": "Launch Checklist", "icon": "", "locked": False,
                     "content": "TOOL_24H_CHECK", "xp_reward": 150,
-                    "teaser": "Je shop is live, wat nu? Check deze lijst om niks te vergeten."
                 },
                 {
-                    "id": "step_winning_prod", "title": "Winnende Producten Kiezen", "icon": "🔥", "locked": True,
+                    "id": "step_content_creation", "title": "Je Eerste Video Maken", "icon": "", "locked": False, # NIEUW!
+                    "content": "TEXT_ONLY", "xp_reward": 150,
+                    "text": "Pak je sample. Film 3 hoeken: 1. Het probleem (donkere kamer). 2. De oplossing (jouw lamp). 3. Het resultaat (sfeer). Dit is je advertentie."
+                },
+                {
+                    "id": "step_winning_prod", "title": "Spy: Wat werkt er nu?", "icon": "", "locked": True,
                     "content": "TOOL_PRODUCT_SPY", "xp_reward": 200,
-                    "teaser": "Gebruik de Spy Tool om bewezen bestsellers te vinden."
                 },
                 {
-                    "id": "step_influencer", "title": "Influencers Benaderen", "icon": "", "locked": False,
+                    "id": "step_influencer", "title": "Influencers (Gratis bereik)", "icon": "", "locked": False,
                     "content": "TOOL_INFLUENCER_OUTREACH", "xp_reward": 100,
-                    "teaser": "Laat AI een bericht schrijven om influencers te benaderen."
                 }
             ]
         },
         "fase_6": {
-            "title": "Fase 6: Dagelijks Beheer",
-            "desc": "De shop staat. Nu begint het echte werk: Testen, Analyseren en Winst pakken.",
+            "title": "Fase 6: Opschalen & Ads",
+            "desc": "De shop staat. Nu begint het echte werk: Data lezen, testen en winst pakken.",
             "steps": [
                 {
                     "id": "step_testing_ads", "title": "Dag 1: Advertenties Starten", "icon": "", "locked": False,
-                    "content": "TEXT_ONLY", "text": "Start met €20-€50 per dag. Test minimaal 3 verschillende video's. Zet alles uit wat na €15 geen 'Winkelwagen toevoeging' heeft.",
+                    "content": "TEXT_ONLY", "text": "Start met €20-€50 per dag. Gebruik de video die je in Fase 5 hebt gemaakt.",
                     "xp_reward": 150
                 },
                 {
-                    "id": "step_analysis", "title": "Dag 3: Resultaten Bekijken", "icon": "", "locked": False,
-                    "content": "TEXT_ONLY", "text": "Kijk naar je CPC (onder €0.50?), CTR (boven 1%?) en ROAS. Slechte cijfers? Nieuwe video's maken. Goede cijfers? Budget verhogen.",
+                    "id": "step_analysis", "title": "Dag 3: Winst of Verlies?", "icon": "", "locked": False,
+                    "content": "TEXT_ONLY", "text": "Kijk naar je CPC (onder €0.50?) en ROAS. Geen sales? 90% kans dat je video (Fase 5) niet boeiend genoeg is. Maak een nieuwe.",
                     "xp_reward": 150
                 },
                 {
                     "id": "step_kill_scale", "title": "Dag 7: Doorgaan of Stoppen?", "icon": "", "locked": False,
-                    "content": "TEXT_ONLY", "text": "Heb je winst? Schaal op (20% budget erbij per dag). Geen winst? Stop met dit product en begin opnieuw met Fase 3.",
+                    "content": "TEXT_ONLY", "text": "Heb je winst? Schaal op (20% budget erbij per dag). Geen winst? Stop met dit product. Ga terug naar Fase 3 (Sample bestellen van nieuw product).",
                     "xp_reward": 200
                 }
             ]
