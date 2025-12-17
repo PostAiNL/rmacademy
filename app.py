@@ -41,13 +41,12 @@ st.set_page_config(
 )
 
 # --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
-# We injecteren het icoon als code, zodat het altijd werkt (ook op mobiel)
 logo_b64 = get_base64_image(logo_path)
 if logo_b64:
     icon_html = f'<link rel="icon" type="image/png" href="data:image/png;base64,{logo_b64}">'
     apple_icon_html = f'<link rel="apple-touch-icon" href="data:image/png;base64,{logo_b64}">'
 else:
-    icon_html = "" # Fallback als logo niet bestaat
+    icon_html = "" 
     apple_icon_html = ""
 
 st.markdown(f"""
@@ -60,7 +59,6 @@ st.markdown(f"""
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
 </head>
 <script>
-    // Forceer favicon update voor hardnekkige browsers
     var link = document.querySelector("link[rel~='icon']");
     if (!link) {{
         link = document.createElement('link');
@@ -71,15 +69,14 @@ st.markdown(f"""
 </script>
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE ---
+# --- 1. CSS ENGINE (GEOPTIMALISEERD VOOR SNELHEID & LOOKS) ---
 st.markdown("""
     <style>
-        /* 1. BELANGRIJK: Icoontjes inladen */
+        /* Import Bootstrap Icons */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
            ANTI-LAAD SCHERM & SNELHEID FIXES
-           (Dit verbergt de wielrenner en de wazigheid)
            ============================================== */
         
         /* Verberg de 'Running Man' / Wielrenner rechtsboven */
@@ -87,6 +84,7 @@ st.markdown("""
             visibility: hidden !important;
             height: 0px !important;
             width: 0px !important;
+            display: none !important;
         }
 
         /* Verberg de gekleurde regenboogbalk bovenaan */
@@ -95,18 +93,20 @@ st.markdown("""
         }
 
         /* CRUCIAAL: Verberg de grijze waas/blur tijdens het laden */
-        [data-testid="stOverlay"] {
+        [data-testid="stOverlay"], .stOverlay {
             display: none !important;
             opacity: 0 !important;
+            pointer-events: none !important;
         }
         
-        /* Zorg dat de header transparant/netjes blijft en niet flikkert */
-        .stApp > header {
+        /* Zorg dat de header transparant blijft */
+        header[data-testid="stHeader"] {
             background-color: transparent !important;
+            z-index: 1 !important;
         }
 
         /* ==============================================
-           2. ALGEMENE CONFIGURATIE
+           ALGEMENE CONFIGURATIE
            ============================================== */
         :root {
             --primary: #2563EB;
@@ -124,26 +124,13 @@ st.markdown("""
 
         .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
-        
-        /* FIX VOOR ONZICHTBARE TEKST */
-        p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small {
-            color: #0F172A !important; 
-        }
-
+        p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small { color: #0F172A !important; }
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           3. HEADER & SIDEBAR FIXES
+           UI ELEMENTEN
            ============================================== */
-        header[data-testid="stHeader"] {
-            background-color: #F8FAFC !important;
-            border-bottom: none !important;
-            pointer-events: auto !important; 
-            height: 60px !important;
-            z-index: 999990 !important;
-        }
-
-        /* De Hamburger Knop (Moet zichtbaar blijven!) */
+        /* De Hamburger Knop */
         button[kind="header"] {
             background-color: #EFF6FF !important; 
             border: 1px solid #DBEAFE !important; 
@@ -157,7 +144,6 @@ st.markdown("""
             align-items: center !important;
             justify-content: center !important;
         }
-        
         button[kind="header"] svg {
             fill: #2563EB !important;
             stroke: #2563EB !important;
@@ -165,7 +151,7 @@ st.markdown("""
             height: 24px !important;
         }
 
-        /* MOBIELE SIDEBAR */
+        /* Mobiele Sidebar Fixes */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
@@ -224,9 +210,7 @@ st.markdown("""
             padding-right: 1rem !important;
         }
 
-        /* ==============================================
-           4. UI ELEMENTEN FIXES
-           ============================================== */
+        /* Inputs & Knoppen */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
@@ -238,15 +222,16 @@ st.markdown("""
             color: #0F172A !important;
             font-weight: 600 !important;
         }
-        button[data-baseweb="tab"] div p { color: #64748B !important; font-weight: 600 !important; }
-        button[data-baseweb="tab"][aria-selected="true"] div p { color: #2563EB !important; }
-        div[data-baseweb="tab-highlight"] { background-color: #2563EB !important; }
-
-/* ==============================================
-           EXPANDER FIX (FASE BALKEN KLEUR)
-           ============================================== */
         
-        /* Dit pakt de balk zelf aan (ongeacht de Streamlit versie) */
+        div.stButton > button[kind="primary"] { background-color: #2563EB !important; border-color: #2563EB !important; color: white !important; }
+        div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
+        div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
+        div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
+        
+        /* Klik effect voor sneller gevoel */
+        div.stButton > button:active { transform: scale(0.98); }
+
+        /* EXPANDER FIX (De Fase Balken Kleur) */
         details > summary {
             background-color: #EFF6FF !important; /* Zachtblauw */
             border: 1px solid #DBEAFE !important; /* Blauw randje */
@@ -256,22 +241,16 @@ st.markdown("""
             color: #0F172A !important;
             transition: all 0.2s ease-in-out;
         }
-
-        /* Hover effect (als je muis erop staat) */
         details > summary:hover {
-            background-color: #DBEAFE !important; /* Iets donkerder blauw */
-            border-color: #2563EB !important;     /* Felblauwe rand */
-            color: #2563EB !important;            /* Tekst wordt blauw */
+            background-color: #DBEAFE !important;
+            border-color: #2563EB !important;
+            color: #2563EB !important;
         }
-
-        /* Zorg dat de tekst in de balk de juiste kleur houdt */
         details > summary p, details > summary span {
             color: inherit !important;
             font-weight: 700 !important;
             font-size: 1.05rem !important;
         }
-
-        /* Verwijder standaard Streamlit styling die in de weg zit */
         .streamlit-expanderHeader {
             background-color: transparent !important;
             border: none !important;
@@ -292,15 +271,6 @@ st.markdown("""
             .stat-grid { gap: 8px; } .stat-value { font-size: 1.1rem; } .stat-icon { font-size: 0.65rem; } .stat-sub { font-size: 0.6rem; }
             .block-container { padding-top: 1.5rem !important; }
         }
-
-        /* BUTTONS */
-        div.stButton > button[kind="primary"] { background-color: #2563EB !important; border-color: #2563EB !important; color: white !important; }
-        div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
-        div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
-        div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
-        
-        /* Klik effect voor knoppen (voelt sneller) */
-        div.stButton > button:active { transform: scale(0.98); }
 
         /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -331,11 +301,8 @@ cookie_manager = stx.CookieManager()
 # Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
-    
     if cookie_email:
-        # HIER DE MELDING: Laat zien dat de app bezig is
         with st.spinner(f"👋 Welkom terug! Automatisch inloggen als {cookie_email}..."):
-            # We geven de gebruiker 0.3 sec om te lezen wat er gebeurt (anders flitst het te snel)
             time.sleep(0.3) 
             auth.login_or_register(cookie_email)
             st.rerun()
@@ -344,10 +311,8 @@ if "user" not in st.session_state:
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     
-    # --- CSS: ULTIEME COMPACTHEID ---
     st.markdown("""
     <style>
-        /* ORANJE KNOP */
         div.stButton > button[kind="primary"] { 
             background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
             border: 1px solid #B45309 !important;
@@ -358,14 +323,12 @@ if "user" not in st.session_state:
             padding-bottom: 0.5rem !important;
             box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
             transition: all 0.2s;
-            margin-top: 0px !important; /* Geen extra marge boven knop */
+            margin-top: 0px !important;
         }
         div.stButton > button[kind="primary"]:hover { 
             transform: scale(1.02);
             box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
         }
-
-        /* DEFAULT (Desktop) */
         .compact-title {
             font-size: 1.8rem !important;
             line-height: 1.2 !important;
@@ -379,49 +342,17 @@ if "user" not in st.session_state:
             line-height: 1.4 !important;
             margin-bottom: 15px !important;
         }
-        
-        /* PADDING BINNEN HET KADER */
         div[data-testid="stVerticalBlockBorderWrapper"] > div {
             padding: 20px !important;
             padding-top: 15px !important;
             padding-bottom: 15px !important;
         }
-
-        /* MOBIEL SPECIFIEK (AGRESSIEF COMPACT) */
         @media only screen and (max-width: 600px) {
-            /* Minder ruimte bovenin de app */
-            .block-container { 
-                padding-top: 1rem !important; 
-                padding-bottom: 1rem !important; 
-            }
-            
-            /* Titel kleiner zodat hij op 2 regels past */
-            .compact-title { 
-                font-size: 1.35rem !important; 
-                margin-bottom: 4px !important; 
-                line-height: 1.2 !important;
-            }
-            
-            /* Subtekst kleiner */
-            .compact-sub { 
-                font-size: 0.85rem !important; 
-                margin-bottom: 8px !important; 
-                line-height: 1.3 !important;
-            }
-            
-            /* Logo kleiner */
-            .logo-text { 
-                font-size: 0.8rem !important; 
-                margin-bottom: 0px !important; 
-            }
-            
-            /* Kader padding strakker */
-            div[data-testid="stVerticalBlockBorderWrapper"] > div { 
-                padding: 12px !important; 
-                padding-top: 10px !important;
-            }
-            
-            /* Ruimte tussen elementen verkleinen */
+            .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+            .compact-title { font-size: 1.35rem !important; margin-bottom: 4px !important; line-height: 1.2 !important; }
+            .compact-sub { font-size: 0.85rem !important; margin-bottom: 8px !important; line-height: 1.3 !important; }
+            .logo-text { font-size: 0.8rem !important; margin-bottom: 0px !important; }
+            div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 12px !important; padding-top: 10px !important; }
             div[data-testid="stExpander"] { margin-bottom: 0px !important; }
             .stTextInput { margin-bottom: 0px !important; }
             div[class*="stGap"] { gap: 0.5rem !important; }
@@ -432,10 +363,7 @@ if "user" not in st.session_state:
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
     
     with col_left:
-        # Logo
         st.markdown("<div class='logo-text' style='font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
-        
-        # Titel & Subtitel
         st.markdown("""
         <h1 class='compact-title'>
             Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
@@ -447,21 +375,14 @@ if "user" not in st.session_state:
         
         with st.container(border=True):
             tab_free, tab_pro = st.tabs(["Nieuw Account", "Inloggen"])
-            
-            # TAB 1: REGISTREREN
             with tab_free:
                 col_name, col_email = st.columns(2)
                 first_name = col_name.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
                 email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
                 password = st.text_input("Wachtwoord verzinnen", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
-                
                 with st.expander("Heb je een vriendencode?"):
                     ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
-                
-                # Minimale witruimte boven knop
                 st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
-                
-                # De knop (Oranje)
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
                     if email and "@" in email and first_name and password:
                         with st.spinner("Account aanmaken..."):
@@ -472,19 +393,14 @@ if "user" not in st.session_state:
                                 st.rerun()
                             elif status == "EXISTS": st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
                             else: st.error("Er ging iets mis met de database.")
-                    else:
-                        st.warning("Vul alle velden in.")
-                
-                # Footer tekstjes (Heel compact)
+                    else: st.warning("Vul alle velden in.")
                 st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.2;'><div style='font-size:0.7rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
                 st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
             
-            # TAB 2: INLOGGEN
             with tab_pro:
                 log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
                 log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
                 st.markdown("<br>", unsafe_allow_html=True)
-                
                 if st.button("Inloggen", type="primary", use_container_width=True):
                     if log_email and log_pass:
                         if db.verify_user(log_email, log_pass):
@@ -496,21 +412,17 @@ if "user" not in st.session_state:
     
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        # De 'USP' box rechts
         raw_html = """
         <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
             <h3 style="margin-top:0; color:#0F172A; font-size:1.1rem; font-weight: 700; margin-bottom: 15px;">Dit krijg je gratis:</h3>
-            
             <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
                 <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
                 <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">De 'Van 0 naar sales' roadmap</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Stap-voor-stap handleiding.</p></div>
             </div>
-            
             <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
                 <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
                 <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Jouw eigen AI coach</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">24/7 hulp bij al je vragen.</p></div>
             </div>
-            
             <div style="display:flex; gap:16px; align-items:center;">
                 <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
                 <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Level-based groei</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Verdien tools door actie te nemen.</p></div>
@@ -520,34 +432,33 @@ if "user" not in st.session_state:
         st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
     st.stop()
 
-# --- 4. INGELOGDE DATA ---
+# --- 4. INGELOGDE DATA (CACHED) ---
 user = st.session_state.user
 is_pro_license = user.get('is_pro', False)
 
-# Haal verse status op
-is_temp_pro = db.check_pro_status_db(user['email'])
-pro_expiry_dt = db.get_pro_expiry_date(user['email'])
+@st.cache_data(ttl=60, show_spinner=False)
+def get_cached_pro_status(email):
+    return db.check_pro_status_db(email), db.get_pro_expiry_date(email)
 
-time_left_str = ""
+is_temp_pro_db, pro_expiry_dt = get_cached_pro_status(user['email'])
+
+time_left_str = None
+is_temp_pro = False 
+
 if pro_expiry_dt:
-    # Huidige tijd in UTC
     now = datetime.now(timezone.utc)
-    
-    # Zorg dat de database datum ook UTC is (timezone aware maken indien nodig)
     if pro_expiry_dt.tzinfo is None:
         pro_expiry_dt = pro_expiry_dt.replace(tzinfo=timezone.utc)
         
     if pro_expiry_dt > now:
         is_temp_pro = True
         diff = pro_expiry_dt - now
-        total_seconds = int(diff.total_seconds())
-        hours = total_seconds // 3600
-        mins = (total_seconds % 3600) // 60
-        time_left_str = f"nog {hours}u {mins}m"
+        hours = diff.seconds // 3600
+        mins = (diff.seconds % 3600) // 60
+        time_left_str = f"{hours}u {mins}m"
     else:
-        is_temp_pro = False # Tijd is op
+        is_temp_pro = False 
 
-# Combineer de licentie status
 is_pro = is_pro_license or is_temp_pro
 
 def calculate_level_data(current_xp):
@@ -592,8 +503,22 @@ with st.sidebar:
     if range_span <= 0: range_span = 1
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
     st.markdown(f"""<div style="background: transparent; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px; border: 1px solid #F1F5F9;"><div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 4px; transition: width 0.5s;"></div></div><div style="text-align:right; font-size:0.7rem; color:#94A3B8; margin-bottom:15px;">{user['xp']} / {next_xp_goal_sidebar} XP</div>""", unsafe_allow_html=True)
-    if is_temp_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#15803D; background:#DCFCE7; padding:8px; border-radius:6px; text-align:center; border:1px solid #BBF7D0;">🌟 <b>PRO Actief:</b> {time_left_str}</div>""", unsafe_allow_html=True)
-    elif not is_pro: st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
+    
+    # --- NIEUW: DE PRO TIMER ---
+    if is_temp_pro and time_left_str:
+        st.markdown(f"""
+        <div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size: 1.2rem;">⏳</span>
+                <div style="line-height:1.1;">
+                    <div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO Tijd over</div>
+                    <div style="font-size: 0.95rem; color: #14532D; font-weight: 800;">{time_left_str}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+    elif not is_pro:
+        st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
     options = ["Dashboard", "Academy", "Producten Zoeken", "Marketing & Design", "Financiën", "Instellingen"]
     icons = ["house-fill", "mortarboard-fill", "search", "palette-fill", "cash-stack", "gear-fill"]
@@ -635,12 +560,10 @@ with st.sidebar:
         </a>
         """, unsafe_allow_html=True)
 
-# --- AANGEPASTE RENDER PRO LOCK - MET GROTERE ACHTERGROND ZODAT HET PAST ---
+# --- AANGEPASTE RENDER PRO LOCK ---
 def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten een oneerlijk voordeel. Daarom is dit afgeschermd."):
     lock_html = f"""
     <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC; min-height: 320px;">
-        
-        <!-- Geblurde achtergrond inhoud (GROTER GEMAAKT: 220px hoog totaal) -->
         <div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;">
             <div style="height: 20px; background: #CBD5E1; width: 60%; margin-bottom: 15px; border-radius: 4px;"></div>
             <div style="display:flex; gap:10px; margin-bottom: 10px;">
@@ -650,18 +573,14 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
             <div style="height: 15px; background: #E2E8F0; width: 90%; margin-bottom: 8px; border-radius: 4px;"></div>
             <div style="height: 15px; background: #E2E8F0; width: 80%; border-radius: 4px;"></div>
         </div>
-
-        <!-- Witte Box (Overlay) - GEEN VASTE HOOGTE, MAAR PAST NU IN DE ACHTERGROND -->
         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 400px; z-index: 10;">
             <div style="background: white; padding: 25px; border-radius: 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #E2E8F0;">
                 <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
                 <h3 style="margin: 0 0 8px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3>
                 <p style="font-size: 0.85rem; color: #64748B; margin: 0 0 15px 0; line-height: 1.4;">{desc}</p>
-                
                 <div style="background: #FEF2F2; color: #991B1B; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 15px; border: 1px solid #FECACA; font-weight: 600; line-height: 1.3;">
                     ⚠️ {warning_text}
                 </div>
-
                 <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
                     <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
                         🚀 Unlock via Shop Review Call
@@ -676,7 +595,6 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
 # --- CONTENT PAGES ---
 
 if pg == "Dashboard":
-    # 1. Check Level Up (Ongewijzigd)
     if user['level'] > st.session_state.prev_level:
         st.balloons()
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
@@ -684,23 +602,26 @@ if pg == "Dashboard":
 
     # --- DATABEREKENING VOORAF ---
     if "force_completed" not in st.session_state: st.session_state.force_completed = []
-    db_progress = auth.get_progress()
+    
+    @st.cache_data(ttl=60, show_spinner=False)
+    def get_cached_progress_db(uid):
+        return auth.get_progress()
+
+    db_progress = get_cached_progress_db(user['id'])
     completed_steps = list(set(db_progress + st.session_state.force_completed))
     full_map = roadmap.get_roadmap()
     
-    # Bereken voortgang
     total_steps_count = sum(len(f['steps']) for f in full_map.values())
     done_count = len(completed_steps)
     progress_pct = int((done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
     
-    # Zoek volgende stap
     next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Alles afgerond! 🎉", 0, None, False, "Geniet van je succes."
     for idx, (fase_key, fase) in enumerate(full_map.items()):
         phase_done = True
         for s in fase['steps']:
             if s['id'] not in completed_steps:
                 next_step_title = s['title']
-                next_step_desc = s.get('teaser', 'Voltooi deze stap om verder te groeien.') # Haal teaser op of standaard tekst
+                next_step_desc = s.get('teaser', 'Voltooi deze stap om verder te groeien.') 
                 next_step_phase_index = idx + 1
                 next_step_id = s['id']
                 next_step_locked = s.get('locked', False)
@@ -709,21 +630,21 @@ if pg == "Dashboard":
         if not phase_done: break
         if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
 
-    # 2. Header: Resultaatgericht
+    # 2. Header
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
-    
-    # Header Layout
     c_head, c_prog = st.columns([2, 1], vertical_alignment="bottom")
     with c_head:
         st.markdown(f"<h1 style='margin-bottom: 5px;'>Goedemorgen, {name} 👋</h1>", unsafe_allow_html=True)
-        st.caption(f"🚀 Missie: €15k/maand | 📈 Voortgang: **{progress_pct}%**")
+        if is_temp_pro and time_left_str:
+            st.markdown(f"<span style='background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600; border:1px solid #BBF7D0;'>⚡ PRO ACTIEF: Nog {time_left_str}</span>", unsafe_allow_html=True)
+        else:
+            st.caption(f"🚀 Missie: €15k/maand | 📈 Voortgang: **{progress_pct}%**")
     with c_prog:
-        # Visuele progressie balk (klein)
         st.progress(progress_pct / 100)
 
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-    # 3. Intro Bonus (Alleen zichtbaar bij 0 XP)
+    # 3. Intro Bonus
     if user['xp'] == 0:
         with st.container(border=True):
             col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
@@ -739,7 +660,7 @@ if pg == "Dashboard":
                     time.sleep(0.5)
                     st.rerun()
 
-    # 4. Progress Bar (Boven roadmap)
+    # 4. Progress Bar
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Verkoop", "Schalen", "Beheer"] 
     for i in range(1, 7):
@@ -749,12 +670,11 @@ if pg == "Dashboard":
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
     
-    # 5. Next Step Card (Aanbevolen Focus - UX VERBETERD)
+    # 5. Next Step Card
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
     else:
-        # Hier maken we de tekst en knop actiegerichter
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "🚀 Start Opdracht", "#FBBF24", "#roadmap_start", "_self", "bi-crosshair", next_step_desc, "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
 
     mission_html = f"""
@@ -776,7 +696,7 @@ if pg == "Dashboard":
     </div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
-    # 6. Stats (Kleine update: 'Volgende level' inzichtelijk maken)
+    # 6. Stats
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
     st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog <b>{needed}</b> voor Lvl {user['level']+1}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
@@ -785,7 +705,7 @@ if pg == "Dashboard":
     st.markdown("### 📍 Jouw Roadmap")
     st.caption("Klik op een fase om je taken te bekijken.")
     
-    # 7. OPEN ROADMAP LOOP (Met Focus Mode 🔍 + Vrijheid 🗽)
+    # 7. OPEN ROADMAP LOOP (Met Focus Mode)
     active_phase_idx = next_step_phase_index 
     
     for idx, (fase_key, fase) in enumerate(full_map.items()):
@@ -798,7 +718,7 @@ if pg == "Dashboard":
             phase_label = f"{fase['title']} (Voltooid)"
         elif phase_num == active_phase_idx:
             phase_icon = "📍" 
-            phase_label = f"{fase['title']} (Nu Actief)" # Duidelijkere tekst
+            phase_label = f"{fase['title']} (Nu Actief)" 
         else:
             phase_icon = "📂"
             phase_label = fase['title']
@@ -1061,37 +981,74 @@ elif pg == "Instellingen":
             st.link_button("Email support", "mailto:support@rmecom.nl", use_container_width=True)
     with tab5:
         st.markdown("#### 💡 Jouw mening telt")
-        st.caption("Geef goede feedback en ontvang **éénmalig 24u PRO toegang** gratis!🎁")
-        fb_text = st.text_area("Feedback", placeholder="Ik mis functie X...", height=120, key="fb_settings")
         
-        # HIER STAAT DE KNOP NU VEILIG BINNEN DE TAB
-        if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
-            if len(fb_text) > 10:
-                with st.spinner("Checken..."):
-                    # 1. Valideer en sla op
-                    is_valid = ai_coach.validate_feedback(fb_text)
-                    db.save_feedback(user['email'], fb_text, is_valid)
-                    
-                    if is_valid:
-                        # 2. Claim de reward in de database
-                        status = db.claim_feedback_reward(user['email'])
+        # Check of we in deze sessie al succesvol feedback hebben gegeven
+        if st.session_state.get("feedback_done", False):
+            # --- DE 'LOCKED' / SUCCES STATUS (Groene kaart) ---
+            st.markdown("""
+            <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 20px; text-align: center;">
+                <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
+                <h3 style="color: #166534; margin: 0;">Bedankt voor je feedback!</h3>
+                <p style="color: #15803D; margin-top: 5px;">We hebben je bericht ontvangen en je beloning geactiveerd.</p>
+                <div style="margin-top: 15px; font-size: 0.9rem; color: #16A34A; font-weight: 600;">
+                    Geniet van je 24u PRO toegang! 🚀
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+        else:
+            # --- WINACTIE BANNER (NIEUW) ---
+            st.markdown("""
+            <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
+                <div style="font-size: 30px; background: white; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">🏆</div>
+                <div>
+                    <h4 style="margin: 0; color: #92400E; font-size: 1rem;">Win Lifetime PRO Toegang!</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
+                        Elke maand geven we <b>1x Volledige Cursus + PRO</b> weg aan de beste feedback.
+                        Help ons verbeteren en win!
+                    </p>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # --- HET FORMULIER ---
+            st.caption("Je krijgt sowieso **direct 24u PRO toegang** als dank voor je bericht! 🎁")
+            
+            fb_text = st.text_area("Feedback", placeholder="Ik mis functie X... / Ik vind dit lastig...", height=120, key="fb_settings")
+            
+            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True):
+                if len(fb_text) > 20: 
+                    with st.spinner("Inzenden voor winactie..."):
+                        # 1. Valideer en sla op
+                        is_valid = ai_coach.validate_feedback(fb_text)
+                        db.save_feedback(user['email'], fb_text, is_valid)
                         
-                        if status == "SUCCESS":
-                            st.balloons()
-                            st.success("🎉 PRO Geactiveerd! 24u toegang gestart.")
+                        if is_valid:
+                            # 2. Claim de reward
+                            status = db.claim_feedback_reward(user['email'])
                             
-                            # Update Sessie & Cache
-                            user['is_pro'] = True 
-                            st.session_state.user['is_pro'] = True
-                            st.cache_data.clear()
-                            
-                            time.sleep(2)
-                            st.rerun() 
-                        elif status == "ALREADY_CLAIMED":
-                            st.info("Je hebt deze beloning al eens geclaimd.")
+                            if status == "SUCCESS":
+                                st.balloons()
+                                st.success("🎉 Ontvangen! Je doet mee aan de winactie én je hebt nu 24u PRO.")
+                                
+                                # Update Sessie, Cache EN zet de Feedback Vlag op True
+                                user['is_pro'] = True 
+                                st.session_state.user['is_pro'] = True
+                                st.session_state.feedback_done = True 
+                                st.cache_data.clear()
+                                
+                                time.sleep(2.5)
+                                st.rerun() 
+                                
+                            elif status == "ALREADY_CLAIMED":
+                                st.session_state.feedback_done = True 
+                                st.warning("Je hebt je 24u al gehad, maar je feedback telt mee voor de winactie! 🏆")
+                                time.sleep(3)
+                                st.rerun()
+                                
+                            else: 
+                                st.error("Database fout.")
                         else: 
-                            st.error("Database fout bij activeren PRO.")
-                    else: 
-                        st.warning("Feedback te kort of onduidelijk.")
-            else: 
-                st.warning("Typ minimaal 10 letters.")
+                            st.warning("Feedback te kort of onduidelijk.")
+                else: 
+                    st.warning("Typ minimaal 20 tekens om mee te doen aan de winactie.")
