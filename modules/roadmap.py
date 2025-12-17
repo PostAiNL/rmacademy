@@ -231,7 +231,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
 
         elif step['content'] == "TOOL_KVK_GUIDE":
             st.info("💡 Tip: Maak eerst een afspraak, het is vaak druk bij de KVK!")
-            st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl", use_container_width=True)
+            st.link_button("📅 Ga naar KVK.nl", "https://www.kvk.nl/inschrijven", use_container_width=True)
             if st.checkbox("✅ Ik heb mijn afspraak/inschrijving geregeld"): st.session_state[usage_key] = True
 
         elif step['content'] == "TOOL_NICHE_FINDER":
