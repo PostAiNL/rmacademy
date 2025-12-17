@@ -158,7 +158,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
         border_color = "#E2E8F0"
         bg_color = "#FFFFFF"
     else:
-        badge = "<span style='background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #DBEAFE;'>START</span>"
+        badge = "<span style='background:#EFF6FF; color:#2563EB; padding:4px 10px; border-radius:12px; font-size:0.75rem; font-weight:700; border:1px solid #DBEAFE;'>👇Start hieronder👇</span>"
         border_color = "#2563EB" if expanded else "#E2E8F0"
         bg_color = "#FFFFFF"
 
