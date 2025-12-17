@@ -15,70 +15,277 @@ from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap,
 # --- 0. CONFIGURATIE ---
 STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
 COMMUNITY_URL = "https://discord.com"
+COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
+# Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
 def get_base64_image(image_path):
     try:
-        with open(image_path, "rb") as img_file: return base64.b64encode(img_file.read()).decode()
-    except: return None
+        with open(image_path, "rb") as img_file:
+            return base64.b64encode(img_file.read()).decode()
+    except:
+        return None
 
+# Probeer het logo te laden als PIL image (voor Streamlit config)
 fav_icon = "🚀"
 logo_path = "assets/logo.png"
-try: fav_icon = Image.open(logo_path) 
-except: pass
+try:
+    fav_icon = Image.open(logo_path) 
+except:
+    pass
 
-st.set_page_config(page_title="RM Ecom Academy", page_icon=fav_icon, layout="wide", initial_sidebar_state="auto")
+st.set_page_config(
+    page_title="RM Ecom Academy",
+    page_icon=fav_icon,
+    layout="wide",
+    initial_sidebar_state="auto"
+)
 
+# --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
 logo_b64 = get_base64_image(logo_path)
-icon_html = f'<link rel="icon" type="image/png" href="data:image/png;base64,{logo_b64}">' if logo_b64 else ""
-apple_icon_html = f'<link rel="apple-touch-icon" href="data:image/png;base64,{logo_b64}">' if logo_b64 else ""
+if logo_b64:
+    icon_html = f'<link rel="icon" type="image/png" href="data:image/png;base64,{logo_b64}">'
+    apple_icon_html = f'<link rel="apple-touch-icon" href="data:image/png;base64,{logo_b64}">'
+else:
+    icon_html = "" 
+    apple_icon_html = ""
 
 st.markdown(f"""
-<head>{icon_html}{apple_icon_html}
-<meta name="application-name" content="RM Ecom"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="default"></head>
-<script>var link = document.querySelector("link[rel~='icon']"); if (!link) {{ link = document.createElement('link'); link.rel = 'icon'; document.getElementsByTagName('head')[0].appendChild(link); }} link.href = 'data:image/png;base64,{logo_b64 if logo_b64 else ""}';</script>
+<head>
+    {icon_html}
+    {apple_icon_html}
+    <meta name="application-name" content="RM Ecom">
+    <meta name="apple-mobile-web-app-title" content="RM Ecom">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+</head>
+<script>
+    var link = document.querySelector("link[rel~='icon']");
+    if (!link) {{
+        link = document.createElement('link');
+        link.rel = 'icon';
+        document.getElementsByTagName('head')[0].appendChild(link);
+    }}
+    link.href = 'data:image/png;base64,{logo_b64 if logo_b64 else ""}';
+</script>
 """, unsafe_allow_html=True)
 
-# --- 1. CSS ENGINE ---
+# --- 1. CSS ENGINE (GEOPTIMALISEERD VOOR SNELHEID & LOOKS) ---
 st.markdown("""
     <style>
+        /* Import Bootstrap Icons */
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
-        [data-testid="stStatusWidget"] { visibility: hidden !important; height: 0px !important; width: 0px !important; display: none !important; }
-        [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="stOverlay"], .stOverlay { display: none !important; opacity: 0 !important; pointer-events: none !important; }
-        header[data-testid="stHeader"] { background-color: transparent !important; z-index: 1 !important; }
-        :root { --primary: #2563EB; --bg-light: #F8FAFC; --text-dark: #0F172A; --white: #FFFFFF; --border: #CBD5E1; color-scheme: light !important; }
-        .stApp { background-color: var(--bg-light) !important; color: var(--text-dark) !important; }
+
+        /* ==============================================
+           ANTI-LAAD SCHERM & SNELHEID FIXES
+           ============================================== */
+        
+        /* Verberg de 'Running Man' / Wielrenner rechtsboven */
+        [data-testid="stStatusWidget"] {
+            visibility: hidden !important;
+            height: 0px !important;
+            width: 0px !important;
+            display: none !important;
+        }
+
+        /* Verberg de gekleurde regenboogbalk bovenaan */
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+
+        /* CRUCIAAL: Verberg de grijze waas/blur tijdens het laden */
+        [data-testid="stOverlay"], .stOverlay {
+            display: none !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+        
+        /* Zorg dat de header transparant blijft */
+        header[data-testid="stHeader"] {
+            background-color: transparent !important;
+            z-index: 1 !important;
+        }
+
+        /* ==============================================
+           ALGEMENE CONFIGURATIE
+           ============================================== */
+        :root {
+            --primary: #2563EB;
+            --bg-light: #F8FAFC;
+            --text-dark: #0F172A;
+            --white: #FFFFFF;
+            --border: #CBD5E1;
+            color-scheme: light !important; 
+        }
+
+        .stApp {
+            background-color: var(--bg-light) !important;
+            color: var(--text-dark) !important;
+        }
+
         .bi { margin-right: 6px; vertical-align: -0.125em; }
-        h1, h2, h3 { color: #0F172A !important; } p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small { color: #0F172A !important; }
+        h1, h2, h3 { color: #0F172A !important; }
+        p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small { color: #0F172A !important; }
         * { -webkit-tap-highlight-color: transparent !important; }
-        button[kind="header"] { background-color: #EFF6FF !important; border: 1px solid #DBEAFE !important; border-radius: 8px !important; color: #0F172A !important; opacity: 1 !important; margin-top: 2px !important; height: 40px !important; width: 40px !important; display: flex !important; align-items: center !important; justify-content: center !important; }
-        button[kind="header"] svg { fill: #2563EB !important; stroke: #2563EB !important; width: 24px !important; height: 24px !important; }
-        @media (max-width: 992px) { section[data-testid="stSidebar"] { background-color: #FFFFFF !important; border-right: 1px solid #E2E8F0 !important; } [data-testid="stSidebarCollapseButton"] { background-color: #F1F5F9 !important; border-radius: 50% !important; border: 1px solid #E2E8F0 !important; color: #0F172A !important; width: 36px !important; height: 36px !important; margin-right: 10px !important; margin-top: 10px !important; display: flex !important; align-items: center !important; justify-content: center !important; z-index: 999999 !important; } [data-testid="stSidebarCollapseButton"] svg { fill: #0F172A !important; stroke: #0F172A !important; } [data-testid="stSidebarCollapsedControl"] { color: #0F172A !important; background-color: white !important; display: block !important; z-index: 999999 !important; border: 1px solid #000 !important; } }
-        [data-testid="stHeaderActionElements"] { display: none !important; } #MainMenu { visibility: hidden !important; } footer { visibility: hidden !important; }
-        .block-container { padding-top: 2rem !important; padding-bottom: 5rem !important; max-width: 1000px; }
-        h1 { font-size: 1.8rem !important; font-weight: 800 !important; letter-spacing: 0px !important; color: #0F172A !important; margin-top: 3px !important; padding-top: 0px !important; margin-bottom: 10px !important; }
-        [data-testid="stSidebar"] .block-container { padding-top: 1.5rem !important; padding-left: 1rem !important; padding-right: 1rem !important; }
-        input, textarea, select, .stTextInput > div > div > input { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; -webkit-text-fill-color: #0F172A !important; opacity: 1 !important; }
-        .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p { color: #0F172A !important; font-weight: 600 !important; }
+
+        /* ==============================================
+           UI ELEMENTEN
+           ============================================== */
+        /* De Hamburger Knop */
+        button[kind="header"] {
+            background-color: #EFF6FF !important; 
+            border: 1px solid #DBEAFE !important; 
+            border-radius: 8px !important;
+            color: #0F172A !important;
+            opacity: 1 !important;
+            margin-top: 2px !important;
+            height: 40px !important;
+            width: 40px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        button[kind="header"] svg {
+            fill: #2563EB !important;
+            stroke: #2563EB !important;
+            width: 24px !important;
+            height: 24px !important;
+        }
+
+        /* Mobiele Sidebar Fixes */
+        @media (max-width: 992px) {
+            section[data-testid="stSidebar"] {
+                background-color: #FFFFFF !important;
+                border-right: 1px solid #E2E8F0 !important;
+            }
+            [data-testid="stSidebarCollapseButton"] {
+                background-color: #F1F5F9 !important;
+                border-radius: 50% !important;
+                border: 1px solid #E2E8F0 !important;
+                color: #0F172A !important;
+                width: 36px !important;
+                height: 36px !important;
+                margin-right: 10px !important;
+                margin-top: 10px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                z-index: 999999 !important;
+            }
+            [data-testid="stSidebarCollapseButton"] svg {
+                fill: #0F172A !important;
+                stroke: #0F172A !important;
+            }
+            [data-testid="stSidebarCollapsedControl"] {
+                color: #0F172A !important;
+                background-color: white !important;
+                display: block !important;
+                z-index: 999999 !important;
+                border: 1px solid #000 !important;
+            }
+        }
+        
+        [data-testid="stHeaderActionElements"] { display: none !important; }
+        #MainMenu { visibility: hidden !important; }
+        footer { visibility: hidden !important; }
+
+        .block-container {
+            padding-top: 2rem !important; 
+            padding-bottom: 5rem !important;
+            max-width: 1000px;
+        }
+        
+        h1 { 
+            font-size: 1.8rem !important; 
+            font-weight: 800 !important; 
+            letter-spacing: 0px !important; 
+            color: #0F172A !important; 
+            margin-top: 3px !important; 
+            padding-top: 0px !important;
+            margin-bottom: 10px !important;
+        }
+
+        [data-testid="stSidebar"] .block-container {
+            padding-top: 1.5rem !important; 
+            padding-left: 1rem !important; 
+            padding-right: 1rem !important;
+        }
+
+        /* Inputs & Knoppen */
+        input, textarea, select, .stTextInput > div > div > input {
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: 1px solid #CBD5E1 !important;
+            -webkit-text-fill-color: #0F172A !important;
+            opacity: 1 !important;
+        }
+        .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
+            color: #0F172A !important;
+            font-weight: 600 !important;
+        }
+        
         div.stButton > button[kind="primary"] { background-color: #2563EB !important; border-color: #2563EB !important; color: white !important; }
         div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
         div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
         div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
+        
+        /* Klik effect voor sneller gevoel */
         div.stButton > button:active { transform: scale(0.98); }
-        details > summary { background-color: #EFF6FF !important; border: 1px solid #DBEAFE !important; border-radius: 8px !important; padding-top: 10px !important; padding-bottom: 10px !important; color: #0F172A !important; transition: all 0.2s ease-in-out; }
-        details > summary:hover { background-color: #DBEAFE !important; border-color: #2563EB !important; color: #2563EB !important; }
-        details > summary p, details > summary span { color: inherit !important; font-weight: 700 !important; font-size: 1.05rem !important; }
-        .streamlit-expanderHeader { background-color: transparent !important; border: none !important; }
-        div[data-testid="stVerticalBlockBorderWrapper"] { border-radius: 16px; background: var(--white); border: 1px solid var(--border); padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); }
+
+        /* EXPANDER FIX (De Fase Balken Kleur) */
+        details > summary {
+            background-color: #EFF6FF !important; /* Zachtblauw */
+            border: 1px solid #DBEAFE !important; /* Blauw randje */
+            border-radius: 8px !important;
+            padding-top: 10px !important;
+            padding-bottom: 10px !important;
+            color: #0F172A !important;
+            transition: all 0.2s ease-in-out;
+        }
+        details > summary:hover {
+            background-color: #DBEAFE !important;
+            border-color: #2563EB !important;
+            color: #2563EB !important;
+        }
+        details > summary p, details > summary span {
+            color: inherit !important;
+            font-weight: 700 !important;
+            font-size: 1.05rem !important;
+        }
+        .streamlit-expanderHeader {
+            background-color: transparent !important;
+            border: none !important;
+        }
+
+        /* STATS GRID */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            border-radius: 16px; background: var(--white); border: 1px solid var(--border);
+            padding: 24px; margin-bottom: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        }
         .stat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-bottom: 25px; margin-top: 10px; }
         .stat-card { background: white; border: 1px solid #E2E8F0; border-radius: 12px; padding: 12px 4px; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02); display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .stat-icon { font-size: 0.75rem; color: #64748B; font-weight: 700; text-transform: uppercase; margin-bottom: 4px; white-space: nowrap; }
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #0F172A; line-height: 1.2; }
         .stat-sub { font-size: 0.7rem; color: #94A3B8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
-        @media (max-width: 600px) { .stat-grid { gap: 8px; } .stat-value { font-size: 1.1rem; } .stat-icon { font-size: 0.65rem; } .stat-sub { font-size: 0.6rem; } .block-container { padding-top: 1.5rem !important; } }
+
+        @media (max-width: 600px) {
+            .stat-grid { gap: 8px; } .stat-value { font-size: 1.1rem; } .stat-icon { font-size: 0.65rem; } .stat-sub { font-size: 0.6rem; }
+            .block-container { padding-top: 1.5rem !important; }
+        }
+
+        /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .levelup-overlay { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.9); z-index: 9999; display: flex; flex-direction: column; justify-content: center; align-items: center; animation: popIn 0.5s ease-out forwards; }
-        .levelup-card { background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24; }
+        .levelup-overlay {
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(15, 23, 42, 0.9); z-index: 9999;
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            animation: popIn 0.5s ease-out forwards;
+        }
+        .levelup-card {
+            background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24;
+        }
+        
+        /* VISUAL ROADMAP */
         .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; width: 100%; }
         .progress-line { position: absolute; top: 15px; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; }
         .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
@@ -90,6 +297,8 @@ st.markdown("""
 
 # --- 2. COOKIE MANAGER ---
 cookie_manager = stx.CookieManager()
+
+# Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
     if cookie_email:
@@ -98,66 +307,135 @@ if "user" not in st.session_state:
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# --- 3. LOGIN SCHERM ---
+# --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
-    st.markdown("""<style>
-        div.stButton > button[kind="primary"] { background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important; border: 1px solid #B45309 !important; color: white !important; font-weight: 800 !important; font-size: 1rem !important; padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3); transition: all 0.2s; margin-top: 0px !important; }
-        div.stButton > button[kind="primary"]:hover { transform: scale(1.02); box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4); }
-        .compact-title { font-size: 1.8rem !important; line-height: 1.2 !important; margin-bottom: 5px !important; margin-top: 0px !important; font-weight: 800 !important; }
-        .compact-sub { font-size: 0.95rem !important; color: #64748B !important; line-height: 1.4 !important; margin-bottom: 15px !important; }
-        div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 20px !important; padding-top: 15px !important; padding-bottom: 15px !important; }
-        @media only screen and (max-width: 600px) { .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; } .compact-title { font-size: 1.35rem !important; margin-bottom: 4px !important; line-height: 1.2 !important; } .compact-sub { font-size: 0.85rem !important; margin-bottom: 8px !important; line-height: 1.3 !important; } .logo-text { font-size: 0.8rem !important; margin-bottom: 0px !important; } div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 12px !important; padding-top: 10px !important; } div[data-testid="stExpander"] { margin-bottom: 0px !important; } .stTextInput { margin-bottom: 0px !important; } div[class*="stGap"] { gap: 0.5rem !important; } }
-    </style>""", unsafe_allow_html=True)
+    
+    st.markdown("""
+    <style>
+        div.stButton > button[kind="primary"] { 
+            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
+            border: 1px solid #B45309 !important;
+            color: white !important;
+            font-weight: 800 !important;
+            font-size: 1rem !important;
+            padding-top: 0.5rem !important;
+            padding-bottom: 0.5rem !important;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
+            transition: all 0.2s;
+            margin-top: 0px !important;
+        }
+        div.stButton > button[kind="primary"]:hover { 
+            transform: scale(1.02);
+            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
+        }
+        .compact-title {
+            font-size: 1.8rem !important;
+            line-height: 1.2 !important;
+            margin-bottom: 5px !important;
+            margin-top: 0px !important;
+            font-weight: 800 !important;
+        }
+        .compact-sub {
+            font-size: 0.95rem !important;
+            color: #64748B !important;
+            line-height: 1.4 !important;
+            margin-bottom: 15px !important;
+        }
+        div[data-testid="stVerticalBlockBorderWrapper"] > div {
+            padding: 20px !important;
+            padding-top: 15px !important;
+            padding-bottom: 15px !important;
+        }
+        @media only screen and (max-width: 600px) {
+            .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; }
+            .compact-title { font-size: 1.35rem !important; margin-bottom: 4px !important; line-height: 1.2 !important; }
+            .compact-sub { font-size: 0.85rem !important; margin-bottom: 8px !important; line-height: 1.3 !important; }
+            .logo-text { font-size: 0.8rem !important; margin-bottom: 0px !important; }
+            div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 12px !important; padding-top: 10px !important; }
+            div[data-testid="stExpander"] { margin-bottom: 0px !important; }
+            .stTextInput { margin-bottom: 0px !important; }
+            div[class*="stGap"] { gap: 0.5rem !important; }
+        }
+    </style>
+    """, unsafe_allow_html=True)
     
     col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
+    
     with col_left:
         st.markdown("<div class='logo-text' style='font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
-        st.markdown("""<h1 class='compact-title'>Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.</h1><p class='compact-sub'>De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.</p>""", unsafe_allow_html=True)
+        st.markdown("""
+        <h1 class='compact-title'>
+            Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
+        </h1>
+        <p class='compact-sub'>
+            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
+        </p>
+        """, unsafe_allow_html=True)
+        
         with st.container(border=True):
             tab_free, tab_pro = st.tabs(["Nieuw Account", "Inloggen"])
             with tab_free:
-                c1, c2 = st.columns(2)
-                fn = c1.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
-                em = c2.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
-                pw = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
-                with st.expander("Heb je een vriendencode?"): rc = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
+                col_name, col_email = st.columns(2)
+                first_name = col_name.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
+                email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
+                password = st.text_input("Wachtwoord verzinnen", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
+                with st.expander("Heb je een vriendencode?"):
+                    ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
                 st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
                 if st.button("Start direct (gratis)", type="primary", use_container_width=True):
-                    if em and "@" in em and fn and pw:
+                    if email and "@" in email and first_name and password:
                         with st.spinner("Account aanmaken..."):
-                            status = db.create_user(em, pw, fn)
+                            status = db.create_user(email, password, first_name)
                             if status == "SUCCESS":
-                                auth.login_or_register(em, ref_code_input=rc if rc else None, name_input=fn)
-                                cookie_manager.set("rmecom_user_email", em, expires_at=datetime.now() + timedelta(days=30))
+                                auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
+                                cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
                                 st.rerun()
                             elif status == "EXISTS": st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
                             else: st.error("Er ging iets mis met de database.")
                     else: st.warning("Vul alle velden in.")
                 st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.2;'><div style='font-size:0.7rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
                 st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
+            
             with tab_pro:
-                le = st.text_input("Email", placeholder="Email...", key="log_email_in")
-                lp = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
+                log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
+                log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
                 st.markdown("<br>", unsafe_allow_html=True)
                 if st.button("Inloggen", type="primary", use_container_width=True):
-                    if le and lp:
-                        if db.verify_user(le, lp):
-                            auth.login_or_register(le)
-                            cookie_manager.set("rmecom_user_email", le, expires_at=datetime.now() + timedelta(days=30))
+                    if log_email and log_pass:
+                        if db.verify_user(log_email, log_pass):
+                            auth.login_or_register(log_email)
+                            cookie_manager.set("rmecom_user_email", log_email, expires_at=datetime.now() + timedelta(days=30))
                             st.rerun()
                         else: st.error("Onjuiste gegevens.")
                     else: st.warning("Vul alles in.")
+    
     with col_right:
         st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        st.markdown("""<div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;"><h3 style="margin-top:0; color:#0F172A; font-size:1.1rem; font-weight: 700; margin-bottom: 15px;">Dit krijg je gratis:</h3><div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;"><div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div><div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">De 'Van 0 naar sales' roadmap</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Stap-voor-stap handleiding.</p></div></div><div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;"><div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-robot" style="color:#16A34A;"></i></div><div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Jouw eigen AI coach</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">24/7 hulp bij al je vragen.</p></div></div><div style="display:flex; gap:16px; align-items:center;"><div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div><div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Level-based groei</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Verdien tools door actie te nemen.</p></div></div></div>""", unsafe_allow_html=True)
+        raw_html = """
+        <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
+            <h3 style="margin-top:0; color:#0F172A; font-size:1.1rem; font-weight: 700; margin-bottom: 15px;">Dit krijg je gratis:</h3>
+            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
+                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">De 'Van 0 naar sales' roadmap</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Stap-voor-stap handleiding.</p></div>
+            </div>
+            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
+                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Jouw eigen AI coach</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">24/7 hulp bij al je vragen.</p></div>
+            </div>
+            <div style="display:flex; gap:16px; align-items:center;">
+                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
+                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Level-based groei</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Verdien tools door actie te nemen.</p></div>
+            </div>
+        </div>
+        """
+        st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
     st.stop()
 
-# --- 4. INGELOGDE DATA ---
+# --- 4. INGELOGDE DATA (CACHED) ---
 user = st.session_state.user
 is_pro_license = user.get('is_pro', False)
 
-# Lokaal caching voor DB calls
 @st.cache_data(ttl=300, show_spinner=False)
 def get_cached_pro_status(email):
     return db.check_pro_status_db(email), db.get_pro_expiry_date(email)
@@ -231,8 +509,19 @@ with st.sidebar:
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
     st.markdown(f"""<div style="background: transparent; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px; border: 1px solid #F1F5F9;"><div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 4px; transition: width 0.5s;"></div></div><div style="text-align:right; font-size:0.7rem; color:#94A3B8; margin-bottom:15px;">{user['xp']} / {next_xp_goal_sidebar} XP</div>""", unsafe_allow_html=True)
     
+    # --- NIEUW: DE PRO TIMER ---
     if is_temp_pro and time_left_str:
-        st.markdown(f"""<div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; display: flex; align-items: center; justify-content: space-between;"><div style="display:flex; align-items:center; gap:8px;"><span style="font-size: 1.2rem;">⏳</span><div style="line-height:1.1;"><div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO Tijd over</div><div style="font-size: 0.95rem; color: #14532D; font-weight: 800;">{time_left_str}</div></div></div></div>""", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; display: flex; align-items: center; justify-content: space-between;">
+            <div style="display:flex; align-items:center; gap:8px;">
+                <span style="font-size: 1.2rem;">⏳</span>
+                <div style="line-height:1.1;">
+                    <div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO Tijd over</div>
+                    <div style="font-size: 0.95rem; color: #14532D; font-weight: 800;">{time_left_str}</div>
+                </div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     elif not is_pro:
         st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
@@ -247,19 +536,78 @@ with st.sidebar:
              menu_display_options.append(opt)
 
     selected_display = option_menu(
-        menu_title=None, options=menu_display_options, icons=icons, default_index=st.session_state.nav_index, orientation="vertical",
-        styles={"container": {"padding": "0!important", "background-color": "#FFFFFF"}, "icon": {"color": "#64748B", "font-size": "14px"}, "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "padding": "10px", "--hover-color": "#EFF6FF", "color": "#0F172A"}, "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"}},
+        menu_title=None,
+        options=menu_display_options,
+        icons=icons,
+        default_index=st.session_state.nav_index,
+        orientation="vertical",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#FFFFFF"}, 
+            "icon": {"color": "#64748B", "font-size": "14px"}, 
+            "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "padding": "10px", "--hover-color": "#EFF6FF", "color": "#0F172A"}, 
+            "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"},
+        },
         key="main_sidebar_menu"
     )
+
+    # --- NIEUW: AUTO-CLOSE SIDEBAR OP MOBIEL ---
+    st.markdown("""
+        <script>
+            var width = window.innerWidth;
+            if (width <= 992) {
+                const closeBtn = window.parent.document.querySelector('[data-testid="stSidebarCollapseButton"]');
+                if (closeBtn) {
+                    setTimeout(function() {
+                        closeBtn.click();
+                    }, 150);
+                }
+            }
+        </script>
+    """, unsafe_allow_html=True)
     
     if not is_pro:
-        st.markdown(f"""<a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;"><div style="margin-top: 20px; background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); text-align: center; border: 1px solid #FCD34D;"><div style="font-weight: 800; color: #78350F; font-size: 1.1rem; margin-bottom: 4px;">🚀 UNLOCK ALLES</div><div style="font-size: 0.8rem; color: #92400E; font-weight: 600;">Word Student & Groei</div></div></a>""", unsafe_allow_html=True)
+        st.markdown(f"""
+        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
+            <div style="margin-top: 20px; background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); text-align: center; border: 1px solid #FCD34D;">
+                <div style="font-weight: 800; color: #78350F; font-size: 1.1rem; margin-bottom: 4px;">🚀 UNLOCK ALLES</div>
+                <div style="font-size: 0.8rem; color: #92400E; font-weight: 600;">Word Student & Groei</div>
+            </div>
+        </a>
+        """, unsafe_allow_html=True)
 
 if selected_display: pg = selected_display.replace(" 🔒", "")
 else: pg = "Dashboard"
 
+# --- AANGEPASTE RENDER PRO LOCK ---
 def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten een oneerlijk voordeel. Daarom is dit afgeschermd."):
-    lock_html = f"""<div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC; min-height: 320px;"><div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;"><div style="height: 20px; background: #CBD5E1; width: 60%; margin-bottom: 15px; border-radius: 4px;"></div><div style="display:flex; gap:10px; margin-bottom: 10px;"><div style="height: 150px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div><div style="height: 150px; background: #E2E8F0; width: 70%; border-radius: 8px;"></div></div><div style="height: 15px; background: #E2E8F0; width: 90%; margin-bottom: 8px; border-radius: 4px;"></div><div style="height: 15px; background: #E2E8F0; width: 80%; border-radius: 4px;"></div></div><div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 400px; z-index: 10;"><div style="background: white; padding: 25px; border-radius: 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #E2E8F0;"><div style="font-size: 28px; margin-bottom: 10px;">🔒</div><h3 style="margin: 0 0 8px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3><p style="font-size: 0.85rem; color: #64748B; margin: 0 0 15px 0; line-height: 1.4;">{desc}</p><div style="background: #FEF2F2; color: #991B1B; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 15px; border: 1px solid #FECACA; font-weight: 600; line-height: 1.3;">⚠️ {warning_text}</div><a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;"><div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">🚀 Unlock via Shop Review Call</div></a></div></div></div>"""
+    lock_html = f"""
+    <div style="position: relative; overflow: hidden; border-radius: 12px; border: 1px solid #E2E8F0; margin-top: 20px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); background: #F8FAFC; min-height: 320px;">
+        <div style="filter: blur(5px); opacity: 0.5; padding: 20px; pointer-events: none; user-select: none;">
+            <div style="height: 20px; background: #CBD5E1; width: 60%; margin-bottom: 15px; border-radius: 4px;"></div>
+            <div style="display:flex; gap:10px; margin-bottom: 10px;">
+                <div style="height: 150px; background: #E2E8F0; width: 30%; border-radius: 8px;"></div>
+                <div style="height: 150px; background: #E2E8F0; width: 70%; border-radius: 8px;"></div>
+            </div>
+            <div style="height: 15px; background: #E2E8F0; width: 90%; margin-bottom: 8px; border-radius: 4px;"></div>
+            <div style="height: 15px; background: #E2E8F0; width: 80%; border-radius: 4px;"></div>
+        </div>
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 85%; max-width: 400px; z-index: 10;">
+            <div style="background: white; padding: 25px; border-radius: 16px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.12); border: 1px solid #E2E8F0;">
+                <div style="font-size: 28px; margin-bottom: 10px;">🔒</div>
+                <h3 style="margin: 0 0 8px 0; color: #1E293B; font-size: 1.1rem; font-weight: 700;">{title}</h3>
+                <p style="font-size: 0.85rem; color: #64748B; margin: 0 0 15px 0; line-height: 1.4;">{desc}</p>
+                <div style="background: #FEF2F2; color: #991B1B; padding: 8px; border-radius: 6px; font-size: 0.75rem; margin-bottom: 15px; border: 1px solid #FECACA; font-weight: 600; line-height: 1.3;">
+                    ⚠️ {warning_text}
+                </div>
+                <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
+                    <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
+                        🚀 Unlock via Shop Review Call
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+    """
     st.markdown(lock_html.replace("\n", ""), unsafe_allow_html=True)
 
 # --- CONTENT PAGES ---
@@ -299,7 +647,7 @@ if pg == "Dashboard":
     # GHOST DATA (AAN TE PASSEN NAAR WENS)
     @st.cache_data(ttl=900)
     def get_community_stats():
-        return random.randint(22, 85), random.randint(12, 39) # AANGEPAST: Iets hogere, realistischere cijfers
+        return random.randint(120, 180), random.randint(12, 35) # AANGEPAST: Iets hogere, realistischere cijfers
 
     live_users, sales_today = get_community_stats()
     
