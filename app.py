@@ -714,33 +714,58 @@ if pg == "Dashboard":
     st.markdown("### 📍 Jouw Roadmap")
     st.caption("Je kunt elke stap openen en afronden, ongeacht de volgorde.")
     
-    # 8. OPEN ROADMAP LOOP (Flexibel & Snel)
-    for fase_key, fase in full_map.items():
-        st.markdown(f"#### {fase['title']}")
-        st.caption(fase['desc'])
-        for step in fase['steps']:
-            is_done = step['id'] in completed_steps
+# 8. OPEN ROADMAP LOOP (Met Focus Mode 🔍 + Vrijheid 🗽)
+    
+    # We bepalen welke fase 'actief' is voor de focus, maar blokkeren niets.
+    active_phase_idx = next_step_phase_index 
+    
+    for idx, (fase_key, fase) in enumerate(full_map.items()):
+        phase_num = idx + 1
+        
+        # LOGICA VOOR HET OOG:
+        # 1. Is dit de fase waar we nu zijn? -> Zet hem OPEN en geef een FOCUS icoon.
+        # 2. Is dit al afgerond? -> Geef een GROEN VINKJE.
+        # 3. Is dit toekomst? -> Geef een NEUTRAAL icoon (geen slotje!), en klap hem dicht voor de rust.
+        
+        is_current_phase = (phase_num == active_phase_idx)
+        
+        if phase_num < active_phase_idx:
+            phase_icon = "✅" # Al afgerond
+            phase_label = f"{fase['title']} (Voltooid)"
+        elif phase_num == active_phase_idx:
+            phase_icon = "📍" # Hier ben je
+            phase_label = f"{fase['title']} (Aanbevolen)"
+        else:
+            phase_icon = "📂" # Toekomst (Mapje = openbaar, Slotje = dicht)
+            phase_label = fase['title']
             
-            if is_done:
-                with st.expander(f"✅ {step['title']}", expanded=False): 
-                    st.info("Deze stap heb je al afgerond. Goed bezig!")
-            else:
-                is_recommended = (step['id'] == next_step_id)
-                # We renderen de stap. 'just_completed_id' bevat het ID als er zojuist op de knop is gedrukt.
-                just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
+        # De expander regelt het inklappen. 
+        # expanded=is_current_phase zorgt dat ALLEEN de huidige stap standaard open staat.
+        # Maar de gebruiker kan ALTIJD op de andere klikken om ze te openen.
+        with st.expander(f"{phase_icon} {phase_label}", expanded=is_current_phase):
+            st.caption(fase['desc'])
+            
+            for step in fase['steps']:
+                is_done = step['id'] in completed_steps
                 
-                if just_completed_id:
-                    with st.spinner("Opslaan..."):
-                        # 1. Update Database (Achtergrond)
-                        auth.mark_step_complete(just_completed_id, xp)
-                        
-                        # 2. Update Directe Sessie (Direct resultaat op scherm)
-                        if "force_completed" not in st.session_state: st.session_state.force_completed = []
-                        st.session_state.force_completed.append(just_completed_id)
-                        
-                        st.toast(f"🎉 Lekker bezig! +{xp} XP", icon="🚀") 
-                        # 3. Direct herladen zonder vertraging
-                        st.rerun()
+                if is_done:
+                    # Afgeronde taken tonen we compact
+                    with st.expander(f"✅ {step['title']}", expanded=False): 
+                        st.info("Deze stap heb je al afgerond. Goed bezig!")
+                else:
+                    # Open taken (Altijd aanklikbaar!)
+                    is_recommended = (step['id'] == next_step_id)
+                    just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
+                    
+                    if just_completed_id:
+                        with st.spinner("Opslaan..."):
+                            auth.mark_step_complete(just_completed_id, xp)
+                            
+                            if "force_completed" not in st.session_state: st.session_state.force_completed = []
+                            st.session_state.force_completed.append(just_completed_id)
+                            
+                            st.toast(f"🚀 Lekker bezig! +{xp} XP", icon="🎉") 
+                            st.rerun()
     
     st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
