@@ -78,6 +78,34 @@ st.markdown("""
         @import url("https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css");
 
         /* ==============================================
+           ANTI-LAAD SCHERM & SNELHEID FIXES
+           (Dit verbergt de wielrenner en de wazigheid)
+           ============================================== */
+        
+        /* Verberg de 'Running Man' / Wielrenner rechtsboven */
+        [data-testid="stStatusWidget"] {
+            visibility: hidden !important;
+            height: 0px !important;
+            width: 0px !important;
+        }
+
+        /* Verberg de gekleurde regenboogbalk bovenaan */
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+
+        /* CRUCIAAL: Verberg de grijze waas/blur tijdens het laden */
+        [data-testid="stOverlay"] {
+            display: none !important;
+            opacity: 0 !important;
+        }
+        
+        /* Zorg dat de header transparant/netjes blijft en niet flikkert */
+        .stApp > header {
+            background-color: transparent !important;
+        }
+
+        /* ==============================================
            2. ALGEMENE CONFIGURATIE
            ============================================== */
         :root {
@@ -115,6 +143,7 @@ st.markdown("""
             z-index: 999990 !important;
         }
 
+        /* De Hamburger Knop (Moet zichtbaar blijven!) */
         button[kind="header"] {
             background-color: #EFF6FF !important; 
             border: 1px solid #DBEAFE !important; 
@@ -136,6 +165,7 @@ st.markdown("""
             height: 24px !important;
         }
 
+        /* MOBIELE SIDEBAR */
         @media (max-width: 992px) {
             section[data-testid="stSidebar"] {
                 background-color: #FFFFFF !important;
@@ -168,8 +198,6 @@ st.markdown("""
             }
         }
         
-        [data-testid="stDecoration"] { display: none !important; }
-        [data-testid="stStatusWidget"] { visibility: hidden !important; }
         [data-testid="stHeaderActionElements"] { display: none !important; }
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
@@ -250,6 +278,9 @@ st.markdown("""
         div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
         div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
         div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
+        
+        /* Klik effect voor knoppen (voelt sneller) */
+        div.stButton > button:active { transform: scale(0.98); }
 
         /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -271,13 +302,6 @@ st.markdown("""
         .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1) !important; }
         .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
         .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
-
-        /* ==============================================
-           SNELHEID FIXES (Wazigheid weg)
-           ============================================== */
-        .stApp > header { z-index: 1 !important; }
-        [data-testid="stOverlay"], [data-testid="stDecoration"] { display: none !important; }
-        div.stButton > button:active { transform: scale(0.98); }
     </style>
 """, unsafe_allow_html=True)
 
