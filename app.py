@@ -625,34 +625,59 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
 # --- CONTENT PAGES ---
 
 if pg == "Dashboard":
-    # 1. Check Level Up
+    # 1. Check Level Up (Ongewijzigd)
     if user['level'] > st.session_state.prev_level:
         st.balloons()
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
-    # 2. Header (Clean)
+    # --- DATABEREKENING VOORAF ---
+    if "force_completed" not in st.session_state: st.session_state.force_completed = []
+    db_progress = auth.get_progress()
+    completed_steps = list(set(db_progress + st.session_state.force_completed))
+    full_map = roadmap.get_roadmap()
+    
+    # Bereken voortgang
+    total_steps_count = sum(len(f['steps']) for f in full_map.values())
+    done_count = len(completed_steps)
+    progress_pct = int((done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
+    
+    # Zoek volgende stap
+    next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Alles afgerond! 🎉", 0, None, False, "Geniet van je succes."
+    for idx, (fase_key, fase) in enumerate(full_map.items()):
+        phase_done = True
+        for s in fase['steps']:
+            if s['id'] not in completed_steps:
+                next_step_title = s['title']
+                next_step_desc = s.get('teaser', 'Voltooi deze stap om verder te groeien.') # Haal teaser op of standaard tekst
+                next_step_phase_index = idx + 1
+                next_step_id = s['id']
+                next_step_locked = s.get('locked', False)
+                phase_done = False
+                break
+        if not phase_done: break
+        if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
+
+    # 2. Header: Resultaatgericht
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
-    st.markdown(f"<h1 style='margin-bottom: 5px;'>{get_greeting()}, {name} 👋</h1>", unsafe_allow_html=True)
-    st.caption("Laten we vandaag weer stappen zetten richting die €15k/maand.")
+    
+    # Header Layout
+    c_head, c_prog = st.columns([2, 1], vertical_alignment="bottom")
+    with c_head:
+        st.markdown(f"<h1 style='margin-bottom: 5px;'>Goedemorgen, {name} 👋</h1>", unsafe_allow_html=True)
+        st.caption(f"🚀 Missie: €15k/maand | 📈 Voortgang: **{progress_pct}%**")
+    with c_prog:
+        # Visuele progressie balk (klein)
+        st.progress(progress_pct / 100)
+
     st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
 
-# 3. Intro Bonus (COMPACTE VERSIE)
+    # 3. Intro Bonus (Alleen zichtbaar bij 0 XP)
     if user['xp'] == 0:
-        # We maken een strakke container met een randje
         with st.container(border=True):
             col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
-            
             with col_text:
-                st.markdown("""
-                <div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">
-                    🚀 Nieuw hier? Start je avontuur!
-                </div>
-                <div style="font-size: 0.85rem; color: #64748B;">
-                    Klik op de knop om je eerste punten te verdienen en de roadmap te openen.
-                </div>
-                """, unsafe_allow_html=True)
-            
+                st.markdown("""<div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">🚀 Start hier je avontuur!</div><div style="font-size: 0.85rem; color: #64748B;">Klik op de knop om je eerste punten te verdienen en de roadmap te openen.</div>""", unsafe_allow_html=True)
             with col_btn:
                 if st.button("Claim 50 XP ✨", type="primary", use_container_width=True):
                     auth.mark_step_complete("intro_bonus", 50)
@@ -663,29 +688,7 @@ if pg == "Dashboard":
                     time.sleep(0.5)
                     st.rerun()
 
-    # 4. Roadmap Data Ophalen
-    if "force_completed" not in st.session_state: st.session_state.force_completed = []
-    
-    db_progress = auth.get_progress()
-    # Combineer DB en lokale sessie voor directe feedback (SUPER SNEL)
-    completed_steps = list(set(db_progress + st.session_state.force_completed))
-    
-    full_map = roadmap.get_roadmap()
-    
-    # Bereken wat de "Aanbevolen Volgende Stap" is
-    next_step_title, next_step_phase_index, next_step_id, next_step_locked = "Alles afgerond! 🎉", 0, None, False
-    
-    for idx, (fase_key, fase) in enumerate(full_map.items()):
-        phase_done = True
-        for s in fase['steps']:
-            if s['id'] not in completed_steps:
-                next_step_title, next_step_phase_index, next_step_id, next_step_locked = s['title'], idx + 1, s['id'], s.get('locked', False)
-                phase_done = False
-                break
-        if not phase_done: break
-        if phase_done and idx == len(list(full_map.keys())) - 1: next_step_phase_index = 6 
-
-    # 5. Progress Bar
+    # 4. Progress Bar (Boven roadmap)
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Verkoop", "Schalen", "Beheer"] 
     for i in range(1, 7):
@@ -695,53 +698,60 @@ if pg == "Dashboard":
     
     st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
     
-    # 6. Next Step Card (Aanbevolen Focus)
+    # 5. Next Step Card (Aanbevolen Focus - UX VERBETERD)
     is_step_pro = next_step_locked and not is_pro
     if is_step_pro:
         card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", "linear-gradient(to bottom, #FBBF24, #D97706)", STRATEGY_CALL_URL, "_blank", "bi-lock-fill", "Deze stap is exclusief voor studenten.", "#FFFFFF", "1px solid #F59E0B"
     else:
-        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "Bekijk Stappenplan ➝", "#FBBF24", "#roadmap_start", "_self", "bi-crosshair", "Dit is je aanbevolen volgende stap, maar je bent vrij om te kiezen.", "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
+        # Hier maken we de tekst en knop actiegerichter
+        card_bg, accent_color, btn_text, btn_bg, btn_url, btn_target, card_icon, status_text, title_color, card_border = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "🚀 Start Opdracht", "#FBBF24", "#roadmap_start", "_self", "bi-crosshair", next_step_desc, "#FFFFFF", "1px solid rgba(255,255,255,0.1)"
 
-    mission_html = f"""<div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;"><div style="position: relative; z-index: 2;"><div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> AANBEVOLEN FOCUS</div><div style="margin: 0; font-size: 1.7rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div><p style="margin: 8px 0 24px 0; font-size:0.95rem; opacity:0.9; max-width: 600px; line-height: 1.6; color: #F1F5F9;">{status_text}</p><a href="{btn_url}" target="{btn_target}" style="text-decoration:none;"><div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 28px; border-radius: 8px; font-weight: 800; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">{btn_text}</div></a></div></div>"""
+    mission_html = f"""
+    <div style="background: {card_bg}; padding: 24px; border-radius: 16px; color: white; margin-bottom: 20px; box-shadow: 0 10px 30px -5px rgba(0,0,0,0.4); border: {card_border}; position: relative; overflow: hidden;">
+        <div style="position: relative; z-index: 2;">
+            <div style="display:flex; justify-content:space-between; align-items:start;">
+                <div>
+                    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.9; margin-bottom: 8px; font-weight: 700; color: {accent_color};"><i class="bi {card_icon}"></i> AANBEVOLEN FOCUS</div>
+                    <div style="margin: 0; font-size: 1.6rem; color: {title_color} !important; font-weight: 800; letter-spacing: -0.5px; line-height: 1.2; text-shadow: 0 2px 4px rgba(0,0,0,0.3); margin-bottom: 8px;">{next_step_title}</div>
+                    <p style="margin: 8px 0 20px 0; font-size:0.95rem; opacity:0.9; max-width: 500px; line-height: 1.5; color: #F1F5F9;">{status_text}</p>
+                </div>
+            </div>
+            <a href="{btn_url}" target="{btn_target}" style="text-decoration:none;">
+                <div style="display: inline-block; background: {btn_bg}; color: #78350F; padding: 12px 32px; border-radius: 8px; font-weight: 800; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.1s; border: 1px solid rgba(255,255,255,0.2);">
+                    {btn_text}
+                </div>
+            </a>
+        </div>
+    </div>"""
     st.markdown(mission_html, unsafe_allow_html=True)
     
-    # 7. Stats
+    # 6. Stats (Kleine update: 'Volgende level' inzichtelijk maken)
     needed = next_xp_goal_sidebar - user['xp']
     next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
-    st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog {needed} voor Level 2</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
+    st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon"><i class="bi bi-bar-chart-fill"></i> Level</div><div class="stat-value">{user['level']}</div><div class="stat-sub">{rank_title}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-lightning-fill"></i> XP</div><div class="stat-value">{user['xp']}</div><div class="stat-sub">Nog <b>{needed}</b> voor Lvl {user['level']+1}</div></div><div class="stat-card"><div class="stat-icon"><i class="bi bi-gift-fill"></i> Beloning</div><div class="stat-value" style="font-size: 1.2rem; padding-top:2px;">🎁</div><div class="stat-sub" style="color:#2563EB;">{next_reward}</div></div></div>""", unsafe_allow_html=True)
     
     st.markdown("<div id='roadmap_start' style='height: 0px;'></div>", unsafe_allow_html=True)
     st.markdown("### 📍 Jouw Roadmap")
-    st.caption("Je kunt elke stap openen en afronden, ongeacht de volgorde.")
+    st.caption("Klik op een fase om je taken te bekijken.")
     
-# 8. OPEN ROADMAP LOOP (Met Focus Mode 🔍 + Vrijheid 🗽)
-    
-    # We bepalen welke fase 'actief' is voor de focus, maar blokkeren niets.
+    # 7. OPEN ROADMAP LOOP (Met Focus Mode 🔍 + Vrijheid 🗽)
     active_phase_idx = next_step_phase_index 
     
     for idx, (fase_key, fase) in enumerate(full_map.items()):
         phase_num = idx + 1
         
-        # LOGICA VOOR HET OOG:
-        # 1. Is dit de fase waar we nu zijn? -> Zet hem OPEN en geef een FOCUS icoon.
-        # 2. Is dit al afgerond? -> Geef een GROEN VINKJE.
-        # 3. Is dit toekomst? -> Geef een NEUTRAAL icoon (geen slotje!), en klap hem dicht voor de rust.
-        
         is_current_phase = (phase_num == active_phase_idx)
         
         if phase_num < active_phase_idx:
-            phase_icon = "✅" # Al afgerond
+            phase_icon = "✅" 
             phase_label = f"{fase['title']} (Voltooid)"
         elif phase_num == active_phase_idx:
-            phase_icon = "📍" # Hier ben je
-            phase_label = f"{fase['title']} (Aanbevolen)"
+            phase_icon = "📍" 
+            phase_label = f"{fase['title']} (Nu Actief)" # Duidelijkere tekst
         else:
-            phase_icon = "📂" # Toekomst (Mapje = openbaar, Slotje = dicht)
+            phase_icon = "📂"
             phase_label = fase['title']
             
-        # De expander regelt het inklappen. 
-        # expanded=is_current_phase zorgt dat ALLEEN de huidige stap standaard open staat.
-        # Maar de gebruiker kan ALTIJD op de andere klikken om ze te openen.
         with st.expander(f"{phase_icon} {phase_label}", expanded=is_current_phase):
             st.caption(fase['desc'])
             
@@ -749,21 +759,17 @@ if pg == "Dashboard":
                 is_done = step['id'] in completed_steps
                 
                 if is_done:
-                    # Afgeronde taken tonen we compact
                     with st.expander(f"✅ {step['title']}", expanded=False): 
                         st.info("Deze stap heb je al afgerond. Goed bezig!")
                 else:
-                    # Open taken (Altijd aanklikbaar!)
                     is_recommended = (step['id'] == next_step_id)
                     just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
                     
                     if just_completed_id:
                         with st.spinner("Opslaan..."):
                             auth.mark_step_complete(just_completed_id, xp)
-                            
                             if "force_completed" not in st.session_state: st.session_state.force_completed = []
                             st.session_state.force_completed.append(just_completed_id)
-                            
                             st.toast(f"🚀 Lekker bezig! +{xp} XP", icon="🎉") 
                             st.rerun()
     
