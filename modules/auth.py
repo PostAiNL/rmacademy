@@ -303,7 +303,7 @@ def mark_step_complete(step_id, xp_reward):
             
         supabase.table('users').update(update_data).eq('id', uid).execute()
         st.session_state.user['xp'] = new_xp
-        st.toast(f"✅ Voltooid! +{xp_reward} XP", icon="🔥")
+        #st.toast(f"✅ Voltooid! +{xp_reward} XP", icon="🔥")
              
     except Exception as e:
         print(f"Error marking complete: {e}")
