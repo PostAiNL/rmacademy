@@ -677,7 +677,7 @@ if pg == "Dashboard":
         with st.container(border=True):
             col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
             with col_text:
-                st.markdown("""<div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">🚀 Start hier je avontuur!</div><div style="font-size: 0.85rem; color: #64748B;">Klik op de knop om je eerste punten te verdienen en de roadmap te openen.</div>""", unsafe_allow_html=True)
+                st.markdown("""<div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">Start hier je avontuur!</div><div style="font-size: 0.85rem; color: #64748B;">Klik op de knop om je eerste punten te verdienen en de roadmap te openen.</div>""", unsafe_allow_html=True)
             with col_btn:
                 if st.button("Claim 50 XP ✨", type="primary", use_container_width=True):
                     auth.mark_step_complete("intro_bonus", 50)
