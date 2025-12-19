@@ -601,7 +601,7 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
                 </div>
                 <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
                     <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
-                        🚀 Unlock via Shop Review Call
+                        📞 Plan Gratis Strategie Call
                     </div>
                 </a>
             </div>
@@ -997,7 +997,12 @@ elif pg == "Producten Zoeken":
                                      c2.markdown(f"**{p['title']}**")
                                      c2.caption(f"Prijs: €{p['price']}")
                                      c2.markdown(f"[Bekijk]({p['original_url']})")
-        else: render_pro_lock("Spy tool", "Zie bestsellers van andere shops.", "Zie EXACT hoeveel omzet je concurrent draait. Oneerlijk voordeel.")
+        else: 
+            render_pro_lock(
+                "Spy Tool (Premium)", 
+                "Zie de bestsellers van élke concurrent.", 
+                "Exclusief voor studenten: Zie EXACT hoeveel omzet je concurrent draait. Een oneerlijk voordeel."
+            )
 
 elif pg == "Instellingen":
     st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
