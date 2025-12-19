@@ -644,10 +644,20 @@ if pg == "Dashboard":
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
-    # GHOST DATA
-    @st.cache_data(ttl=900)
+    # GHOST DATA (STABIEL)
     def get_community_stats():
-        return random.randint(120, 180), random.randint(12, 35)
+        # We gebruiken de datum + het uur als 'zaadje'. 
+        # Hierdoor veranderen de cijfers pas als het uur voorbij is.
+        # Dit zorgt voor totale rust bij de gebruiker (geen flikkerende cijfers bij refresh).
+        now = datetime.now()
+        seed = int(now.strftime("%Y%m%d%H")) # Bv: 2023121914 (14u)
+        
+        # Gebruik een geisoleerde random generator
+        rng = random.Random(seed)
+        
+        u_online = rng.randint(120, 185)
+        u_sales = rng.randint(15, 42)
+        return u_online, u_sales
 
     live_users, sales_today = get_community_stats()
     
@@ -684,12 +694,10 @@ if pg == "Dashboard":
         if is_temp_pro and time_left_str:
             st.markdown(f"<span style='background:#DCFCE7; color:#166534; padding:2px 8px; border-radius:4px; font-size:0.8rem; font-weight:600; border:1px solid #BBF7D0;'>⚡ PRO ACTIEF: Nog {time_left_str}</span>", unsafe_allow_html=True)
         else:
-            if us: st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{progress_pct}%**")
+            if us: st.caption(f"🚀 {us.title()}: **{ug}** | 📈 Voortgang: **{progress_pct}%**")
             else: st.caption(f"🚀 Jouw Doel: **{ug}** | 📈 Voortgang: **{progress_pct}%**")
     with c_prog: st.progress(progress_pct / 100)
     
-    # --- COMMUNITY BANNER VERWIJDERD OP VERZOEK ---
-
     # --- NIEUW: DAILY HABIT / FOCUS ---
     daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
     is_daily_done = daily_id in completed_steps
@@ -1045,6 +1053,7 @@ elif pg == "Instellingen":
                 cookie_manager.delete("rmecom_user_email")
                 st.session_state.clear()
                 st.rerun()
+
     with tab2:
         # --- PARTNER / VRIENDEN PAGINA ---
         
@@ -1103,7 +1112,7 @@ elif pg == "Instellingen":
         whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
         
         # Duidelijke beloning tekst
-        st.info("🎁 **Bonus:** Deel de app via Whatsapp hieronder en ontvang direct **+50 XP**!")
+        st.info("🎁 **Bonus:** Klik op een knop hieronder en ontvang direct **+50 XP**!")
 
         col_share_1, col_share_2 = st.columns(2)
         
@@ -1126,6 +1135,7 @@ elif pg == "Instellingen":
             st.write("Jouw unieke vriendencode:")
             st.code(current_ref, language="text")
             st.caption("Vrienden kunnen deze code invullen bij het aanmaken van een account.")
+            
     with tab3:
         with st.container(border=True):
             st.markdown("#### Shopify koppeling")
@@ -1135,6 +1145,7 @@ elif pg == "Instellingen":
                 st.session_state["sh_url"] = sh_url.strip()
                 st.session_state["sh_token"] = sh_token.strip()
                 st.success("Opgeslagen.")
+    
     with tab4:
         # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
         st.markdown("### 🆘 Waar heb je hulp bij nodig?")
@@ -1180,6 +1191,7 @@ elif pg == "Instellingen":
             **Mijn vriendencode werkt niet?**
             Neem even contact op via de mail, dan lossen we het op!
             """)
+    
     with tab5:
         st.markdown("#### 💡 Jouw mening telt")
         
