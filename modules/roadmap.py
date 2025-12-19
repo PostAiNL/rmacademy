@@ -11,12 +11,14 @@ def get_roadmap():
     return {
         "fase_1": {
             "title": "Fase 1: De Fundering", 
-            "desc": "Zonder fundering stort je huis in. Regel eerst de administratie en je strategie.", 
+            "desc": "Zonder fundering stort je huis in. We beginnen met het leuke werk: je idee en je naam.", 
             "steps": [
                 {
-                    "id": "step_kvk", "title": "KVK Nummer Regelen", "icon": "", "locked": False,
-                    "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
-                    "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven"
+                    "id": "onboarding_done", # Deze matcht met de wizard in app.py
+                    "title": "Startschot & Doel", 
+                    "icon": "", "locked": False,
+                    "content": "TEXT_ONLY", "xp_reward": 10,
+                    "text": "✅ Gefeliciteerd! Je hebt je eerste doel gesteld en de knoop doorgehakt om te starten. Dit is vaak de lastigste stap."
                 },
                 {
                     "id": "step_niche", "title": "Wat ga je verkopen?", "icon": "", "locked": False,
@@ -29,12 +31,18 @@ def get_roadmap():
                     "text": "Stop! Voordat je bouwt: Wie gaat dit kopen? Bedenk een naam (bv. 'Linda'), leeftijd en hobby's. Zonder dit wordt adverteren onmogelijk duur."
                 },
                 {
+                    "id": "step_domain", "title": "Domeinnaam Kiezen", "icon": "", "locked": False,
+                    "content": "TOOL_DOMAIN_CHECK", "xp_reward": 50,
+                },
+                {
                     "id": "step_bank", "title": "Zakelijke Rekening", "icon": "", "locked": False,
                     "content": "TOOL_BANK_WIZARD", "xp_reward": 75,
                 },
                 {
-                    "id": "step_domain", "title": "Domeinnaam Kiezen", "icon": "", "locked": False,
-                    "content": "TOOL_DOMAIN_CHECK", "xp_reward": 50,
+                    "id": "step_kvk", "title": "KVK Nummer Regelen", "icon": "", "locked": False,
+                    "content": "TOOL_KVK_GUIDE", "xp_reward": 100, 
+                    "video_url": "https://rmacademy.huddlecommunity.com/module/kvk-inschrijven",
+                    "teaser": "Klaar voor het echie? Tijd om het officieel te maken."
                 }
             ]
         },
