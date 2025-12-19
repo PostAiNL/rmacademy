@@ -530,7 +530,7 @@ with st.sidebar:
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design"]: 
+        if not is_pro and opt in ["Marketing & Design"]: # Producten Zoeken is nu 'gratis' (1x) dus geen slotje in menu
              menu_display_options.append(f"{opt} 🔒")
         else:
              menu_display_options.append(opt)
@@ -644,10 +644,10 @@ if pg == "Dashboard":
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
-    # GHOST DATA (AAN TE PASSEN NAAR WENS)
+    # GHOST DATA
     @st.cache_data(ttl=900)
     def get_community_stats():
-        return random.randint(120, 180), random.randint(12, 35) # AANGEPAST: Iets hogere, realistischere cijfers
+        return random.randint(120, 180), random.randint(12, 35)
 
     live_users, sales_today = get_community_stats()
     
@@ -675,7 +675,6 @@ if pg == "Dashboard":
 
     name = user.get('first_name') or user['email'].split('@')[0].capitalize()
     
-    # Check of we data uit DB hebben of uit sessie
     ug = user_extra.get('income_goal') if user_extra else st.session_state.get('income_goal', '€15k/maand')
     us = user_extra.get('shop_name') if user_extra else st.session_state.get('shop_name', None)
     
@@ -688,22 +687,26 @@ if pg == "Dashboard":
             if us: st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{progress_pct}%**")
             else: st.caption(f"🚀 Jouw Doel: **{ug}** | 📈 Voortgang: **{progress_pct}%**")
     with c_prog: st.progress(progress_pct / 100)
-    st.markdown("<div style='height: 15px;'></div>", unsafe_allow_html=True)
+    
+    # --- COMMUNITY BANNER VERWIJDERD OP VERZOEK ---
 
-    if user['xp'] == 0:
-        # Dit blokje zou eigenlijk niet meer zichtbaar moeten zijn door de wizard, maar als fallback:
-        with st.container(border=True):
-            col_text, col_btn = st.columns([3, 1], gap="medium", vertical_alignment="center")
-            with col_text: st.markdown("""<div style="font-weight: 600; color: #1E40AF; font-size: 1rem;">Start hier je avontuur!</div><div style="font-size: 0.85rem; color: #64748B;">Klik op de knop om je eerste punten te verdienen en de roadmap te openen.</div>""", unsafe_allow_html=True)
-            with col_btn:
-                if st.button("Claim 50 XP ✨", type="primary", use_container_width=True):
-                    auth.mark_step_complete("intro_bonus", 50)
-                    if "force_completed" not in st.session_state: st.session_state.force_completed = []
-                    st.session_state.force_completed.append("intro_bonus")
-                    st.balloons()
-                    st.toast("Gefeliciteerd! Je eerste 50 XP zijn binnen! 🎉", icon="🚀")
-                    time.sleep(0.5)
-                    st.rerun()
+    # --- NIEUW: DAILY HABIT / FOCUS ---
+    daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
+    is_daily_done = daily_id in completed_steps
+
+    st.markdown("### 📅 Jouw Daily Focus")
+    with st.container(border=True):
+        if not is_daily_done:
+            c1, c2 = st.columns([3, 1], vertical_alignment="center")
+            c1.markdown("**Heb je vandaag minstens 15 minuten aan je shop gewerkt?**\n\nConsistentie is de sleutel tot succes.")
+            if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True):
+                auth.mark_step_complete(daily_id, 10)
+                if "force_completed" not in st.session_state: st.session_state.force_completed = []
+                st.session_state.force_completed.append(daily_id)
+                st.balloons()
+                st.rerun()
+        else:
+            st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
 
     html_steps = ""
     labels = ["Start", "Bouwen", "Product", "Verkoop", "Schalen", "Beheer"] 
@@ -779,8 +782,38 @@ elif pg == "Academy":
 
 elif pg == "Financiën":
     st.markdown("<h1><i class='bi bi-cash-stack'></i> Financiën</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["Dagelijkse Winst", "Winst Berekenen"])
+    # TABS: Winst Berekenen EERST (Tab 1), want dat is de 'Tool' voor TikTok
+    tab1, tab2 = st.tabs(["💡 Winst Calculator", "📈 Dagelijkse Stats"])
+    
     with tab1:
+        st.markdown("""
+        <div style="background:#F0FDF4; padding:15px; border-radius:8px; border:1px solid #BBF7D0; margin-bottom:20px; color:#166534;">
+            <b>💰 Gratis Tool:</b> Gebruik dit <u>VOORDAT</u> je geld uitgeeft aan inkoop.
+            Weet zeker dat je product winstgevend is.
+        </div>
+        """, unsafe_allow_html=True)
+        
+        with st.container(border=True):
+            st.markdown("### 🧮 Product Profit Calculator")
+            c1, c2 = st.columns(2)
+            vp = c1.number_input("Verkoopprijs (€)", value=29.95, step=1.0)
+            ip = c1.number_input("Inkoop + Verzenden (€)", value=12.00, step=0.50)
+            cpa = c2.number_input("Verwachte Ads kosten (CPA) (€)", value=10.00, step=0.50, help="Gemiddeld kost een sale €10-€15 aan ads.")
+            
+            tr = vp * 0.03 # Transactiekosten schatting
+            winst = vp - (ip + cpa + tr)
+            marge = (winst / vp * 100) if vp > 0 else 0
+            
+            st.markdown("---")
+            cc1, cc2, cc3 = st.columns(3)
+            cc1.metric("Transactiekosten (est.)", f"€{tr:.2f}")
+            cc2.metric("Netto Winst", f"€{winst:.2f}", delta="Goed bezig" if winst > 5 else "Risicovol", delta_color="normal")
+            cc3.metric("Marge", f"{marge:.1f}%", delta="> 20% is doel" if marge > 20 else "Te laag", delta_color="normal")
+            
+            if winst < 0:
+                st.error("⚠️ Pas op: Je maakt verlies met deze prijzen!")
+
+    with tab2:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nHier zie je in één oogopslag of je vandaag winst of verlies hebt gemaakt. Vul elke ochtend je cijfers in.")
         with st.container(border=True):
             st.markdown("#### 📅 Resultaten van vandaag")
@@ -807,20 +840,6 @@ elif pg == "Financiën":
             st.bar_chart(df, x="date", y="Profit", color="#10B981") 
             with st.expander("Bekijk ruwe data"): st.dataframe(df)
         else: st.info("Nog geen data. Vul hierboven je eerste dag in om de grafieken te zien!")
-    with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nBereken of je product winstgevend is *voordat* je begint met verkopen. Zo voorkom je dat je geld verliest.")
-        with st.container(border=True):
-            c1, c2 = st.columns(2)
-            vp = c1.number_input("Verkoopprijs", value=29.95)
-            ip = c1.number_input("Inkoop + Verzenden", value=12.00)
-            cpa = c2.number_input("Ads kosten (CPA)", value=10.00)
-            tr = vp * 0.03
-            winst = vp - (ip + cpa + tr)
-            marge = (winst / vp * 100) if vp > 0 else 0
-            st.markdown("---")
-            cc1, cc2, cc3 = st.columns(3)
-            cc1.metric("Netto Winst", f"€{winst:.2f}")
-            cc2.metric("Marge", f"{marge:.1f}%")
 
 elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
     st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
@@ -900,39 +919,60 @@ elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
 
 elif pg == "Producten Zoeken":
     st.markdown("<h1><i class='bi bi-search'></i> Producten Zoeken</h1>", unsafe_allow_html=True)
+    
+    # --- DISCLAIMER (EXPERT ADVIES) ---
+    st.warning("⚠️ **Belangrijk:** Deze AI-tool dient ter **inspiratie** en brainstorm. Producttrends veranderen dagelijks. Check altijd zelf op TikTok en AliExpress of een product nu nog steeds goed verkoopt voordat je geld uitgeeft.")
+
     tab1, tab2 = st.tabs(["Winnende Producten", "Concurrenten Check"]) 
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet verkopen? Deze tool zoekt populaire 'winnende' producten voor je uit.")
-        if not is_pro:
-            st.markdown("### 🎁 Gratis Voorbeeld: Huidige Bestseller")
-            with st.container(border=True):
-                st.markdown(f"**🔥 Galaxy Star Projector 2.0**")
-                st.caption("Richtprijs verkoop: €34.95")
-                st.write(f"💡 **Waarom viral:** Visueel spectaculair voor TikTok, lost het probleem op van saaie kamers, hoge marge.")
-                c1, c2 = st.columns(2)
-                c1.link_button("TikTok Voorbeelden", "https://www.tiktok.com/search?q=galaxy+projector", use_container_width=True)
-                c2.link_button("AliExpress Inkoop", "https://www.aliexpress.com/wholesale?SearchText=galaxy+projector", use_container_width=True)
-            st.write("") 
-            render_pro_lock("Ontgrendel alle winnende producten", "Krijg toegang tot de volledige database met dagelijks nieuwe producten.", "Studenten vinden hier producten die €10k/maand draaien.")
-        else:
+        
+        # --- LOGICA: 1 GRATIS SEARCH PER DAG ---
+        if "free_search_used" not in st.session_state:
+            st.session_state.free_search_used = False
+
+        # Als PRO of nog niet gebruikt -> Toon tool
+        if is_pro or not st.session_state.free_search_used:
+            if not is_pro:
+                st.info("🎁 **Cadeautje:** Je mag vandaag 1x gratis de AI zoekmachine gebruiken. Kies je niche slim!")
+            
             with st.container(border=True):
                 col_inp, col_btn = st.columns([3, 1])
                 niche = col_inp.text_input("In welke niche zoek je een product?", "Gadgets")
+                
                 if col_btn.button("Zoek ideeën", type="primary", use_container_width=True):
-                    if not niche: st.warning("Vul een niche in.")
+                    if not niche: 
+                        st.warning("Vul een niche in.")
                     else:
-                        results = ai_coach.find_real_winning_products(niche, "Viral")
-                        if results:
-                            st.markdown(f"**Resultaten voor '{niche}':**")
-                            for p in results:
-                                with st.container(border=True):
-                                    st.markdown(f"### {p.get('title')}")
-                                    st.caption(f"Richtprijs: €{p.get('price')}")
-                                    st.write(f"💡 {p.get('hook')}")
-                                    if p.get('search_links'):
-                                        c1, c2 = st.columns(2)
-                                        c1.link_button("TikTok", p['search_links']['tiktok'], use_container_width=True)
-                                        c2.link_button("AliExpress", p['search_links']['ali'], use_container_width=True)
+                        # Markeer als gebruikt voor niet-pro
+                        if not is_pro:
+                            st.session_state.free_search_used = True
+                        
+                        with st.spinner("AI is het internet aan het afstruinen..."):
+                            results = ai_coach.find_real_winning_products(niche, "Viral")
+                            if results:
+                                st.markdown(f"**Resultaten voor '{niche}':**")
+                                for p in results:
+                                    with st.container(border=True):
+                                        st.markdown(f"### {p.get('title')}")
+                                        st.caption(f"Richtprijs: €{p.get('price')}")
+                                        st.write(f"💡 {p.get('hook')}")
+                                        if p.get('search_links'):
+                                            c1, c2 = st.columns(2)
+                                            c1.link_button("Check op TikTok", p['search_links']['tiktok'], use_container_width=True)
+                                            c2.link_button("Check op AliExpress", p['search_links']['ali'], use_container_width=True)
+                        
+                        # Als het de gratis beurt was, herlaad pagina na paar seconden om lock te tonen bij volgende actie
+                        if not is_pro:
+                             time.sleep(2)
+                             st.toast("Dat was je gratis zoekopdracht voor vandaag! 🔥", icon="🔒")
+                             time.sleep(2)
+                             st.rerun()
+
+        # Als gebruikt en niet pro -> LOCK
+        else:
+             render_pro_lock("Je dagelijkse gratis zoekopdracht is op", "Krijg onbeperkt toegang tot de product database.", "Studenten vinden hier producten die €10k/maand draaien.")
+
     with tab2:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nSpiek bij de buren! Vul een webshop in van een concurrent en zie direct wat hun best verkopende producten zijn.")
         if is_pro:
@@ -956,21 +996,136 @@ elif pg == "Instellingen":
     tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
     
     with tab1:
+        # --- PROFIEL PAGINA (PLAYER CARD STYLE) ---
+        st.markdown("### 👤 Jouw Profiel")
+        
         with st.container(border=True):
-            display_name = user.get('first_name') or user['email'].split('@')[0].capitalize()
-            letter = display_name[0].upper()
-            st.markdown(f"""<div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;"><div style="width:60px; height:60px; background:#EFF6FF; border-radius:50%; display:flex; justify-content:center; align-items:center; font-size:24px; color:#2563EB; font-weight:bold; border:2px solid #2563EB;">{letter}</div><div><h3 style="margin:0;">{display_name}</h3><p style="margin:0; color:#64748B;">{user['email']}</p><p style="margin:0; font-size:0.8rem; color:#64748B;">Status: {'Student' if is_pro else 'Gast'}</p></div></div>""", unsafe_allow_html=True)
-            if st.button("Uitloggen", use_container_width=True):
+            col_p1, col_p2 = st.columns([1, 3], vertical_alignment="center")
+            
+            with col_p1:
+                # Grote Avatar Letter
+                display_name = user.get('first_name') or "Gast"
+                letter = display_name[0].upper()
+                st.markdown(f"""
+                <div style="width:80px; height:80px; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); 
+                border-radius:50%; display:flex; justify-content:center; align-items:center; 
+                font-size:35px; color:#2563EB; font-weight:800; border:3px solid #BFDBFE; margin: 0 auto;">
+                    {letter}
+                </div>
+                """, unsafe_allow_html=True)
+            
+            with col_p2:
+                # Naam & Status Badge
+                user_status = "Student 🎓" if is_pro else "Gast 👤"
+                status_color = "#DCFCE7" if is_pro else "#F1F5F9"
+                status_text_color = "#166534" if is_pro else "#64748B"
+                
+                st.markdown(f"""
+                <h3 style="margin:0; padding:0;">{display_name}</h3>
+                <div style="margin-top:5px; margin-bottom:10px;">
+                    <span style="background:{status_color}; color:{status_text_color}; padding: 4px 10px; border-radius:15px; font-size:0.8rem; font-weight:700; border: 1px solid rgba(0,0,0,0.05);">
+                        {user_status}
+                    </span>
+                    <span style="color:#94A3B8; font-size:0.9rem; margin-left:10px;">{user['email']}</span>
+                </div>
+                """, unsafe_allow_html=True)
+
+            # Voortgangsbalkje in profiel
+            st.markdown("---")
+            c_lvl, c_xp = st.columns([1, 4], vertical_alignment="bottom")
+            c_lvl.markdown(f"**Lvl {user['level']}**")
+            # Herbereken percentage voor visualisatie
+            range_span = next_xp_goal_sidebar - prev_threshold
+            xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0)
+            c_xp.progress(xp_pct)
+            c_xp.caption(f"Nog {next_xp_goal_sidebar - user['xp']} XP tot volgende level")
+
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🚪 Uitloggen", use_container_width=True):
                 cookie_manager.delete("rmecom_user_email")
                 st.session_state.clear()
                 st.rerun()
     with tab2:
+        # --- PARTNER / VRIENDEN PAGINA ---
+        
+        # 1. De Header
+        st.markdown("""
+        <div style="text-align:center; margin-bottom: 20px;">
+            <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per vriend</h2>
+            <p style="color:#64748B;">Help anderen starten met e-commerce en wordt zelf beloond.</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 2. De Stats
         stats = auth.get_affiliate_stats()
-        st.markdown(f"""<div class="stat-grid"><div class="stat-card"><div class="stat-icon">Totaal</div><div class="stat-value">{stats[0]}</div></div><div class="stat-card"><div class="stat-icon">Studenten</div><div class="stat-value">{stats[1]}</div></div><div class="stat-card"><div class="stat-icon">Verdiend</div><div class="stat-value">€{stats[2]}</div></div></div>""", unsafe_allow_html=True)
+        st.markdown(f"""
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
+            <div style="background:#F8FAFC; padding:15px; border-radius:12px; text-align:center; border:1px solid #E2E8F0;">
+                <div style="font-size:0.8rem; font-weight:700; color:#64748B; text-transform:uppercase;">Kliks</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#0F172A;">{stats[0] * 5}</div> 
+            </div>
+            <div style="background:#F0FDF4; padding:15px; border-radius:12px; text-align:center; border:1px solid #BBF7D0;">
+                <div style="font-size:0.8rem; font-weight:700; color:#166534; text-transform:uppercase;">Studenten</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#15803D;">{stats[1]}</div>
+            </div>
+            <div style="background:#FFF7ED; padding:15px; border-radius:12px; text-align:center; border:1px solid #FED7AA;">
+                <div style="font-size:0.8rem; font-weight:700; color:#9A3412; text-transform:uppercase;">Verdiend</div>
+                <div style="font-size:1.4rem; font-weight:800; color:#C2410C;">€{stats[2]}</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 3. Hoe werkt het
         with st.container(border=True):
-            st.markdown("#### Jouw vrienden code")
-            st.caption("Deel deze code met mensen die willen starten.")
-            st.code(user['referral_code'], language="text")
+            st.markdown("#### 🚀 Hoe werkt het?")
+            c1, c2, c3 = st.columns(3)
+            c1.markdown("**1. Deel je link**\nStuur je unieke link naar vrienden die ook willen ondernemen.")
+            c2.markdown("**2. Zij starten**\nZij maken een account aan via jouw link.")
+            c3.markdown("**3. Jij casht**\nWorden ze student? Dan krijg jij direct **€250** gestort.")
+
+        # --- LOGICA VOOR CODE GENERATIE (TEMP FIX) ---
+        # Als de user 'TEMP' heeft, maken we een mooie code op basis van de naam
+        current_ref = user.get('referral_code', 'TEMP')
+        if current_ref == 'TEMP':
+            # Pak eerste 3 letters van naam (of email) + random getal
+            safe_name = user.get('first_name') or user.get('email', 'USER')
+            safe_name = safe_name[:3].upper()
+            # We gebruiken een hash van de email zodat het getal altijd hetzelfde is voor deze user, maar wel 'random' lijkt
+            fake_num = sum(ord(c) for c in user['email']) % 900 + 100
+            current_ref = f"{safe_name}-{fake_num}"
+
+        # 4. Deel Acties
+        st.markdown("### 🔗 Deel direct & Claim XP")
+        
+        # Deel Link maken
+        share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
+        share_text = f"Hee! Ik ben begonnen met mijn eigen webshop via RM Ecom. Gebruik mijn code {current_ref} voor een vliegende start: {share_link}"
+        whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
+        
+        # Duidelijke beloning tekst
+        st.info("🎁 **Bonus:** Deel de app via Whatsapp hieronder en ontvang direct **+50 XP**!")
+
+        col_share_1, col_share_2 = st.columns(2)
+        
+        with col_share_1:
+            st.link_button(f"💚 Deel via WhatsApp", whatsapp_url, use_container_width=True)
+            
+        with col_share_2:
+            if st.button("📋 Link Kopiëren", use_container_width=True):
+                st.toast(f"Link gekopieerd: {share_link}", icon="✅")
+                # XP Beloning toekennen
+                if "share_xp_claimed" not in st.session_state:
+                    auth.mark_step_complete("share_bonus_action", 50)
+                    st.session_state.share_xp_claimed = True
+                    st.balloons()
+                    time.sleep(1)
+                    st.rerun()
+
+        # 5. Handmatige code tonen
+        with st.expander("Toon mijn handmatige code"):
+            st.write("Jouw unieke vriendencode:")
+            st.code(current_ref, language="text")
+            st.caption("Vrienden kunnen deze code invullen bij het aanmaken van een account.")
     with tab3:
         with st.container(border=True):
             st.markdown("#### Shopify koppeling")
@@ -981,10 +1136,50 @@ elif pg == "Instellingen":
                 st.session_state["sh_token"] = sh_token.strip()
                 st.success("Opgeslagen.")
     with tab4:
-        with st.container(border=True):
-            st.markdown("#### Support")
-            st.link_button("Discord community", COMMUNITY_URL, use_container_width=True)
-            st.link_button("Email support", "mailto:support@rmecom.nl", use_container_width=True)
+        # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
+        st.markdown("### 🆘 Waar heb je hulp bij nodig?")
+        st.markdown("Kies de juiste weg voor het snelste antwoord.")
+
+        col_h1, col_h2 = st.columns(2)
+
+        with col_h1:
+            with st.container(border=True):
+                st.markdown("""
+                <div style="text-align:center;">
+                    <div style="font-size:40px; margin-bottom:10px;">💬</div>
+                    <h4 style="margin:0;">Vragen over E-com?</h4>
+                    <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
+                        "Hoe werkt Shopify?", "Is dit product goed?".<br>Vraag het aan 500+ andere studenten.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.link_button("Naar Discord Community", COMMUNITY_URL, type="primary", use_container_width=True)
+
+        with col_h2:
+            with st.container(border=True):
+                st.markdown("""
+                <div style="text-align:center;">
+                    <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
+                    <h4 style="margin:0;">Account Problemen?</h4>
+                    <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
+                        Inloggen lukt niet, wachtwoord vergeten of betalingsvragen.<br>Wij helpen je persoonlijk.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.link_button("Stuur Email", "mailto:support@rmecom.nl", use_container_width=True)
+        
+        st.markdown("<br>", unsafe_allow_html=True)
+        with st.expander("❓ Veelgestelde vragen"):
+            st.markdown("""
+            **Is de app gratis?**
+            Ja, de basis is gratis. Voor geavanceerde tools (Spy Tool, AI content) heb je de cursus nodig.
+            
+            **Hoe krijg ik meer XP?**
+            Voltooi stappen in de Roadmap of gebruik de tools in het dashboard.
+            
+            **Mijn vriendencode werkt niet?**
+            Neem even contact op via de mail, dan lossen we het op!
+            """)
     with tab5:
         st.markdown("#### 💡 Jouw mening telt")
         
