@@ -1,32 +1,30 @@
 import streamlit as st
 import json
+import requests
+import base64
 import warnings
+from openai import OpenAI
 
 warnings.simplefilter("ignore")
 
-try:
-    from openai import OpenAI
-    HAS_OPENAI = True
-except ImportError:
-    HAS_OPENAI = False
-
-client = None
 
 def init_ai():
-    global client
-    if HAS_OPENAI and "OPENAI_API_KEY" in st.secrets:
-        try:
-            client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-        except:
-            client = None
+    """Initialiseert de OpenAI client met de key uit secrets."""
+    if "OPENAI_API_KEY" in st.secrets:
+        return OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    return None
 
 def call_llm(system_prompt, user_prompt, model="gpt-4o-mini", json_mode=False):
-    init_ai()
-    if not HAS_OPENAI or not client: return None
+    """Generieke helper om de LLM aan te roepen."""
+    client = init_ai()
+    if not client: return None
     try:
         kwargs = {
             "model": model, 
-            "messages": [{"role": "system", "content": system_prompt},{"role": "user", "content": user_prompt}], 
+            "messages": [
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ], 
             "temperature": 0.7
         }
         if json_mode: kwargs["response_format"] = { "type": "json_object" }
@@ -34,72 +32,190 @@ def call_llm(system_prompt, user_prompt, model="gpt-4o-mini", json_mode=False):
         return response.choices[0].message.content
     except: return None
 
-# --- NIEUW: FEEDBACK VALIDATOR ---
-def validate_feedback(text):
-    """Checkt of feedback nuttig is."""
-    init_ai()
-    if not HAS_OPENAI or not client: return True 
+# --- NIEUWE UPGRADES: VISION & CFO ---
+
+def get_cfo_advice(revenue, spend, cogs):
+    """De CFO Bot: Analyseert winstgevendheid en geeft direct actie-advies."""
+    profit = revenue - spend - cogs
+    roas = revenue / spend if spend > 0 else 0
     
-    prompt = f"""
-    Beoordeel deze feedback voor een app. Is het serieuze tekst (NL/EN)?
-    Antwoord TRUE als het een echte zin is.
-    Antwoord FALSE als het spam is (zoals 'asdf', 'test', 'bla bla', of te kort).
-    
-    Feedback: "{text}"
+    prompt = f"Omzet: €{revenue}, Ads: €{spend}, Inkoop: €{cogs}, Winst: €{profit}, ROAS: {roas}. Geef 1 kort advies (max 25 woorden) voor groei of besparing."
+    return call_llm("Je bent een agressieve E-com CFO die focust op netto winst.", prompt) or "Blijf je marges bewaken."
+
+def analyze_ad_screenshot(image_file, platform="Facebook", goal="Sales", niche="Algemeen"):
     """
-    res = call_llm("Je bent een spam filter. Antwoord alleen TRUE of FALSE.", prompt)
-    if res and "TRUE" in res.upper(): return True
-    return False
-
-# --- BESTAANDE FUNCTIES (NIET VERWIJDEREN) ---
-def generate_product_description(product_name):
-    prompt = f"Schrijf een AIDA productbeschrijving (NL) voor: {product_name}."
-    return call_llm("Copywriter", prompt) or "AI niet beschikbaar."
-
-def generate_influencer_dm(product_name):
-    prompt = f"Schrijf een casual Instagram DM (NL) om een influencer te benaderen voor: {product_name}."
-    return call_llm("Marketeer", prompt) or "AI niet beschikbaar."
-
-def find_real_winning_products(niche, filter_type="Viral"):
-    init_ai()
-    tiktok_url = f"https://www.tiktok.com/search?q={niche.replace(' ', '+')}+must+have"
-    aliexpress_url = f"https://www.aliexpress.com/wholesale?SearchText={niche.replace(' ', '+')}+gadget"
-    
-    if not HAS_OPENAI or not client: 
-        return [{"title": f"Viral {niche} Concept", "price": 29.95, "hook": "Zoek live met de knoppen hieronder.", "search_links": {"tiktok": tiktok_url, "ali": aliexpress_url}}]
-
-    prompt = f"""
-    Geef 3 'viral-waardige' dropshipping productideeën voor niche: '{niche}'.
-    Output JSON: {{ "suggestions": [ {{"title": "Naam", "price": 29.95, "hook": "Uitleg"}} ] }}
+    AI Vision: Analyseert advertentie screenshots op conversie-punten.
+    Output: JSON structuur voor de UI.
     """
-    res = call_llm("Je bent een E-commerce Product Researcher.", prompt, json_mode=True)
-    results = []
-    if res:
-        try: 
-            data = json.loads(res).get('suggestions', [])
-            for item in data:
-                item["search_links"] = {"tiktok": tiktok_url, "ali": aliexpress_url}
-                results.append(item)
-        except: pass
-    return results
+    client = init_ai()
+    if not client: return None
+    
+    # Encode image naar base64
+    base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+    
+    system_prompt = """
+    Je bent een Senior Media Buyer die miljoenen beheert aan ad spend. Je audit advertenties voor dropshippers.
+    Je toon is: Vriendelijk maar direct en streng. Als een ad slecht is, zeg je het (zodat ze geen geld verspillen).
+    
+    Beoordeel de afbeelding op basis van het gekozen platform:
+    - TikTok: Moet lijken op User Generated Content (UGC), niet te gepolijst, snelle hook.
+    - Facebook/Insta: Duidelijke waardepropositie, leesbare tekst, sterke 'Stop the scroll'.
+    
+    Geef antwoord in puur JSON formaat:
+    {
+        "score": (Getal 1-10, wees streng. 10 is perfectie),
+        "titel": (Korte pakkende titel van je oordeel, bv. "Geldverspilling" of "Winnende Potentie"),
+        "analyse_hook": (Korte tekst over het beeld/aandacht),
+        "analyse_copy": (Korte tekst over de leesbaarheid/aanbod),
+        "verbeterpunten": ["Actiepunt 1", "Actiepunt 2", "Actiepunt 3"]
+    }
+    """
+    
+    user_prompt = f"Platform: {platform}. Doel: {goal}. Niche: {niche}. Analyseer deze creative."
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": [
+                    {"type": "text", "text": user_prompt},
+                    {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{base64_image}"}}
+                ]}
+            ],
+            response_format={ "type": "json_object" },
+            max_tokens=500,
+        )
+        return json.loads(response.choices[0].message.content)
+    except Exception as e: 
+        print(f"Vision Error: {e}")
+        return None
 
-def generate_about_us(brand_name, niche):
-    prompt = f"Schrijf een 'Over Ons' tekst voor webshop '{brand_name}' ({niche}). Max 100 woorden. Betrouwbaar."
-    return call_llm("Je bent een Storytelling Expert.", prompt) or "Fout."
-
-def generate_viral_scripts(product, benefits, platform="TikTok"):
-    prompt = f"""Schrijf een viral {platform} script voor: '{product}'. Output JSON: {{ "hooks": ["..."], "full_script": "...", "creator_brief": "..." }}"""
-    res = call_llm("Je bent een Viral Video Expert.", prompt, json_mode=True)
-    if res:
-        try: return json.loads(res)
-        except: pass
-    return {"hooks": [], "full_script": "", "creator_brief": ""}
+# --- LOGO GENERATIE (CLEAN VECTOR STYLE) ---
 
 def generate_logo(brand_name, niche, style, colors):
-    init_ai()
-    if not HAS_OPENAI or not client: return f"https://placehold.co/1024x1024/2563EB/FFFFFF/png?text={brand_name}"
-    prompt = f"Flat vector logo symbol for '{brand_name}', style {style}, colors {colors}. Minimalist icon on white background."
+    """Genereert een logo met Ideogram (Beter met tekst)."""
+    # Check of de key is ingevuld
+    if "PLAK_HIER" in IDEOGRAM_API_KEY:
+        return f"https://placehold.co/1024x1024/2563EB/FFFFFF/png?text={brand_name}"
+
+    url = "https://api.ideogram.ai/generate"
+
+    # 1. Bepaal de 'Vibe'
+    style_prompt = ""
+    if style == "Minimalistisch":
+        style_prompt = "minimalist, flat line art, apple style, less is more"
+    elif style == "Modern & strak":
+        style_prompt = "modern, tech, geometric, bold sans-serif"
+    elif style == "Vintage":
+        style_prompt = "retro badge, 2d stamp style, classic serif"
+    elif style == "Luxe":
+        style_prompt = "luxury fashion, elegant thin lines, high-end serif"
+    elif style == "Speels":
+        style_prompt = "playful, bold shapes, mascot, vibrant"
+    else:
+        style_prompt = "professional corporate, clean vector"
+
+    # 2. De 'Anti-Mockup' Prompt
+    # We gebruiken termen als 'sticker', 'vector file' en 'white background' om 3D effecten te doden.
+    prompt = (
+        f"A single, isolated, flat vector logo for the brand '{brand_name}'. "
+        f"Strict design requirements: "
+        f"1. NO MOCKUPS. Do not show the logo on a wall, paper, or screen. "
+        f"2. NO 3D EFFECTS. No shadows, no gradients, no realism. Completely flat 2D design. "
+        f"3. LAYOUT: An abstract {niche} icon on top, with the text '{brand_name}' directly below it. "
+        f"4. TYPOGRAPHY: {style_prompt}. Correct spelling is mandatory. "
+        f"5. COLORS: {colors}. Use a solid, pure white background (#FFFFFF). "
+        f"The result must look like an SVG file ready for print."
+    )
+
+    payload = {
+        "image_request": {
+            "prompt": prompt,
+            "aspect_ratio": "ASPECT_1_1",
+            "model": "V_2",
+            "magic_prompt": "AUTO" 
+        }
+    }
+    
+    headers = {
+        "Api-Key": IDEOGRAM_API_KEY,
+        "Content-Type": "application/json"
+    }
+
     try:
-        response = client.images.generate(model="dall-e-3", prompt=prompt, size="1024x1024", quality="standard", n=1)
-        return response.data[0].url
-    except: return None
+        response = requests.post(url, json=payload, headers=headers)
+        
+        if response.status_code == 200:
+            data = response.json()
+            if 'data' in data and len(data['data']) > 0:
+                return data['data'][0]['url']
+        else:
+            print(f"Ideogram Error: {response.text}")
+            
+    except Exception as e:
+        print(f"Fout bij verbinden met Ideogram: {e}")
+
+    # Fallback
+    return f"https://placehold.co/1024x1024/2563EB/FFFFFF/png?text={brand_name}"
+
+# --- TEXT & PRODUCT TOOLS ---
+
+def generate_product_description(product_name):
+    """Schrijft een verkopende AIDA-beschrijving."""
+    return call_llm("Je bent een expert copywriter.", f"Schrijf een conversie-gerichte productbeschrijving (NL) voor: {product_name}. Gebruik bullets.")
+
+def generate_influencer_dm(product_name):
+    """Schrijft een DM script voor influencer outreach."""
+    return call_llm("Marketeer", f"Schrijf een korte, informele DM (NL) voor een influencer samenwerking voor: {product_name}.")
+
+def find_real_winning_products(niche, filter_type="Viral"):
+    """Zoekt viral productideeën met links naar onderzoek."""
+    tiktok_url = f"https://www.tiktok.com/search?q={niche.replace(' ', '+')}+must+have"
+    aliexpress_url = f"https://www.aliexpress.com/wholesale?SearchText={niche.replace(' ', '+')}"
+    
+    prompt = f"Geef 3 viral dropshipping producten voor de niche: {niche}. Output JSON: {{'suggestions': [{{'title': '...', 'hook': '...', 'price': '...'}}]}}"
+    res = call_llm("Product Researcher", prompt, json_mode=True)
+    
+    results = []
+    try:
+        data = json.loads(res).get('suggestions', [])
+        for item in data:
+            item["search_links"] = {"tiktok": tiktok_url, "ali": aliexpress_url}
+            results.append(item)
+    except:
+        results = [{"title": f"{niche} Concept", "hook": "Check de links hieronder.", "price": "29.95", "search_links": {"tiktok": tiktok_url, "ali": aliexpress_url}}]
+    return results
+
+def generate_viral_scripts(product, benefits, platform="TikTok"):
+    """Maakt virale video scripts."""
+    prompt = f"Maak een viral {platform} script voor {product}. Voordelen: {benefits}. Output JSON: {{'hooks': [], 'full_script': '', 'creator_brief': ''}}"
+    res = call_llm("Viral Video Expert", prompt, json_mode=True)
+    try: return json.loads(res)
+    except: return {"hooks": ["Hook 1"], "full_script": "Script...", "creator_brief": "Brief..."}
+
+def validate_feedback(text):
+    """Checkt of feedback serieus is voor beloningen."""
+    res = call_llm("Spam Filter. Antwoord alleen TRUE of FALSE.", f"Is dit serieuze feedback (meer dan 2 woorden): '{text}'?")
+    return "TRUE" in str(res).upper()
+
+def analyze_store_audit(store_data):
+    """
+    Geeft een conversie-audit op basis van gescrapte tekst.
+    """
+    prompt = f"""
+    Je bent een E-commerce Conversion Rate Expert. Beoordeel deze webshop op basis van de tekst.
+    
+    Titel: {store_data['title']}
+    Beschrijving: {store_data['description']}
+    Homepage Tekst: {store_data['content']}
+    
+    Geef een kritisch rapport (Nederlands):
+    1. Geef een cijfer (1-10) voor vertrouwen en duidelijkheid.
+    2. Noem 3 sterke punten.
+    3. Noem 3 kritische fouten of gemiste kansen (bijv. ontbrekende waardepropositie, vage teksten).
+    4. Geef 1 "Golden Tip" om direct meer sales te krijgen.
+    
+    Houd het kort, krachtig en direct. Gebruik emojis.
+    """
+    return call_llm("Senior E-com Audit Specialist", prompt) or "AI Audit mislukt."

@@ -1,7 +1,6 @@
 import streamlit as st
 from supabase import create_client
 from datetime import datetime, timedelta, timezone
-import pytz
 
 # --- INIT SUPABASE ---
 @st.cache_resource
@@ -33,7 +32,7 @@ def create_user(email, password, first_name):
         }
         supabase.table('users').insert(new_user).execute()
         return "SUCCESS"
-    except Exception as e:
+    except:
         return "ERROR"
 
 def verify_user(email, password):
@@ -43,23 +42,24 @@ def verify_user(email, password):
         return len(res.data) > 0
     except: return False
 
-# --- WIZARD & ONBOARDING (NIEUW) ---
-def update_onboarding_data(email, shop_name, income_goal):
-    """Slaat de wizard gegevens permanent op."""
+# --- WIZARD & BRAND IDENTITY ---
+def update_onboarding_data(email, shop_name, income_goal, niche="Algemeen"):
+    """Slaat de wizard gegevens permanent op inclusief niche voor AI Memory."""
     if not supabase: return False
     try:
         supabase.table('users').update({
             "shop_name": shop_name,
-            "income_goal": income_goal
+            "income_goal": income_goal,
+            "niche": niche
         }).eq('email', email).execute()
         return True
     except: return False
 
 def get_user_data(email):
-    """Haalt extra data zoals shop_name op."""
+    """Haalt extra data zoals shop_name en niche op."""
     if not supabase: return {}
     try:
-        res = supabase.table('users').select("shop_name, income_goal").eq('email', email).execute()
+        res = supabase.table('users').select("*").eq('email', email).execute()
         if res.data: return res.data[0]
     except: pass
     return {}
@@ -82,6 +82,7 @@ def check_pro_status_db(email):
     except: return False
 
 def get_pro_expiry_date(email):
+    """Haalt de vervaldatum van de PRO status op. (FIX VOOR CRASH)"""
     if not supabase: return None
     try:
         res = supabase.table('users').select("pro_expiry").eq('email', email).execute()
@@ -125,3 +126,21 @@ def get_daily_stats_history(email):
         res = supabase.table('daily_stats').select("*").eq('user_email', email).order('date', desc=True).limit(7).execute()
         return res.data
     except: return []
+
+def set_user_pro(email):
+    """Zet een gebruiker op PRO status en verlengt met 30 dagen."""
+    if not supabase: return False
+    try:
+        # 1 maand erbij optellen
+        expiry_date = (datetime.now(timezone.utc) + timedelta(days=30)).isoformat()
+        
+        data = {
+            "is_pro": True,
+            "pro_expiry": expiry_date
+        }
+        
+        supabase.table('users').update(data).eq('email', email).execute()
+        return True
+    except Exception as e:
+        print(f"DB Error: {e}")
+        return False
