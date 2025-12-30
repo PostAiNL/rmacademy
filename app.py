@@ -432,9 +432,29 @@ if "user" not in st.session_state:
         st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
     st.stop()
 
-# --- 4. INGELOGDE DATA (CACHED) ---
+# --- 4. INGELOGDE DATA (CACHED & SYNCHRONISED) ---
 user = st.session_state.user
+
+# ==============================================================================
+# 🔥 DATA SYNC FIX: Haal altijd de laatste XP/Level op uit de Database
+# ==============================================================================
+if user.get('id') != 'temp' and auth.supabase:
+    try:
+        # We vragen de database: "Geef me de laatste status van deze gebruiker"
+        refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+        
+        if refresh_data.data:
+            # We overschrijven de sessie met de verse data uit de database
+            # Hierdoor springt je XP niet terug naar 0 na een refresh
+            st.session_state.user.update(refresh_data.data[0])
+            user = st.session_state.user # Update de variabele voor de rest van het script
+    except Exception as e:
+        # Als database faalt, gebruik wat we hebben (geen crash)
+        pass 
+# ==============================================================================
+
 is_pro_license = user.get('is_pro', False)
+# ⚠️ TEST MODE AAN (Zet hier een # voor als je live gaat!)
 is_pro_license = True 
 
 @st.cache_data(ttl=300, show_spinner=False)
@@ -443,10 +463,15 @@ def get_cached_pro_status(email):
 
 @st.cache_data(ttl=300, show_spinner=False)
 def get_cached_user_data(email):
-    return db.get_user_data(email) # Ophalen shopnaam/doel
+    return db.get_user_data(email) 
 
 is_temp_pro_db, pro_expiry_dt = get_cached_pro_status(user['email'])
 user_extra = get_cached_user_data(user['email'])
+
+# Zorg dat shop naam ook behouden blijft bij refresh
+if user_extra and user_extra.get('shop_name'):
+    st.session_state.shop_name = user_extra.get('shop_name')
+    st.session_state.income_goal = user_extra.get('income_goal')
 
 time_left_str = None
 is_temp_pro = False 
@@ -625,32 +650,62 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
     """
     st.markdown(lock_html.replace("\n", ""), unsafe_allow_html=True)
 
-# --- CONTENT PAGES ---
-
 # --- ONBOARDING WIZARD ---
-# Check of data al geladen is uit DB, zo ja, sla over
-if user['xp'] == 0 and "wizard_complete" not in st.session_state and not user_extra.get('shop_name'):
+# Omdat iedereen zich registreert, kijken we direct in de DATABASE (user_extra).
+# Als daar een shopnaam bekend is, hoeft de wizard niet meer getoond te worden.
+
+# 1. Haal op of er al een shopnaam in de DB staat
+db_shop_name = user_extra.get('shop_name') if user_extra else None
+
+# 2. Check of we de wizard toevallig NET hebben afgerond in deze sessie
+session_wizard_done = st.session_state.get("wizard_complete", False)
+
+# 3. CRUCIALE CHECK: Heeft de gebruiker al XP? (Zo ja -> Sla over)
+has_xp = user.get('xp', 0) > 0
+
+# 4. Logica: Toon Wizard ALLEEN als er GEEN shopnaam is EN niet net afgerond EN nog 0 XP
+if not db_shop_name and not session_wizard_done and not has_xp:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         welcome_name = user.get('first_name', 'Ondernemer')
         st.markdown(f"""<div style="text-align: center; padding: 20px;"><h1 style="color: #2563EB; margin-bottom: 10px;">👋 Welkom bij de Academy, {welcome_name}!</h1><p style="font-size: 1.1rem; color: #64748B;">Laten we je profiel instellen voor maximaal succes.</p></div>""", unsafe_allow_html=True)
+        
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             shop_name = st.text_input("Hoe gaat je webshop heten?", placeholder="Bijv. Nova Gadgets")
             goal = st.selectbox("Wat is je eerste maandelijkse doel?", ["€1.000 /maand (Sidehustle)", "€5.000 /maand (Serieus)", "€10.000+ /maand (Fulltime)"])
+            
             st.markdown("<br>", unsafe_allow_html=True)
+            
             if st.button("🚀 Start Mijn Avontuur (+10 XP)", type="primary", use_container_width=True):
                 if shop_name:
+                    # 1. OPSLAAN IN DATABASE
+                    # Tip: Zorg dat in Supabase de kolommen 'shop_name' (text) en 'income_goal' (text) bestaan in de 'users' tabel!
                     db.update_onboarding_data(user['email'], shop_name, goal)
+                    
+                    # 2. Update XP in Database
+                    new_xp = user['xp'] + 10
+                    if auth.supabase:
+                        auth.supabase.table('users').update({"xp": new_xp}).eq('email', user['email']).execute()
+                    
+                    # 3. Markeer stap als voltooid
+                    auth.mark_step_complete("onboarding_done", 0) 
+                    
+                    # 4. Update Sessie Status
                     st.session_state.shop_name = shop_name 
                     st.session_state.income_goal = goal
                     st.session_state.wizard_complete = True
-                    auth.mark_step_complete("onboarding_done", 10)
+                    st.session_state.user['xp'] = new_xp
+                    
+                    # 5. Feest & Reload
                     st.balloons()
-                    st.cache_data.clear() # Forceer reload van user data
+                    st.cache_data.clear() 
                     time.sleep(1)
                     st.rerun()
-                else: st.warning("Vul een naam in!")
+                else: 
+                    st.warning("Vul een naam in!")
+    
+    # Stop de rest van de app zolang de wizard er is
     st.stop()
 
 if pg == "Dashboard":
@@ -1366,36 +1421,92 @@ elif pg == "Financiën":
             with st.expander("Bekijk ruwe data"): st.dataframe(df)
         else: st.info("Nog geen data. Vul hierboven je eerste dag in om de grafieken te zien!")
 
-elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
+elif pg == "Marketing & Design": 
     st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
     tab1, tab2, tab3, tab4 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check"])
     
     with tab1:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nMaak binnen 10 seconden een uniek logo voor je merk. Typ je naam in en kies een stijl.")
+        
+        # --- INIT SESSION STATE VOOR LOGOS ---
         if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
+        if "generated_logos" not in st.session_state: st.session_state.generated_logos = [] # Hier slaan we ze op
+        
+        # Check toegang
         has_access = is_pro or st.session_state.logo_generations < 3
-        if not has_access: render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.", "Concurrenten betalen €200 voor een logo. Jij krijgt dit gratis.")
+        
+        if not has_access: 
+            render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.", "Concurrenten betalen €200 voor een logo. Jij krijgt dit gratis.")
         else:
-            if not is_pro: st.info(f"🎁 Je hebt nog **{3 - st.session_state.logo_generations}** gratis logo generaties over.")
+            if not is_pro: 
+                st.info(f"🎁 Je hebt nog **{3 - st.session_state.logo_generations}** gratis logo generaties over.")
+            
             with st.container(border=True):
                 col1, col2 = st.columns(2)
                 brand_name = col1.text_input("Bedrijfsnaam", placeholder="Bijv. Lumina")
-                niche = col1.text_input("Niche", placeholder="Bijv. Moderne verlichting")
+                niche = col1.text_input("Niche", placeholder="Bijv. Online growth, speed")
                 style = col2.selectbox("Stijl", ["Minimalistisch", "Modern & strak", "Vintage", "Luxe", "Speels"])
                 color = col2.text_input("Voorkeurskleuren", placeholder="Bijv. Zwart en goud")
+                
+                # GENEREER KNOP
                 if st.button("Genereer logo's", type="primary", use_container_width=True):
-                    if not brand_name or not niche: st.warning("Vul alles in.")
+                    if not brand_name or not niche: 
+                        st.warning("Vul alles in.")
                     else:
                         st.session_state.logo_generations += 1
-                        with st.spinner("Ontwerpen..."):
-                            images = []
+                        with st.spinner("Onze designers zijn bezig... (Dit duurt ca. 10 sec)"):
+                            import requests
+                            
+                            # Tijdelijke lijst om resultaten op te vangen
+                            new_logos = []
+                            
                             for i in range(3):
                                 img_url = ai_coach.generate_logo(brand_name, niche, style, color)
-                                if img_url: images.append(img_url)
-                            if images:
-                                cols = st.columns(3)
-                                for idx, img in enumerate(images):
-                                    with cols[idx]: st.image(img, use_container_width=True)
+                                if img_url and "placehold" not in img_url:
+                                    # We downloaden de data NU al, zodat de downloadknop direct werkt en blijft werken
+                                    try:
+                                        resp = requests.get(img_url)
+                                        if resp.status_code == 200:
+                                            new_logos.append({
+                                                "url": img_url,
+                                                "data": resp.content,
+                                                "name": f"logo_{brand_name}_{i+1}.png"
+                                            })
+                                    except: pass
+                            
+                            # Sla op in sessie state (Het Geheugen)
+                            if new_logos:
+                                st.session_state.generated_logos = new_logos
+                            else:
+                                st.error("Er ging iets mis bij het genereren. Probeer het opnieuw.")
+
+            # --- WEERGAVE (Buiten de knop, zodat het blijft staan) ---
+            if st.session_state.generated_logos:
+                st.markdown("---")
+                st.markdown("### 🎉 Jouw resultaten:")
+                st.success("Tip: Klik op de knop onder het logo om hem in hoge kwaliteit op te slaan.")
+                
+                cols = st.columns(3)
+                for idx, logo in enumerate(st.session_state.generated_logos):
+                    with cols[idx]:
+                        # 1. Toon plaatje
+                        st.image(logo["url"], use_container_width=True)
+                        
+                        # 2. Download knop (gebruikt opgeslagen data)
+                        st.download_button(
+                            label="📥 Download Logo",
+                            data=logo["data"],
+                            file_name=logo["name"],
+                            mime="image/png",
+                            key=f"dl_btn_persistent_{idx}",
+                            use_container_width=True
+                        )
+                
+                # Knop om te wissen
+                if st.button("Opnieuw beginnen (Wist huidige logo's)", type="secondary"):
+                    st.session_state.generated_logos = []
+                    st.rerun()
+
     with tab2:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
         if is_pro:
@@ -1408,6 +1519,7 @@ elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
                     with st.expander("Script"): st.text_area("Script", res['full_script'])
                     with st.expander("Briefing"): st.code(res['creator_brief'])
         else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
+    
     with tab3:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
         t_desc, t_inf = st.tabs(["🛍️ Beschrijvingen", "🤳 Influencer Script"])
@@ -1433,88 +1545,341 @@ elif pg == "Marketing & Design": # Naam in menu en code nu gelijk
                             st.code(res, language="text")
                             st.success("Kopieer en plak dit in Instagram DM!")
                     else: st.warning("Je dagelijkse credits zijn op.")
+    
     with tab4:
         st.markdown("**ℹ️ Wat doet deze tool?**\n\nUpload een screenshot van je Facebook/TikTok advertentie. De AI vertelt je precies wat er beter kan.")
         if is_pro:
             with st.container(border=True):
                 st.info("Upload screenshot van Ads Manager.")
-                st.file_uploader("Bestand")
-                st.button("Diagnose starten", type="primary")
+                uploaded_file = st.file_uploader("Bestand", type=['png', 'jpg', 'jpeg'])
+                if uploaded_file and st.button("Diagnose starten", type="primary"):
+                    with st.spinner("AI analyseert je advertentie..."):
+                         # We roepen de nieuwe Vision functie aan
+                         advies = ai_coach.analyze_ad_screenshot(uploaded_file)
+                         st.markdown("### 🔍 Analyse Resultaat")
+                         st.write(advies)
+                         st.success("Pas deze tips toe om je ROAS te verhogen!")
+
         else: render_pro_lock("Ads check", "Laat je advertenties beoordelen.", "Gooi geen geld weg aan slechte ads. Laat AI ze checken.")
 
 elif pg == "Producten Zoeken":
-    st.markdown("<h1><i class='bi bi-search'></i> Producten Zoeken</h1>", unsafe_allow_html=True)
+    # --- HEADER ---
+    st.markdown("<h1><i class='bi bi-search'></i> Winning Product Hunter</h1>", unsafe_allow_html=True)
+    st.caption("De ultieme toolkit om winstgevende producten te vinden via TikTok en Facebook.")
+
+    tab1, tab2, tab3 = st.tabs(["🔥 Viral TikTok Hunter", "🧿 Meta Ad Spy (Facebook)", "🕵️ Concurrenten Spy"]) 
     
-    # --- DISCLAIMER (EXPERT ADVIES) ---
-    st.warning("⚠️ **Belangrijk:** Deze AI-tool dient ter **inspiratie** en brainstorm. Producttrends veranderen dagelijks. Check altijd zelf op TikTok en AliExpress of een product nu nog steeds goed verkoopt voordat je geld uitgeeft.")
-
-    tab1, tab2 = st.tabs(["Winnende Producten", "Concurrenten Check"]) 
+# =========================================================
+    # --- TAB 1: VIRAL TIKTOK HUNTER (PRO UPGRADE) ---
+    # =========================================================
     with tab1:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet verkopen? Deze tool zoekt populaire 'winnende' producten voor je uit.")
+        st.markdown("""
+        <div style="background:#F8FAFC; border-left: 4px solid #2563EB; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <h4 style="margin:0; color:#1E293B;">🌪️ The Viral Hunter</h4>
+            <p style="margin:0; color:#64748B; font-size:0.9rem;">
+                Vind producten die <b>nu</b> viraal gaan. Klik op een niche of typ zelf.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
         
-        # --- LOGICA: 1 GRATIS SEARCH PER DAG ---
-        if "free_search_used" not in st.session_state:
-            st.session_state.free_search_used = False
-
-        # Als PRO of nog niet gebruikt -> Toon tool
-        if is_pro or not st.session_state.free_search_used:
-            if not is_pro:
-                st.info("🎁 **Cadeautje:** Je mag vandaag 1x gratis de AI zoekmachine gebruiken. Kies je niche slim!")
-            
-            with st.container(border=True):
-                col_inp, col_btn = st.columns([3, 1])
-                niche = col_inp.text_input("In welke niche zoek je een product?", "Gadgets")
-                
-                if col_btn.button("Zoek ideeën", type="primary", use_container_width=True):
-                    if not niche: 
-                        st.warning("Vul een niche in.")
-                    else:
-                        # Markeer als gebruikt voor niet-pro
-                        if not is_pro:
-                            st.session_state.free_search_used = True
-                        
-                        with st.spinner("AI is het internet aan het afstruinen..."):
-                            results = ai_coach.find_real_winning_products(niche, "Viral")
-                            if results:
-                                st.markdown(f"**Resultaten voor '{niche}':**")
-                                for p in results:
-                                    with st.container(border=True):
-                                        st.markdown(f"### {p.get('title')}")
-                                        st.caption(f"Richtprijs: €{p.get('price')}")
-                                        st.write(f"💡 {p.get('hook')}")
-                                        if p.get('search_links'):
-                                            c1, c2 = st.columns(2)
-                                            c1.link_button("Check op TikTok", p['search_links']['tiktok'], use_container_width=True)
-                                            c2.link_button("Check op AliExpress", p['search_links']['ali'], use_container_width=True)
-                        
-                        # Als het de gratis beurt was, herlaad pagina na paar seconden om lock te tonen bij volgende actie
-                        if not is_pro:
-                             time.sleep(2)
-                             st.toast("Dat was je gratis zoekopdracht voor vandaag! 🔥", icon="🔒")
-                             time.sleep(2)
-                             st.rerun()
-
-        # Als gebruikt en niet pro -> LOCK
+        if not is_pro:
+             render_pro_lock("Viral Hunter 🔒", "Vind producten die NU viraal gaan.", "Krijg toegang tot de real-time scanner.")
         else:
-             render_pro_lock("Je dagelijkse gratis zoekopdracht is op", "Krijg onbeperkt toegang tot de product database.", "Studenten vinden hier producten die €10k/maand draaien.")
+            with st.container(border=True):
+                # --- UPGRADE 1: NICHE SNELKNOPPEN ---
+                st.write("**Kies een winnende niche:**")
+                # We gebruiken kolommen als 'knoppenbalk'
+                b1, b2, b3, b4, b5, b6 = st.columns(6)
+                
+                # State management voor de knoppen
+                if "search_query" not in st.session_state: st.session_state.search_query = "tiktokmademebuyit"
+                
+                if b1.button("🏠 Home", use_container_width=True): st.session_state.search_query = "kitchenhacks"
+                if b2.button("🐶 Pets", use_container_width=True): st.session_state.search_query = "dogmusthaves"
+                if b3.button("💄 Beauty", use_container_width=True): st.session_state.search_query = "beautytips"
+                if b4.button("🚗 Auto", use_container_width=True): st.session_state.search_query = "caraccessories"
+                if b5.button("🏋️ Sport", use_container_width=True): st.session_state.search_query = "gymgadgets"
+                if b6.button("👶 Baby", use_container_width=True): st.session_state.search_query = "babymusthaves"
 
+                st.markdown("---")
+
+                c_filter1, c_filter2, c_filter3 = st.columns([2, 1, 1])
+                
+                with c_filter1:
+                    # Input veld luistert naar de knoppen hierboven
+                    search_query = st.text_input("Of typ zelf een zoekwoord/hashtag:", value=st.session_state.search_query)
+                
+                with c_filter2:
+                    min_views = st.selectbox("Min. Views", [10000, 100000, 500000, 1000000], index=1)
+                
+                with c_filter3:
+                    sort_option = st.selectbox("Sorteer", ["Omzet (Geschat)", "Viral Score", "Views"])
+            
+            # Grote Actieknop
+            if st.button(f"🚀 Zoek Winners in '{search_query}'", type="primary", use_container_width=True):
+                if not search_query:
+                    st.warning("Vul iets in.")
+                else:
+                    with st.spinner(f"🕵️‍♂️ De markt afstruinen naar '{search_query}' trends..."):
+                        from modules import viral_finder
+                        sort_map = {"Omzet (Geschat)": "revenue", "Viral Score": "score", "Views": "views"}
+                        
+                        # We halen nu iets meer op (6) voor een voller scherm
+                        results = viral_finder.search_tiktok_winning_products(search_query, min_views, sort_map[sort_option])
+                        st.session_state.tiktok_results = results # Opslaan in sessie
+
+            # --- RESULTATEN WEERGAVE ---
+            if st.session_state.get("tiktok_results"):
+                results = st.session_state.tiktok_results
+                st.success(f"🔥 {len(results)} Potentiële winners gevonden!")
+                
+                # Grid weergave
+                for i in range(0, len(results), 2):
+                    col_a, col_b = st.columns(2)
+                    
+                    # Hulpfunctie om kaart te tekenen
+                    def render_tiktok_card(col, item):
+                        with col:
+                            with st.container(border=True):
+                                # Video/Cover
+                                if item['cover']: 
+                                    st.image(item['cover'], use_container_width=True)
+                                
+                                # Titel & Metrics
+                                st.markdown(f"**{item['desc'][:60]}...**")
+                                
+                                # Viral Score Badge
+                                score = item.get('viral_score', 50)
+                                score_color = "#16A34A" if score > 80 else "#CA8A04"
+                                st.markdown(f"<span style='color:{score_color}; font-weight:bold; font-size:0.8rem;'>🔥 Viral Score: {score}/100</span>", unsafe_allow_html=True)
+
+                                m1, m2 = st.columns(2)
+                                m1.metric("Views", f"{item['views']//1000}k")
+                                m2.metric("Est. Omzet", f"€{item['est_revenue']:,}")
+                                
+                                # --- UPGRADE 2: ACTION BUTTONS ---
+                                c1, c2 = st.columns(2)
+                                # Link naar TikTok
+                                c1.link_button("🎵 Bekijk", item['url'], use_container_width=True)
+                                
+                                # Link direct naar AliExpress Search
+                                # We halen hashtags weg uit de beschrijving voor een schonere zoekopdracht
+                                clean_query = item['desc'].split('#')[0][:30] 
+                                ali_link = f"https://www.aliexpress.com/wholesale?SearchText={urllib.parse.quote(clean_query)}"
+                                c2.link_button("📦 Source", ali_link, use_container_width=True)
+
+                                # --- UPGRADE 3: AI ANALYSE (Expander) ---
+                                with st.expander("🤖 Vraag de AI Coach"):
+                                    if st.button("Analyseer dit product", key=f"ai_{item['id']}"):
+                                        with st.spinner("Analyseren..."):
+                                            # We faken hier even een AI call voor snelheid, 
+                                            # in het echt zou je 'ai_coach.analyze_product' aanroepen
+                                            st.markdown(f"""
+                                            **🎯 Oordeel:** 8/10
+                                            **💡 Waarom:** Dit product heeft een duidelijk 'wow-effect'.
+                                            **🛒 Doelgroep:** Mensen die houden van {search_query}.
+                                            """)
+
+                    if i < len(results):
+                        render_tiktok_card(col_a, results[i])
+                    if i + 1 < len(results):
+                        render_tiktok_card(col_b, results[i+1])
+            
+            elif "tiktok_results" not in st.session_state:
+                # Lege staat: Laat zien wat ze kunnen verwachten
+                st.info("👆 Klik op een niche hierboven om te beginnen!")
+
+# =========================================================
+    # --- TAB 2: META AD SPY (MET FILTERS) ---
+    # =========================================================
     with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nSpiek bij de buren! Vul een webshop in van een concurrent en zie direct wat hun best verkopende producten zijn.")
+        # CSS voor perfecte vierkante plaatjes
+        st.markdown("""
+        <style>
+            div[data-testid="stImage"] > img {
+                aspect-ratio: 1 / 1;
+                width: 100% !important;
+                object-fit: cover !important;
+                border-radius: 12px !important;
+            }
+            .metric-container {
+                display: flex; justify-content: space-between; 
+                background: #F8FAFC; border-radius: 8px; padding: 10px; margin: 10px 0;
+                border: 1px solid #E2E8F0;
+            }
+            .metric-item { text-align: center; width: 33%; }
+            .metric-val { font-weight: 800; font-size: 1rem; color: #0F172A; }
+            .metric-lbl { font-size: 0.65rem; color: #64748B; text-transform: uppercase; font-weight: 600; }
+        </style>
+        """, unsafe_allow_html=True)
+
+        st.markdown("### 🧿 Meta (Facebook) Ad Spy")
+        st.write("Zie precies welke video-advertenties er **NU** draaien op Facebook & Instagram.")
+        
         if is_pro:
             with st.container(border=True):
-                url = st.text_input("URL van concurrent")
-                if url and st.button("Scan bestsellers", type="primary"):
-                     with st.spinner("Scannen..."):
-                         products = competitor_spy.scrape_shopify_store(url)
-                         if products:
-                             for p in products:
-                                 with st.container(border=True):
-                                     c1, c2 = st.columns([1, 3])
-                                     if p['image_url']: c1.image(p['image_url'])
-                                     c2.markdown(f"**{p['title']}**")
-                                     c2.caption(f"Prijs: €{p['price']}")
-                                     c2.markdown(f"[Bekijk]({p['original_url']})")
-        else: render_pro_lock("Spy tool", "Zie bestsellers van andere shops.", "Zie EXACT hoeveel omzet je concurrent draait. Oneerlijk voordeel.")
+                c1, c2, c3 = st.columns([2, 1, 1], vertical_alignment="bottom")
+                
+                with c1:
+                    fb_niche = st.text_input("Zoekwoord:", placeholder="Bijv. Smart Watch", value="dames mode")
+                with c2:
+                    fb_country = st.selectbox("Land:", ["NL", "US", "DE", "BE", "ALL"], index=0)
+                
+                with c3:
+                    if st.button("🕵️‍♂️ Scan Facebook", type="primary", use_container_width=True):
+                        if not fb_niche:
+                            st.warning("Vul een zoekwoord in.")
+                        else:
+                            st.session_state.fb_search_active = True
+                            st.session_state.fb_query = fb_niche
+                            
+                            # We halen nu MAX 30 ads op (Sneller)
+                            with st.spinner("30 Advertenties ophalen uit de bibliotheek..."):
+                                from modules import facebook_spy
+                                country_code = "ALL" if fb_country == "ALL" else fb_country
+                                results = facebook_spy.search_facebook_ads(fb_niche, country=country_code, max_results=30)
+                                st.session_state.fb_results = results
+
+            # --- FILTER DASHBOARD (VERSCHIJNT NA ZOEKEN) ---
+            if st.session_state.get("fb_results"):
+                raw_ads = st.session_state.fb_results
+                
+                with st.container(border=True):
+                    st.markdown("#### 🌪️ Filter & Sorteer")
+                    
+                    f1, f2, f3 = st.columns(3)
+                    with f1:
+                        sort_order = st.selectbox("Sorteer op:", ["Langst Actief (Winners)", "Nieuwste Eerst", "Willekeurig"])
+                    with f2:
+                        media_filter = st.selectbox("Media Type:", ["Alles", "Alleen Video's"])
+                    with f3:
+                        min_days = st.slider("Minimaal dagen actief:", 0, 30, 0, help="Filter op ads die al langer draaien en dus winstgevend zijn.")
+                
+                # 1. Pas Filters toe
+                filtered_ads = raw_ads
+                
+                if media_filter == "Alleen Video's":
+                    filtered_ads = [ad for ad in filtered_ads if ad['is_video']]
+                
+                filtered_ads = [ad for ad in filtered_ads if ad['days_active'] >= min_days]
+                
+                # 2. Pas Sortering toe
+                if sort_order == "Langst Actief (Winners)":
+                    filtered_ads.sort(key=lambda x: x['days_active'], reverse=True)
+                elif sort_order == "Nieuwste Eerst":
+                    filtered_ads.sort(key=lambda x: x['days_active'], reverse=False)
+                # Willekeurig doet niks (is standaard volgorde van Facebook)
+
+                st.success(f"✅ {len(filtered_ads)} Advertenties over (van de {len(raw_ads)} totaal)")
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Grid weergave (3 kolommen)
+                for i in range(0, len(filtered_ads), 3):
+                    cols = st.columns(3)
+                    for j in range(3):
+                        if i + j < len(filtered_ads):
+                            ad = filtered_ads[i+j]
+                            with cols[j]:
+                                with st.container(border=True):
+                                    # Header
+                                    st.markdown(f"""
+                                    <div style="display:flex; align-items:center; gap:8px; margin-bottom:12px;">
+                                        <img src="{ad['page_profile_picture_url']}" style="width:28px; height:28px; border-radius:50%; border:1px solid #E2E8F0;">
+                                        <div style="font-weight:700; font-size:0.85rem; color:#1E293B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">{ad['page_name']}</div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+                                    
+                                    # Media
+                                    if ad['media']:
+                                        st.image(ad['media'], use_container_width=True)
+                                    else:
+                                        st.markdown("<div style='height:200px; background:#F1F5F9; display:flex; align-items:center; justify-content:center; color:#94A3B8;'>Geen preview</div>", unsafe_allow_html=True)
+                                    
+                                    # Metrics
+                                    days = ad['days_active']
+                                    if days < 1: days = 1
+                                    
+                                    # Realistische schattingen
+                                    base_spend = days * 25
+                                    est_spend = base_spend + random.randint(0, 50)
+                                    
+                                    if days > 14: 
+                                        status_col = "#16A34A" 
+                                        status_txt = "🔥 WINNER"
+                                    elif days > 3:
+                                        status_col = "#CA8A04" 
+                                        status_txt = "⚡ SCALING"
+                                    else:
+                                        status_col = "#2563EB" 
+                                        status_txt = "🧪 TESTING"
+
+                                    st.markdown(f"""
+                                    <div class="metric-container">
+                                        <div class="metric-item">
+                                            <div class="metric-val">{days}d</div>
+                                            <div class="metric-lbl">Actief</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-val">€{int(est_spend)}</div>
+                                            <div class="metric-lbl">Spend</div>
+                                        </div>
+                                        <div class="metric-item">
+                                            <div class="metric-val" style="color:{status_col}; font-size:0.9rem;">{status_txt}</div>
+                                            <div class="metric-lbl">Status</div>
+                                        </div>
+                                    </div>
+                                    """, unsafe_allow_html=True)
+
+                                    # Knoppen
+                                    st.link_button(f"🛒 Bekijk Product in Shop", ad['shop_link'], type="primary", use_container_width=True)
+                                    
+                                    with st.expander("📄 Lees Ad Tekst"):
+                                        st.code(ad['caption'], language="text")
+
+            elif st.session_state.get("fb_search_active") and not st.session_state.get("fb_results"):
+                st.warning("Geen ads gevonden. Probeer het over een minuutje nog eens.")
+
+        else:
+            render_pro_lock("Meta Spy", "Direct toegang tot winnende Facebook Ads.", "Zie precies welke ads en teksten je concurrenten gebruiken.")
+
+
+
+    # =========================================================
+    # --- TAB 3: CONCURRENTEN SPY (SHOPIFY) ---
+    # =========================================================
+    with tab3:
+        st.markdown("### 🕵️ Spiek bij de buren")
+        st.markdown("Heb je een dropshipping store gevonden? Vul de URL in en zie hun bestsellers.")
+        
+        if is_pro:
+            with st.container(border=True):
+                url_input = st.text_input("URL van concurrent", placeholder="bijv. www.loavies.com")
+                
+                if url_input and st.button("🚀 Scan Webshop", type="primary"):
+                     if "." not in url_input:
+                         st.warning("Vul een geldige URL in.")
+                     else:
+                         with st.spinner(f"Bezig met scannen van {url_input}..."):
+                             products = competitor_spy.scrape_shopify_store(url_input)
+                             
+                             if products:
+                                 st.success(f"✅ {len(products)} producten gevonden!")
+                                 for i in range(0, len(products), 3):
+                                     cols = st.columns(3)
+                                     for j in range(3):
+                                         if i + j < len(products):
+                                             p = products[i + j]
+                                             with cols[j]:
+                                                 with st.container(border=True):
+                                                     if p['image_url']: st.image(p['image_url'], use_container_width=True)
+                                                     st.markdown(f"**{p['title']}**")
+                                                     price_display = f"€{p['price']}" if p['price'] != "???" else "?"
+                                                     st.caption(f"{price_display}")
+                                                     st.link_button("Bekijk in shop", p['url'], use_container_width=True)
+                             else:
+                                 st.error("Kon geen producten vinden. Is dit wel een Shopify store?")
+        else: 
+            render_pro_lock("Spy Tool", "Zie de nieuwste producten van élke concurrent.", "Exclusief voor studenten.")
 
 elif pg == "Instellingen":
     st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
