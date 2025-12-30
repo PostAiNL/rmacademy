@@ -533,10 +533,20 @@ user['level'] = user_level_num
 if "prev_level" not in st.session_state: st.session_state.prev_level = user['level']
 if "ai_credits" not in st.session_state: st.session_state.ai_credits = 3 
 
+# --- 4.5 PERSISTENT AI CREDITS & FUNCTIES ---
 def check_credits():
-    if is_pro: return True
-    if st.session_state.ai_credits > 0:
-        st.session_state.ai_credits -= 1
+    if is_pro: 
+        return True
+    
+    # Haal credits uit de database data (niet alleen session state)
+    current_credits = user.get('ai_credits', 0)
+    
+    if current_credits > 0:
+        # Update in database (maak deze functie aan in db.py of gebruik een update query)
+        new_credits = current_credits - 1
+        db.update_user_credits(user['email'], new_credits) 
+        # Update lokale sessie zodat de UI direct verandert
+        st.session_state.user['ai_credits'] = new_credits
         return True
     return False
 
@@ -1903,76 +1913,52 @@ elif pg == "Instellingen":
             Neem even contact op via de mail, dan lossen we het op!
             """)
     
-    with tab5:
+with tab5:
         st.markdown("#### 💡 Jouw mening telt")
         
-        # Check of we in deze sessie al succesvol feedback hebben gegeven
-        if st.session_state.get("feedback_done", False):
-            # --- DE 'LOCKED' / SUCCES STATUS ---
-            st.markdown("""
-            <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; border-radius: 12px; padding: 20px; text-align: center;">
-                <div style="font-size: 40px; margin-bottom: 10px;">✅</div>
-                <h3 style="color: #166534; margin: 0;">Bedankt voor je feedback!</h3>
-                <p style="color: #15803D; margin-top: 5px;">We hebben je bericht ontvangen en je beloning geactiveerd.</p>
-                <div style="margin-top: 15px; font-size: 0.9rem; color: #16A34A; font-weight: 600;">
-                    Geniet van je 24u PRO toegang! 🚀
-                </div>
-            </div>
-            """, unsafe_allow_html=True)
-            
+        # Check in de database of de gebruiker de beloning al eens heeft gehad
+        has_claimed_before = user.get('feedback_reward_claimed', False)
+
+        if has_claimed_before and not is_pro_license:
+            if is_temp_pro:
+                st.success(f"✅ Je 24u PRO toegang is momenteel actief! (Nog {time_left_str})")
+            else:
+                st.info("Je hebt je eenmalige 24u PRO beloning al gebruikt. Word PRO lid voor onbeperkte toegang.")
+                st.link_button("Word PRO Lid", STRATEGY_CALL_URL, use_container_width=True)
+        
+        elif st.session_state.get("feedback_done", False):
+            st.success("Bedankt! Je feedback is verwerkt.")
+        
         else:
-            # --- WINACTIE BANNER (NIEUW) ---
             st.markdown("""
-            <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px; display: flex; gap: 15px; align-items: center;">
-                <div style="font-size: 30px; background: white; width: 50px; height: 50px; display: flex; align-items: center; justify-content: center; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.05);">🏆</div>
-                <div>
-                    <h4 style="margin: 0; color: #92400E; font-size: 1rem;">Win Lifetime PRO Toegang!</h4>
-                    <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
-                        Elke maand geven we <b>1x Volledige Cursus + PRO</b> weg aan de beste feedback.
-                        Help ons verbeteren en win!
-                    </p>
-                </div>
+            <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
+                <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
+                    Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
+                </p>
             </div>
             """, unsafe_allow_html=True)
 
-            # --- HET FORMULIER ---
-            st.caption("Je krijgt sowieso **direct 24u PRO toegang** als dank voor je bericht! 🎁")
+            fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120)
             
-            fb_text = st.text_area("Feedback", placeholder="Ik mis functie X... / Ik vind dit lastig...", height=120, key="fb_settings")
-            
-            if st.button("Verstuur & Claim PRO🚀", use_container_width=True):
-                if len(fb_text) > 10:
-                    with st.spinner("Checken..."):
-                        # 1. Valideer en sla op
+            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True):
+                if len(fb_text) > 20: # Iets strenger op lengte
+                    with st.spinner("Bezig met verwerken..."):
                         is_valid = ai_coach.validate_feedback(fb_text)
-                        db.save_feedback(user['email'], fb_text, is_valid)
                         
                         if is_valid:
-                            # 2. Claim de reward
-                            status = db.claim_feedback_reward(user['email'])
+                            # Sla feedback op én zet de vlag 'feedback_reward_claimed' op TRUE in de DB
+                            status = db.claim_feedback_reward(user['email'], fb_text)
                             
                             if status == "SUCCESS":
                                 st.balloons()
-                                st.success("🎉 PRO Geactiveerd! 24u toegang gestart.")
-                                
-                                # Update Sessie, Cache EN zet de Feedback Vlag op True
-                                user['is_pro'] = True 
-                                st.session_state.user['is_pro'] = True
-                                st.session_state.feedback_done = True # <--- DIT ZORGT VOOR DE LOCK
-                                st.cache_data.clear()
-                                
-                                time.sleep(2)
-                                st.rerun() 
-                                
-                            elif status == "ALREADY_CLAIMED":
-                                st.session_state.feedback_done = True 
-                                st.warning("Je hebt deze beloning al eens geclaimd.")
+                                st.session_state.feedback_done = True
+                                st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur toegang.")
                                 time.sleep(2)
                                 st.rerun()
-                                
-                            else: 
-                                st.error("Database fout bij activeren PRO.")
-                        else: 
-                            st.warning("Feedback te kort of onduidelijk.")
-                else: 
-                    st.warning("Typ minimaal 10 letters.")
+                            else:
+                                st.error("Je hebt deze beloning al eens geclaimd.")
+                        else:
+                            st.warning("Je feedback is te kort of onduidelijk. Vertel ons echt wat je vindt!")
+                else:
+                    st.warning("Vertel ons iets meer (minimaal 20 tekens) om de beloning te unlocken.")
