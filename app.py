@@ -562,14 +562,14 @@ with st.sidebar:
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
     st.markdown(f"""<div style="background: transparent; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px; border: 1px solid #F1F5F9;"><div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 4px; transition: width 0.5s;"></div></div><div style="text-align:right; font-size:0.7rem; color:#94A3B8; margin-bottom:15px;">{user['xp']} / {next_xp_goal_sidebar} XP</div>""", unsafe_allow_html=True)
     
-    # --- NIEUW: DE PRO TIMER ---
-    if is_temp_pro and time_left_str:
+# --- PAS DIT STUK AAN IN DE SIDEBAR ---
+    if is_temp_pro and not is_pro_license and time_left_str:
         st.markdown(f"""
         <div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; display: flex; align-items: center; justify-content: space-between;">
             <div style="display:flex; align-items:center; gap:8px;">
                 <span style="font-size: 1.2rem;">⏳</span>
                 <div style="line-height:1.1;">
-                    <div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO Tijd over</div>
+                    <div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO TIJD OVER</div>
                     <div style="font-size: 0.95rem; color: #14532D; font-weight: 800;">{time_left_str}</div>
                 </div>
             </div>
