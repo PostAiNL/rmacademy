@@ -13,7 +13,7 @@ import extra_streamlit_components as stx
 from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap, db
 
 # --- 0. CONFIGURATIE ---
-STRATEGY_CALL_URL = "https://calendly.com/rmecomacademy/30min"
+STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125673"
 COMMUNITY_URL = "https://discord.com"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
@@ -451,11 +451,36 @@ if user.get('id') != 'temp' and auth.supabase:
     except Exception as e:
         # Als database faalt, gebruik wat we hebben (geen crash)
         pass 
+# 
 # ==============================================================================
+# 💰 PAYPRO BETALING VERWERKEN
+# ==============================================================================
+# Check of de gebruiker terugkomt van PayPro
+if "payment" in st.query_params and st.query_params["payment"] == "success":
+    # Haal de parameter weg uit de URL (zodat hij niet blijft refreshen)
+    st.query_params.clear()
+    
+    if not user.get('is_pro'):
+        with st.spinner("Betaling verifiëren & PRO activeren..."):
+            # Update de database
+            success = db.set_user_pro(user['email'])
+            
+            if success:
+                # Update de sessie direct
+                st.session_state.user['is_pro'] = True
+                user['is_pro'] = True
+                st.balloons()
+                st.success("🎉 GEFELICITEERD! Je bent nu officieel PRO Student!")
+                st.markdown("Je hebt nu toegang tot alle tools, de volledige app en de community.")
+                time.sleep(3) # Even tijd geven om te lezen
+                st.rerun()
+            else:
+                st.error("Er ging iets mis met activeren. Neem contact op met support.")
+
 
 is_pro_license = user.get('is_pro', False)
 # ⚠️ TEST MODE AAN (Zet hier een # voor als je live gaat!)
-is_pro_license = True 
+# is_pro_license = True 
 
 @st.cache_data(ttl=300, show_spinner=False)
 def get_cached_pro_status(email):
@@ -598,7 +623,7 @@ with st.sidebar:
         <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
             <div style="margin-top: 20px; background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); text-align: center; border: 1px solid #FCD34D; transition: transform 0.2s;">
                 <div style="font-weight: 800; color: #78350F; font-size: 1.1rem; margin-bottom: 4px;">🚀 UNLOCK PRO</div>
-                <div style="font-size: 0.75rem; color: #92400E; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Plan Gratis Strategie Call</div>
+                <div style="font-size: 0.75rem; color: #92400E; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px;">Word PRO Lid (€49,95)</div>
             </div>
         </a>
         """, unsafe_allow_html=True)
@@ -648,7 +673,7 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
                 </div>
                 <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration: none;">
                     <div style="background: linear-gradient(135deg, #2563EB, #1D4ED8); color: white; padding: 10px 20px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2); transition: transform 0.1s;">
-                        📞 Plan Gratis Strategie Call
+                        Word PRO Lid (€49,95)
                     </div>
                 </a>
             </div>
@@ -721,19 +746,24 @@ if pg == "Dashboard":
         st.markdown(f"""<div class="levelup-overlay" onclick="this.style.display='none'"><div class="levelup-card"><div style="font-size:60px; margin-bottom:10px;">🏆</div><h1 style="color:#F59E0B !important; margin:0;">Level Up!</h1><h3 style="color:#0F172A;">Gefeliciteerd, je bent nu Level {user['level']}!</h3><p style="color:#64748B; margin:15px 0 25px 0;">Je hebt nieuwe features vrijgespeeld. Ga zo door!</p><div style="background:#2563EB; color:white; padding:12px 30px; border-radius:50px; cursor:pointer; font-weight:bold; display:inline-block;">Doorgaan 🚀</div></div></div>""", unsafe_allow_html=True)
         st.session_state.prev_level = user['level']
 
-    # GHOST DATA (STABIEL)
+# GHOST DATA (AANGEPAST: Sales per week, Online per uur)
     def get_community_stats():
-        # We gebruiken de datum + het uur als 'zaadje'. 
-        # Hierdoor veranderen de cijfers pas als het uur voorbij is.
-        # Dit zorgt voor totale rust bij de gebruiker (geen flikkerende cijfers bij refresh).
         now = datetime.now()
-        seed = int(now.strftime("%Y%m%d%H")) # Bv: 2023121914 (14u)
         
-        # Gebruik een geisoleerde random generator
-        rng = random.Random(seed)
+        # 1. Studenten Online (Verandert elk uur)
+        # Seed is Jaar+Maand+Dag+Uur (bv 2025123014)
+        seed_hour = int(now.strftime("%Y%m%d%H")) 
+        rng_online = random.Random(seed_hour)
+        u_online = rng_online.randint(50, 225) # Nieuwe range
         
-        u_online = rng.randint(120, 185)
-        u_sales = rng.randint(15, 42)
+        # 2. Sales (Verandert elke week)
+        # Seed is Jaar + Weeknummer (bv 202552)
+        year, week, _ = now.isocalendar()
+        seed_week = int(f"{year}{week}")
+        
+        rng_sales = random.Random(seed_week)
+        u_sales = rng_sales.randint(15, 42)
+        
         return u_online, u_sales
 
     live_users, sales_today = get_community_stats()
@@ -844,528 +874,239 @@ elif pg == "Academy":
     # --- CSS VOOR PREMIUM LOOK ---
     st.markdown("""
     <style>
-        /* Premium Card Styling */
         .premium-card {
-            background: white;
-            border: 1px solid #E2E8F0;
-            border-radius: 12px;
-            padding: 20px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-            transition: transform 0.2s;
+            background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+            padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
-        .premium-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-        }
-        
-        /* Locked Module Styling */
         .locked-module {
-            background: #F8FAFC;
-            border: 1px dashed #CBD5E1;
-            border-radius: 8px;
-            padding: 12px 15px;
-            margin-bottom: 8px;
-            color: #94A3B8;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 0.9rem;
+            background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px;
+            padding: 12px 15px; margin-bottom: 8px; color: #94A3B8;
+            display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem;
         }
-        
-        /* Navigatie Knoppen Links (Premium) */
         div.stButton > button[kind="secondary"] {
-            border: 1px solid #E2E8F0 !important;
-            background: white !important;
-            color: #475569 !important;
-            justify-content: flex-start !important;
-            padding-left: 15px !important;
-            text-align: left !important;
-        }
-        div.stButton > button[kind="secondary"]:hover {
-            border-color: #2563EB !important;
-            color: #2563EB !important;
-            background: #EFF6FF !important;
+            border: 1px solid #E2E8F0 !important; background: white !important;
+            color: #475569 !important; justify-content: flex-start !important;
+            padding-left: 15px !important; text-align: left !important;
         }
         div.stButton > button[kind="primary"] {
-            background: #2563EB !important;
-            border: 1px solid #2563EB !important;
-            justify-content: flex-start !important;
-            padding-left: 15px !important;
-            font-weight: 600 !important;
+            background: #2563EB !important; border: 1px solid #2563EB !important;
+            justify-content: flex-start !important; padding-left: 15px !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
     st.markdown("<h1><i class='bi bi-mortarboard-fill'></i> Academy</h1>", unsafe_allow_html=True)
     
-    # We maken twee tabs: eentje voor de gratis content, eentje voor de betaalde
     tab_free, tab_pro_course = st.tabs(["🎁 Gratis Mini Training", "🎓 Volledige Cursus (70+ Video's)"])
 
     # =========================================================
-    # --- TAB 1: GRATIS MINI TRAINING (HIGH FOMO EDITIE) ---
+    # --- TAB 1: GRATIS MINI TRAINING (Iedereen ziet dit) ---
     # =========================================================
     with tab_free:
-        # 1. Status Balk
         st.markdown("""
         <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #1E3A8A; font-size: 0.9rem;">
             <i class="bi bi-info-circle-fill"></i>
             <span>Je hebt <b>Preview Toegang</b>: 4 van de 74 lessen zijn beschikbaar.</span>
-            <span style="margin-left: auto; background: white; padding: 2px 8px; border-radius: 4px; font-weight: bold; font-size: 0.75rem; border: 1px solid #BFDBFE;">GAST ACCOUNT</span>
         </div>
         """, unsafe_allow_html=True)
         
-        st.markdown("### 👋 Start hier met je gratis lessen")
-        
-        # 2. De 4 Gratis Video's (In een strak grid)
         c1, c2 = st.columns(2)
-        
         with c1:
             with st.container(border=True):
                 st.markdown("**1. Van Chaos naar Actie 🚀**")
                 st.video("https://www.youtube.com/embed/nYN7EyMb7uQ")
-                st.caption("Start Jouw Ondernemersreis Vandaag!")
-            
             with st.container(border=True):
                 st.markdown("**3. Kies het juiste product 📦**")
                 st.video("https://www.youtube.com/embed/CM5CtnXrvEU")
-                st.caption("Hoe vind je een winner?")
-
         with c2:
             with st.container(border=True):
                 st.markdown("**2. Jouw volgende stap 📈**")
                 st.video("https://www.youtube.com/embed/yIJJbwIZL6k")
-                st.caption("Ontdek hoe e-commerce echt werkt.")
-            
             with st.container(border=True):
                 st.markdown("**4. Je eerste advertentie 🔥**")
                 st.video("https://www.youtube.com/embed/cA8Gvhfic-s")
-                st.caption("Breng je product tot leven.")
 
-        # 3. HET IJSBERG EFFECT (De locked content laten zien)
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("### 🔒 Wat je mist in de volledige cursus:")
-        st.caption("Studenten hebben toegang tot al deze modules, templates en scripts.")
-
-        # Een lijst van "Locked" modules om FOMO te kweken
-        locked_modules = [
-            "Module 2: Het Begin (KvK, Bank, Mindset)",
-            "Module 3: Dropshipping & Branding Strategie",
-            "Module 4: De Fundering & Niche Keuze",
-            "Module 5: Shopify Masterclass (15 lessen)",
-            "Module 6: Conversie Apps & Hacks",
-            "Module 7: Facebook Ads Setup (Van A tot Z)",
-            "Module 8: Facebook Live Gaan & Testen",
-            "Module 9: Opschalen (Geavanceerd)",
-            "Module 10: Branding & Logo Design",
-            "Module 11: Private Agents & Snelle Levering",
-            "Module 12: Viral Content Creatie (TikTok)",
-            "Module 13: Klantenservice Automatisering",
-            "Module 14: Must Have Tools & AI"
-        ]
-
-        # Toon de lijst in 2 kolommen
+        st.markdown("<br> 🔒 Wat je onder andere mist in de volledige cursus:", unsafe_allow_html=True)
+        locked_modules = ["Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup", "Module 9: Opschalen", "Module 11: Private Agents", "Module 12: Viral Content"]
         lc1, lc2 = st.columns(2)
         for i, mod in enumerate(locked_modules):
-            # HTML voor een 'locked' kaartje
-            html = f"""
-            <div class="locked-module">
-                <span><i class="bi bi-collection-play" style="margin-right:8px;"></i> {mod}</span>
-                <i class="bi bi-lock-fill" style="color:#CBD5E1;"></i>
-            </div>
-            """
-            if i % 2 == 0:
-                lc1.markdown(html, unsafe_allow_html=True)
-            else:
-                lc2.markdown(html, unsafe_allow_html=True)
-        
-        # 4. De FOMO Knal Actie
-        st.markdown("<br>", unsafe_allow_html=True)
-        st.markdown("""
-        <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); padding: 30px; border-radius: 16px; border: 2px solid #F97316; text-align: center; box-shadow: 0 10px 30px -10px rgba(249, 115, 22, 0.3);">
-            <div style="font-size: 2rem; margin-bottom: 10px;">🚀</div>
-            <h3 style="color:#9A3412; margin:0 0 10px 0; font-weight: 800; font-size: 1.3rem;">Klaar met de basis? Tijd voor het echte werk.</h3>
-            <p style="color:#7C2D12; font-size:0.95rem; line-height: 1.6; margin-bottom: 25px; max-width: 600px; margin-left: auto; margin-right: auto;">
-                Je hebt nu <b>5%</b> gezien. Wil je toegang tot de overige <b>95%</b>, inclusief de copy-paste templates, de winnende product strategieën en de 1-op-1 community?<br><br>
-                <b>Claim je plek in de Academy en start vandaag nog.</b>
-            </p>
-            <a href="https://calendly.com/rmecomacademy/30min" target="_blank" style="text-decoration:none;">
-                <div style="background: #EA580C; color: white; padding: 12px 30px; border-radius: 50px; font-weight: bold; display: inline-block; box-shadow: 0 4px 15px rgba(234, 88, 12, 0.4);">
-                    📞 Plan Gratis Strategie Call & Unlock Alles
-                </div>
-            </a>
-        </div>
-        """, unsafe_allow_html=True)
-
+            html = f'<div class="locked-module"><span><i class="bi bi-lock-fill"></i> {mod}</span></div>'
+            if i % 2 == 0: lc1.markdown(html, unsafe_allow_html=True)
+            else: lc2.markdown(html, unsafe_allow_html=True)
 
     # =========================================================
-    # --- TAB 2: DE ECHTE CURSUS (Premium Dashboard) ---
+    # --- TAB 2: DE ECHTE CURSUS (DE HARDE LOCK) ---
     # =========================================================
     with tab_pro_course:
-        
-        # CONFIGURATIE VAN JE CURSUS
-        course_content = {
-            "Module 1: Welkom": [
-                {"title": "Introductie - Welkom bij RM Ecom Academy", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
-                {"title": "Jouw 100K Laserfocus Systeem", "url": "https://youtu.be/aBpsJN0D3QE", "duration": "10 min"},
-                {"title": "Jouw Transformatieplan in 70 Dagen", "url": "https://youtu.be/gx5dJ6nUrf4", "duration": "15 min"},
-                {"title": "De eerste stappen naar succes", "url": "https://youtu.be/ajnJeKuKp7c", "duration": "8 min"},
-            ],
-            "Module 2: Het begin": [
-                {"title": "Het openen van een zakelijke rekening", "url": "https://youtu.be/x90vvuup1I8", "duration": "10 min"},
-                {"title": "Een creditcard aanvragen", "url": "https://youtu.be/lrhhCsRCcUE", "duration": "5 min"},
-                {"title": "Mindset voor de 70-dagen transformatieplan", "url": "https://youtu.be/_0W4z1yR_Lg", "duration": "20 min"},
-            ],
-            "Module 3: Dropshipping": [
-                {"title": "Wat betekend branded dropshipping?", "url": "https://youtu.be/puq-WqF8JMQ", "duration": "10 min"},
-                {"title": "Wat is dropshipping en hoe werkt het?", "url": "https://youtu.be/Dq8E6G5Fgc8", "duration": "15 min"},
-            ],
-            "Module 4: De fundering": [
-                {"title": "Een markt kiezen", "url": "https://youtu.be/vcxTcT5rnV4", "duration": "15 min"},
-                {"title": "Een niche kiezen", "url": "https://youtu.be/4bfnKWIQYbY", "duration": "20 min"},
-            ],
-            "Module 5: Shopify": [
-                {"title": "Shopify account aanmaken", "url": "https://youtu.be/gwxx5fUouKQ", "duration": "5 min"},
-                {"title": "Website termen", "url": "https://youtu.be/d9NPDvrYUHc", "duration": "5 min"},
-                {"title": "Rondleiding Shopify (algemeen)", "url": "https://youtu.be/zkMAybKHnnc", "duration": "15 min"},
-                {"title": "De webshop inrichten", "url": "https://youtu.be/xBS66G6OK84", "duration": "25 min"},
-                {"title": "Een betaling ontvangen (Shopify Payments)", "url": "https://youtu.be/hW2hmKlBcEQ", "duration": "10 min"},
-                {"title": "Een domein kiezen en aanschaffen", "url": "https://youtu.be/PxNTMe-qsOA", "duration": "5 min"},
-                {"title": "Custom codes gebruiken", "url": "https://youtu.be/zi3fXCyBYdI", "duration": "10 min"},
-                {"title": "De navigatie van je webshop", "url": "https://youtu.be/F3INLon0pnY", "duration": "10 min"},
-                {"title": "Een productpagina aanmaken", "url": "https://youtu.be/0PJ4NpR1ibs", "duration": "15 min"},
-                {"title": "Een collectiepagina aanmaken", "url": "https://youtu.be/Grh2GVnKJRk", "duration": "10 min"},
-                {"title": "Een verzendmethode instellen", "url": "https://youtu.be/8aGzEJrV0M8", "duration": "10 min"},
-                {"title": "Kortingscodes aanmaken", "url": "https://youtu.be/k2uGrjto_fo", "duration": "5 min"},
-                {"title": "Conversie optimaliseren (CRO)", "url": "https://youtu.be/0QNxhi7aXBA", "duration": "20 min"},
-                {"title": "De checkout optimaliseren", "url": "https://youtu.be/y0-giNe1Pes", "duration": "10 min"},
-                {"title": "Shopify markten instellen", "url": "https://youtu.be/OCPcbo0JsMo", "duration": "15 min"},
-            ],
-            "Module 6: Apps in Shopify": [
-                {"title": "Poky", "url": "https://youtu.be/qKLYDk9-7x8", "duration": "5 min"},
-                {"title": "Section store", "url": "https://youtu.be/Gc3G_x2D_4k", "duration": "5 min"},
-                {"title": "Parcel panel", "url": "https://youtu.be/TsMKOtsIz7Y", "duration": "5 min"},
-                {"title": "Slize Cart by AMP", "url": "https://youtu.be/JLNFlfSLqjI", "duration": "5 min"},
-                {"title": "BF size charts", "url": "https://youtu.be/iP__ahhzXfo", "duration": "5 min"},
-                {"title": "Kaching Bundles en hoe AOV verhogen", "url": "https://youtu.be/9SBXwXFrIkQ", "duration": "10 min"},
-                {"title": "Conversie Verhogen - Trust Badges", "url": "https://youtu.be/718tg9QR50Y", "duration": "5 min"},
-            ],
-            "Module 7: Facebook (Setup)": [
-                {"title": "Start van je Facebook blueprint", "url": "https://youtu.be/pvIAASq9jfg", "duration": "10 min"},
-                {"title": "De Businessmanager aanmaken", "url": "https://youtu.be/_7vF_nc6dzo", "duration": "10 min"},
-                {"title": "Een Rondleiding door de businessmanager", "url": "https://youtu.be/M-BAExvxyzU", "duration": "15 min"},
-                {"title": "Het aanmaken van een Facebookpagina", "url": "https://youtu.be/2sh_raKCa_Q", "duration": "5 min"},
-                {"title": "Het opwarmen van de pagina", "url": "https://youtu.be/FY08rYyjwlM", "duration": "5 min"},
-                {"title": "Het aanmaken van je advertentieaccount", "url": "https://youtu.be/dmJIS8Ujuec", "duration": "5 min"},
-                {"title": "Opzetten van je agency advertentieaccount", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
-                {"title": "Het aanmaken en koppelen van je pixel", "url": "https://youtu.be/NeIB1Ime_2cR", "duration": "15 min"},
-                {"title": "Het verifiëren van je domein", "url": "https://youtu.be/eE9aziZogjw", "duration": "5 min"},
-                {"title": "Facebook structuur opzetten", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
-                {"title": "Je Instagram account koppelen", "url": "https://youtu.be/ZOaOr56EqGc", "duration": "5 min"},
-            ],
-            "Module 8: Facebook Live gaan": [
-                {"title": "Wat is een ABO campagne?", "url": "https://youtu.be/0w32dh7yS9I", "duration": "10 min"},
-                {"title": "Wat is een CBO campagne?", "url": "https://youtu.be/zBk2oR_MGbI", "duration": "10 min"},
-                {"title": "Het aanmaken van een testcampagne", "url": "https://youtu.be/gwlKJ9XhwBE", "duration": "20 min"},
-                {"title": "Facebooktermen", "url": "https://youtu.be/EVE_Xhu1qjI", "duration": "10 min"},
-                {"title": "Het instellen van kolommen", "url": "https://youtu.be/M1ek9iua7sg", "duration": "5 min"},
-                {"title": "Opschalen van je advertenties (de basis)", "url": "https://youtu.be/qGG30Y-0HVw", "duration": "15 min"},
-                {"title": "Hoe analyseer je advertenties?", "url": "https://youtu.be/C3qXa4r-8yo", "duration": "15 min"},
-                {"title": "Wat doe je als een product onder presteert?", "url": "https://youtu.be/u0giYTGBcfA", "duration": "10 min"},
-                {"title": "Comments automatisch verbergen", "url": "https://youtu.be/FIyEYO6yd18", "duration": "5 min"},
-                {"title": "Wetracked of Trackbee installeren", "url": "https://youtu.be/dsk8nUqkDtI", "duration": "10 min"},
-            ],
-            "Module 9: Facebook geavanceerd": [
-                {"title": "Veilig opschalen met 20%", "url": "https://youtu.be/yHEDftamMc8", "duration": "10 min"},
-                {"title": "Gemiddeld opschalen met 50%", "url": "https://youtu.be/mHVh_PY-ja4", "duration": "10 min"},
-                {"title": "Agressief opschalen met 100%", "url": "https://youtu.be/8ayQ1ecqoCg", "duration": "10 min"},
-                {"title": "Ultra agressief opschalen (Surfscalen)", "url": "https://youtu.be/lfskezYSM1Y", "duration": "15 min"},
-                {"title": "Creatives testen (voor een lage cpc)", "url": "https://youtu.be/SCjQilN9W2s", "duration": "15 min"},
-            ],
-            "Module 10: Branding": [
-                {"title": "Social Media branding", "url": "https://youtu.be/3Vccoluq43U", "duration": "10 min"},
-                {"title": "Logo maken", "url": "https://youtu.be/GqehPhoMnX0", "duration": "10 min"},
-            ],
-            "Module 11: Agent (Prive leverancier)": [
-                {"title": "Het gebruiken van een privé leverancier", "url": "https://youtu.be/lvIv6vq2dQY", "duration": "10 min"},
-                {"title": "De kwaliteit van je producten checken", "url": "https://youtu.be/WDCebfTe4jQ", "duration": "5 min"},
-                {"title": "Een gepersonaliseerde verpakking maken", "url": "https://youtu.be/2GZIH6HnV2k", "duration": "10 min"},
-            ],
-            "Module 12: Content Creation": [
-                {"title": "De 5 stadia van bewustzijn", "url": "https://youtu.be/RBvrN_JdNsI", "duration": "10 min"},
-                {"title": "Canva rondleiding", "url": "https://youtu.be/SekM6oFOQNs", "duration": "15 min"},
-                {"title": "Advertentie creatives maken", "url": "https://youtu.be/aJHm6_yFgSg", "duration": "20 min"},
-                {"title": "Video's vanuit de AD library downloaden", "url": "https://youtu.be/WFE3l88O5iM", "duration": "5 min"},
-                {"title": "De opbouw van een winnende video creatie", "url": "https://youtu.be/Oeh276FU0iQ", "duration": "15 min"},
-                {"title": "Scroll stoppers maken voor je video", "url": "https://youtu.be/TeohCu7NEwE", "duration": "10 min"},
-                {"title": "Advertentieteksten schrijven met Chat-GPT", "url": "https://youtu.be/LVk0No917sI", "duration": "10 min"},
-                {"title": "UGC content gebruiken", "url": "https://youtu.be/GKmWZFkgFeg", "duration": "10 min"},
-            ],
-            "Module 13: Klantenservice": [
-                {"title": "Hoe ga je met klanten om?", "url": "https://youtu.be/08qt2ND4pLY", "duration": "10 min"},
-                {"title": "Klantenservice templates", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "5 min"},
-                {"title": "Retourfunnel (verminder je retouren)", "url": "https://youtu.be/C5So4rh8Xx0", "duration": "10 min"},
-            ],
-            "Module 14: Must Have": [
-                {"title": "Handige Tools (MUST HAVE)", "url": "https://youtu.be/9cmTsNGat2s", "duration": "10 min"},
-                {"title": "Ad strategie (Collecties)", "url": "https://youtu.be/7YNWLMsexnw", "duration": "15 min"},
-                {"title": "Website reviews (Fouten van anderen)", "url": "https://youtu.be/gzOMw4O-b00", "duration": "20 min"},
-            ],
-        }
+        # Check op de speciale 'Academy Student' status (niet alleen PRO)
+        is_academy_student = user.get('is_academy_student', False)
 
-        if not is_pro:
-            st.write("")
-            render_pro_lock("Unlock de Volledige Cursus", "Krijg direct toegang tot 70+ video's.", "Stop met zelf prutsen.")
+        if not is_academy_student:
+            # DIT SCHERM ZIE JE ALTIJD, TENZIJ HANDMATIG TOEGEVOEGD IN DB
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                <div style="font-size: 50px; margin-bottom: 20px;">🎓</div>
+                <h2 style="color: #0F172A; margin-bottom: 10px;">Full Academy Toegang</h2>
+                <p style="color: #64748B; font-size: 1.1rem; max-width: 500px; margin: 0 auto 25px auto;">
+                    De volledige cursus met 70+ video's, copy-paste templates en 1-op-1 begeleiding is <b>exclusief voor traject-studenten</b>.
+                </p>
+                <div style="background: #FFF7ED; border: 1px solid #FED7AA; padding: 12px; border-radius: 8px; margin-bottom: 30px; display: inline-block;">
+                    <p style="margin: 0; color: #9A3412; font-size: 0.9rem; font-weight: 700;">
+                        🔒 Toegang wordt pas verleend na een Strategie Gesprek.
+                    </p>
+                </div>
+                <br>
+                <a href="https://calendly.com/rmecomacademy/30min" target="_blank" style="text-decoration: none;">
+                    <div style="background: #2563EB; color: white; padding: 15px 35px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                        📞 Plan Gratis Strategie Call
+                    </div>
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
         else:
-            # --- LAYOUT: 1/3 Navigatie, 2/3 Video ---
+            # --- DE VIDEOS (Alleen voor geverifieerde studenten) ---
+            course_content = {
+                "Module 1: Welkom": [
+                    {"title": "Introductie - Welkom bij RM Ecom Academy", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
+                    {"title": "Jouw 100K Laserfocus Systeem", "url": "https://youtu.be/aBpsJN0D3QE", "duration": "10 min"},
+                    {"title": "Jouw Transformatieplan in 70 Dagen", "url": "https://youtu.be/gx5dJ6nUrf4", "duration": "15 min"},
+                    {"title": "De eerste stappen naar succes", "url": "https://youtu.be/ajnJeKuKp7c", "duration": "8 min"},
+                ],
+                "Module 2: Het begin": [
+                    {"title": "Het openen van een zakelijke rekening", "url": "https://youtu.be/x90vvuup1I8", "duration": "10 min"},
+                    {"title": "Een creditcard aanvragen", "url": "https://youtu.be/lrhhCsRCcUE", "duration": "5 min"},
+                    {"title": "Mindset voor de 70-dagen transformatieplan", "url": "https://youtu.be/_0W4z1yR_Lg", "duration": "20 min"},
+                ],
+                "Module 3: Dropshipping": [
+                    {"title": "Wat betekend branded dropshipping?", "url": "https://youtu.be/puq-WqF8JMQ", "duration": "10 min"},
+                    {"title": "Wat is dropshipping en hoe werkt het?", "url": "https://youtu.be/Dq8E6G5Fgc8", "duration": "15 min"},
+                ],
+                "Module 4: De fundering": [
+                    {"title": "Een markt kiezen", "url": "https://youtu.be/vcxTcT5rnV4", "duration": "15 min"},
+                    {"title": "Een niche kiezen", "url": "https://youtu.be/4bfnKWIQYbY", "duration": "20 min"},
+                ],
+                "Module 5: Shopify": [
+                    {"title": "Shopify account aanmaken", "url": "https://youtu.be/gwxx5fUouKQ", "duration": "5 min"},
+                    {"title": "Website termen", "url": "https://youtu.be/d9NPDvrYUHc", "duration": "5 min"},
+                    {"title": "Rondleiding Shopify (algemeen)", "url": "https://youtu.be/zkMAybKHnnc", "duration": "15 min"},
+                    {"title": "De webshop inrichten", "url": "https://youtu.be/xBS66G6OK84", "duration": "25 min"},
+                    {"title": "Een betaling ontvangen (Shopify Payments)", "url": "https://youtu.be/hW2hmKlBcEQ", "duration": "10 min"},
+                    {"title": "Een domein kiezen en aanschaffen", "url": "https://youtu.be/PxNTMe-qsOA", "duration": "5 min"},
+                    {"title": "Custom codes gebruiken", "url": "https://youtu.be/zi3fXCyBYdI", "duration": "10 min"},
+                    {"title": "De navigatie van je webshop", "url": "https://youtu.be/F3INLon0pnY", "duration": "10 min"},
+                    {"title": "Een productpagina aanmaken", "url": "https://youtu.be/0PJ4NpR1ibs", "duration": "15 min"},
+                    {"title": "Een collectiepagina aanmaken", "url": "https://youtu.be/Grh2GVnKJRk", "duration": "10 min"},
+                    {"title": "Een verzendmethode instellen", "url": "https://youtu.be/8aGzEJrV0M8", "duration": "10 min"},
+                    {"title": "Kortingscodes aanmaken", "url": "https://youtu.be/k2uGrjto_fo", "duration": "5 min"},
+                    {"title": "Conversie optimaliseren (CRO)", "url": "https://youtu.be/0QNxhi7aXBA", "duration": "20 min"},
+                    {"title": "De checkout optimaliseren", "url": "https://youtu.be/y0-giNe1Pes", "duration": "10 min"},
+                    {"title": "Shopify markten instellen", "url": "https://youtu.be/OCPcbo0JsMo", "duration": "15 min"},
+                ],
+                "Module 6: Apps in Shopify": [
+                    {"title": "Poky", "url": "https://youtu.be/qKLYDk9-7x8", "duration": "5 min"},
+                    {"title": "Section store", "url": "https://youtu.be/Gc3G_x2D_4k", "duration": "5 min"},
+                    {"title": "Parcel panel", "url": "https://youtu.be/TsMKOtsIz7Y", "duration": "5 min"},
+                    {"title": "Slize Cart by AMP", "url": "https://youtu.be/JLNFlfSLqjI", "duration": "5 min"},
+                    {"title": "BF size charts", "url": "https://youtu.be/iP__ahhzXfo", "duration": "5 min"},
+                    {"title": "Kaching Bundles en hoe AOV verhogen", "url": "https://youtu.be/9SBXwXFrIkQ", "duration": "10 min"},
+                    {"title": "Conversie Verhogen - Trust Badges", "url": "https://youtu.be/718tg9QR50Y", "duration": "5 min"},
+                ],
+                "Module 7: Facebook (Setup)": [
+                    {"title": "Start van je Facebook blueprint", "url": "https://youtu.be/pvIAASq9jfg", "duration": "10 min"},
+                    {"title": "De Businessmanager aanmaken", "url": "https://youtu.be/_7vF_nc6dzo", "duration": "10 min"},
+                    {"title": "Een Rondleiding door de businessmanager", "url": "https://youtu.be/M-BAExvxyzU", "duration": "15 min"},
+                    {"title": "Het aanmaken van een Facebookpagina", "url": "https://youtu.be/2sh_raKCa_Q", "duration": "5 min"},
+                    {"title": "Het opwarmen van de pagina", "url": "https://youtu.be/FY08rYyjwlM", "duration": "5 min"},
+                    {"title": "Het aanmaken van je advertentieaccount", "url": "https://youtu.be/dmJIS8Ujuec", "duration": "5 min"},
+                    {"title": "Opzetten van je agency advertentieaccount", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
+                    {"title": "Het aanmaken en koppelen van je pixel", "url": "https://youtu.be/NeIB1Ime_2cR", "duration": "15 min"},
+                    {"title": "Het verifiëren van je domein", "url": "https://youtu.be/eE9aziZogjw", "duration": "5 min"},
+                    {"title": "Facebook structuur opzetten", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
+                    {"title": "Je Instagram account koppelen", "url": "https://youtu.be/ZOaOr56EqGc", "duration": "5 min"},
+                ],
+                "Module 8: Facebook Live gaan": [
+                    {"title": "Wat is een ABO campagne?", "url": "https://youtu.be/0w32dh7yS9I", "duration": "10 min"},
+                    {"title": "Wat is een CBO campagne?", "url": "https://youtu.be/zBk2oR_MGbI", "duration": "10 min"},
+                    {"title": "Het aanmaken van een testcampagne", "url": "https://youtu.be/gwlKJ9XhwBE", "duration": "20 min"},
+                    {"title": "Facebooktermen", "url": "https://youtu.be/EVE_Xhu1qjI", "duration": "10 min"},
+                    {"title": "Het instellen van kolommen", "url": "https://youtu.be/M1ek9iua7sg", "duration": "5 min"},
+                    {"title": "Opschalen van je advertenties (de basis)", "url": "https://youtu.be/qGG30Y-0HVw", "duration": "15 min"},
+                    {"title": "Hoe analyseer je advertenties?", "url": "https://youtu.be/C3qXa4r-8yo", "duration": "15 min"},
+                    {"title": "Wat doe je als een product onder presteert?", "url": "https://youtu.be/u0giYTGBcfA", "duration": "10 min"},
+                    {"title": "Comments automatisch verbergen", "url": "https://youtu.be/FIyEYO6yd18", "duration": "5 min"},
+                    {"title": "Wetracked of Trackbee installeren", "url": "https://youtu.be/dsk8nUqkDtI", "duration": "10 min"},
+                ],
+                "Module 9: Facebook geavanceerd": [
+                    {"title": "Veilig opschalen met 20%", "url": "https://youtu.be/yHEDftamMc8", "duration": "10 min"},
+                    {"title": "Gemiddeld opschalen met 50%", "url": "https://youtu.be/mHVh_PY-ja4", "duration": "10 min"},
+                    {"title": "Agressief opschalen met 100%", "url": "https://youtu.be/8ayQ1ecqoCg", "duration": "10 min"},
+                    {"title": "Ultra agressief opschalen (Surfscalen)", "url": "https://youtu.be/lfskezYSM1Y", "duration": "15 min"},
+                    {"title": "Creatives testen (voor een lage cpc)", "url": "https://youtu.be/SCjQilN9W2s", "duration": "15 min"},
+                ],
+                "Module 10: Branding": [
+                    {"title": "Social Media branding", "url": "https://youtu.be/3Vccoluq43U", "duration": "10 min"},
+                    {"title": "Logo maken", "url": "https://youtu.be/GqehPhoMnX0", "duration": "10 min"},
+                ],
+                "Module 11: Agent (Prive leverancier)": [
+                    {"title": "Het gebruiken van een privé leverancier", "url": "https://youtu.be/lvIv6vq2dQY", "duration": "10 min"},
+                    {"title": "De kwaliteit van je producten checken", "url": "https://youtu.be/WDCebfTe4jQ", "duration": "5 min"},
+                    {"title": "Een gepersonaliseerde verpakking maken", "url": "https://youtu.be/2GZIH6HnV2k", "duration": "10 min"},
+                ],
+                "Module 12: Content Creation": [
+                    {"title": "De 5 stadia van bewustzijn", "url": "https://youtu.be/RBvrN_JdNsI", "duration": "10 min"},
+                    {"title": "Canva rondleiding", "url": "https://youtu.be/SekM6oFOQNs", "duration": "15 min"},
+                    {"title": "Advertentie creatives maken", "url": "https://youtu.be/aJHm6_yFgSg", "duration": "20 min"},
+                    {"title": "Video's vanuit de AD library downloaden", "url": "https://youtu.be/WFE3l88O5iM", "duration": "5 min"},
+                    {"title": "De opbouw van een winnende video creatie", "url": "https://youtu.be/Oeh276FU0iQ", "duration": "15 min"},
+                    {"title": "Scroll stoppers maken voor je video", "url": "https://youtu.be/TeohCu7NEwE", "duration": "10 min"},
+                    {"title": "Advertentieteksten schrijven met Chat-GPT", "url": "https://youtu.be/LVk0No917sI", "duration": "10 min"},
+                    {"title": "UGC content gebruiken", "url": "https://youtu.be/GKmWZFkgFeg", "duration": "10 min"},
+                ],
+                "Module 13: Klantenservice": [
+                    {"title": "Hoe ga je met klanten om?", "url": "https://youtu.be/08qt2ND4pLY", "duration": "10 min"},
+                    {"title": "Klantenservice templates", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "5 min"},
+                    {"title": "Retourfunnel (verminder je retouren)", "url": "https://youtu.be/C5So4rh8Xx0", "duration": "10 min"},
+                ],
+                "Module 14: Must Have": [
+                    {"title": "Handige Tools (MUST HAVE)", "url": "https://youtu.be/9cmTsNGat2s", "duration": "10 min"},
+                    {"title": "Ad strategie (Collecties)", "url": "https://youtu.be/7YNWLMsexnw", "duration": "15 min"},
+                    {"title": "Website reviews (Fouten van anderen)", "url": "https://youtu.be/gzOMw4O-b00", "duration": "20 min"},
+                ],
+            }
+
             col_nav, col_content = st.columns([1, 2.2], gap="large")
-            
             with col_nav:
                 st.markdown("#### 📂 Modules")
-                
-                # MODULE KIEZER (Strak)
                 module_names = list(course_content.keys())
                 if "curr_module" not in st.session_state: st.session_state.curr_module = module_names[0]
-                
-                try: idx = module_names.index(st.session_state.curr_module)
-                except: idx = 0
-                
-                selected_module = st.selectbox("Kies module:", module_names, index=idx, label_visibility="collapsed")
+                selected_module = st.selectbox("Kies module:", module_names, label_visibility="collapsed")
                 st.session_state.curr_module = selected_module
-
-                st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
-                st.markdown(f"<div style='font-size:0.75rem; color:#94A3B8; margin-bottom:8px; text-transform:uppercase; font-weight:700; letter-spacing:1px;'>Lessen in deze module</div>", unsafe_allow_html=True)
-                
-                # VIDEO LIJST (MET PREMIUM KNOPPEN)
                 videos_in_module = course_content[selected_module]
+                if "curr_video" not in st.session_state: st.session_state.curr_video = videos_in_module[0]['title']
                 
-                # Initialize selected video if needed
-                if "curr_video" not in st.session_state: 
-                    st.session_state.curr_video = videos_in_module[0]['title']
-                
-                # Zorg dat de geselecteerde video ook in deze module bestaat (anders reset naar 1e)
-                vid_titles = [v['title'] for v in videos_in_module]
-                if st.session_state.curr_video not in vid_titles:
-                    st.session_state.curr_video = vid_titles[0]
-
-                # Render de lijst als knoppen
                 for v in videos_in_module:
                     title = v['title']
                     is_active = (title == st.session_state.curr_video)
-                    
-                    # Check status (Vinkje)
-                    vid_hash = f"vid_{abs(hash(title))}"
-                    is_done = vid_hash in completed_steps
-                    
-                    # Icon logica
-                    if is_done: icon = "✅" 
-                    elif is_active: icon = "▶️"
-                    else: icon = "📺"
-                    
-                    # Style: Primary = Blauw (Actief), Secondary = Wit/Grijs (Inactief)
                     btn_type = "primary" if is_active else "secondary"
-                    
-                    # De knop zelf (Full Width)
-                    if st.button(f"{icon}  {title}", key=f"nav_btn_{vid_hash}", type=btn_type, use_container_width=True):
+                    if st.button(f"📺 {title}", key=f"nav_{title}", type=btn_type, use_container_width=True):
                         st.session_state.curr_video = title
                         st.rerun()
 
-            # Zoek data van de geselecteerde video
-            current_video = next((v for v in videos_in_module if v['title'] == st.session_state.curr_video), None)
-
             with col_content:
-                if current_video:
-                    # --- DE VIDEO KAART (WIT & STRAK) ---
-                    
-                    # 1. Titel Header (Premium HTML)
-                    st.markdown(f"""
-                    <div style="border-bottom: 1px solid #E2E8F0; padding-bottom: 10px; margin-bottom: 15px;">
-                        <h2 style="margin:0; font-size:1.6rem; color:#0F172A; letter-spacing:-0.5px; line-height:1.2;">{current_video['title']}</h2>
-                        <div style="color:#64748B; font-size:0.85rem; margin-top:6px; font-weight:500;">
-                            <span style="background:#F1F5F9; padding:2px 8px; border-radius:4px;">{selected_module}</span> 
-                            &nbsp;•&nbsp; <i class="bi bi-clock"></i> {current_video['duration']}
-                        </div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
-                    # 2. Content (Video of Tekst)
-                    if current_video['title'] == "Opzetten van je agency advertentieaccount":
-                        st.info("ℹ️ Voor deze stap is geen video nodig. Volg de instructies hieronder.")
-                        with st.container(border=True):
-                            st.markdown("""
-                            ### Hoe maak ik een agency advertentieaccount aan?
-
-                            Wanneer je via je eigen privé Facebook-account advertenties draait, loop je sneller risico dat je account wordt beperkt of zelfs geblokkeerd. Daarom raden wij altijd aan om te werken via een **agency advertentieaccount**.
-
-                            Bij NOVA Agency regelen wij dit eenvoudig voor je:
-
-                            **1. Stuur NOVA Agency een bericht**
-                            Stuur een bericht via WhatsApp: **06-27210591** (NOVA Agency / NL).
-                            Laat weten dat je een agency account wilt aanvragen, geef hun RM Ecom Academy door als ze hiernaar zouden vragen.
-
-                            **2. Vul het aanvraagformulier in**
-                            [Klik hier voor het formulier](https://docs.google.com/forms/d/10VwwoOXOQqhAaFUvFFwwohGxofmzpPxk7YsXasJLSs/viewform?edit_requested=true)
-                            Dit is een kort formulier waarin we de benodigde gegevens verzamelen (zoals je bedrijfsnaam, e-mailadres en website).
-
-                            **3. Betaal de setup fee**
-                            Eenmalig €250. Na betaling gaan wij direct voor je aan de slag.
-
-                            **4. Wij maken jouw account aan**
-                            Dit account is gekoppeld via ons agency-netwerk. Hierdoor profiteer je van:
-                            *   ✅ Minder kans op blokkades of beperkingen
-                            *   ✅ Sneller opschalen en campagnes live zetten
-                            *   ✅ Betere stabiliteit voor je advertenties
-
-                            **5. Je krijgt toegang**
-                            Je behoudt volledige inzage en wij zorgen dat alles technisch juist staat ingesteld.
-
-                            👉 *Met een agency account ben je dus altijd verzekerd van meer stabiliteit, minder risico en sneller resultaat.*
-                            """)
-                    elif current_video['title'] == "Klantenservice templates":
-                         st.info("ℹ️ Handige standaardteksten om te kopiëren en plakken.")
-                         with st.container(border=True):
-                             st.markdown("""
-                             In deze les richten we ons op klantenservice templates voor een webshop. Templates zijn standaardteksten die je snel kunt gebruiken of aanpassen bij verschillende klantvragen. Het doel is om consistentie, snelheid en professionaliteit te waarborgen in alle klantcommunicatie.
-
-                             ### Wat is een template?
-                             *   Een template is een voorgeschreven bericht met vaste onderdelen en invulvelden.
-                             *   **Voordelen:**
-                                 *   Snelheid: reageer sneller op veelvoorkomende vragen.
-                                 *   Consistentie: dezelfde toon en informatie bij elke interactie.
-                                 *   Foutreductie: minimaal kans op missende informatie.
-                                 *   Eenvoudige personalisatie: ruimte voor klantnaam en specifieke gegevens.
-
-                             ### Kernonderwerpen waarvoor templates handig zijn
-                             *   Orderbevestiging: bevestiging van aankoop, samenvatting van bestelling, betalingsstatus en contactinformatie.
-                             *   Buiten levertermijn: duidelijke uitleg waarom de levering niet op tijd is, verwachte nieuwe leverdatum, compensatie of opties.
-                             *   Verzendkosten: transparante kosten, free shipping drempels, waar nodig kostenverdeling.
-                             *   Track en trace: link naar zending, statusupdates, verwachte levertijd.
-                             *   Productvragen: specificaties, compatibiliteit, gebruiksaanwijzingen, garantie en retourbeleid.
-
-                             ### Structuur van een goede klantenservice template
-                             1.  **Openingsgroet:** Personaliseer waar mogelijk: "Beste [Naam]," Bedank voor de aankoop: "Bedankt voor je bestelling bij [Winkelnaam]."
-                             2.  **Kerninformatie:** Duidelijke samenvatting van de vraag of situatie. Relevante feiten: bestelnummer, orderdatum, productnaam, gewenste datum, etc. Concrete oplossing of antwoord.
-                             3.  **Actiepunten en vervolgstappen:** Wat de klant moet doen (indien van toepassing). Volgende stappen vanuit de klantenservice. Verwachte reactie tijd: bijvoorbeeld "Wij reageren binnen 24 uur."
-                             4.  **Afsluiting:** Uitnodiging tot verdere vragen. Alternatieve contactkanalen. Vriendelijke afsluiting met naam van de klantenadviseur.
-
-                             ### Voorbeelden per onderwerp
-
-                             **1) Orderbevestiging**
-                             *   **Onderwerp:** Bevestiging van je bestelling bij [Winkelnaam]
-                             *   **Tekst:**
-                                 *   Bedankt voor je aankoop! Je bestelling [ordernummer] is ontvangen en wordt verwerkt.
-                                 *   Samenvatting: [aantal] x [productnaam], totaalbedrag [bedrag], verwachte verzenddatum [datum].
-                                 *   Betalingsstatus: [betaald/onder voorbehoud].
-                                 *   Contactgegevens: [klantenservice-mail/telefoon].
-                                 *   Sluiting: Wij houden je op de hoogte via e-mail van elke statusupdate.
-
-                             **2) Buiten levertermijn**
-                             *   **Onderwerp:** Update levering - [Bestelnummer]
-                             *   **Tekst:**
-                                 *   Onze excuses, levering verloopt niet volgens planning wegens [reden].
-                                 *   Nieuwe verwachte leverdatum: [datum].
-                                 *   Mogelijke opties: vervanging, retour of terugbetaling.
-                                 *   Neem gerust contact op bij vragen.
-
-                             **3) Verzendkosten**
-                             *   **Onderwerp:** Verzendkosten voor je bestelling bij [Winkelnaam]
-                             *   **Tekst:**
-                                 *   Bestaande verzendkosten: [kosten].
-                                 *   Gratis verzenden bij besteding vanaf [bedrag].
-                                 *   Interessante tip: combineer producten voor verzending zonder extra kosten.
-
-                             **4) Track en trace**
-                             *   **Onderwerp:** Track en trace voor bestelling [ordernummer]
-                             *   **Tekst:**
-                                 *   Je zending is meegestuurd. Volg de status via deze link: [track link].
-                                 *   Geschatte bezorgtijd: [tijd].
-                                 *   Contact bij vragen: [klantenservice].
-
-                             **5) Productvragen**
-                             *   **Onderwerp:** Vraag over [productnaam] - informatie en gebruik
-                             *   **Tekst:**
-                                 *   Specificaties: [belangrijkste specs].
-                                 *   Compatibiliteit/gebruik: [toelichting].
-                                 *   Garantie en retourbeleid: [voorwaarden].
-                                 *   Vragen? Antwoord zo nodig met aanvullende details.
-
-                             ### Tonaliteit en stijladvies
-                             *   Gebruik een vriendelijke, professionele en helpende toon.
-                             *   Wees duidelijk en beknopt; vermijd vakjargon of onduidelijke termen.
-                             *   Pas de template aan op de klant en situatie (persoonlijk: naam, ordernummer).
-                             *   Houd consistentie in terminologie en structuur.
-
-                             ### Praktische oefeningen
-                             *   **Oefening A:** Pas een generieke template aan voor een klant die buiten levertermijn contact opneemt. Voeg relevante details toe.
-                             *   **Oefening B:** Schrijf een track & trace bericht voor een zending met vertraging, inclusief proposeer een oplossing.
-                             *   **Oefening C:** Maak een korte productvragen-template voor een veel verkocht item met drie belangrijkste specificaties.
-
-                             ### Real-world toepassingen
-                             *   Gebruik templates in reply-functies van je klantenservice-systeem, chat en e-mail.
-                             *   Integreer met orderbeheersystemen zodat gegevens automatisch kunnen invullen (ordernummer, naam, product).
-                             *   Raadpleeg een kennisbank of FAQ en link naar relevante artikelen in de template.
-
-                             ### Open invulvelden voor jouw lesmateriaal
-                             *   [Bedrijfsnaam]
-                             *   [Klantnaam]
-                             *   [Ordernummer]
-                             *   [Datum]
-                             *   [Productnaam]
-                             *   [Bedrag]
-                             *   [Track link]
-                             *   [Reden uitlooptijd]
-                             *   [Nieuwe leverdatum]
-
-                             ### Samenvattend
-                             Templates helpen je webshop-klanten snel, consistent en professioneel te antwoorden. Gebruik de bovenstaande sjablonen als basis en pas ze aan per situatie en klant. Pas het lesmateriaal verder aan met jouw eigen bedrijfsinformatie en veelgestelde vragen.
-
-                             *Download hierboven kant en klare templates voor de klantenservice EN het retourproces.*
-                             """)
-                    else:
-                        st.video(current_video['url'])
-                    
-                    # 3. Actie Balk (Strak & Compact)
-                    vid_id = f"vid_{abs(hash(current_video['title']))}"
-                    is_done = vid_id in completed_steps
-                    curr_idx = vid_titles.index(current_video['title'])
-                    has_next = curr_idx < len(vid_titles) - 1
-                    
-                    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-                    
-                    # Kolommen voor knoppen
-                    c_done, c_next = st.columns([1, 1.3])
-                    
-                    with c_done:
-                        if not is_done:
-                            # Knop: Afronden
-                            if st.button("✅ Les Afronden (+15 XP)", key=f"btn_finish_{vid_id}", type="primary", use_container_width=True):
-                                auth.mark_step_complete(vid_id, 15)
-                                if "force_completed" not in st.session_state: st.session_state.force_completed = []
-                                st.session_state.force_completed.append(vid_id)
-                                st.balloons()
-                                time.sleep(0.5)
-                                st.rerun()
-                        else:
-                            # Statische tekst als het al klaar is
-                            st.markdown("""
-                            <div style="background:#F0FDF4; border:1px solid #BBF7D0; color:#166534; padding:8px; border-radius:8px; text-align:center; font-weight:600; font-size:0.9rem;">
-                                <i class="bi bi-check-circle-fill"></i> Voltooid
-                            </div>
-                            """, unsafe_allow_html=True)
-
-                    with c_next:
-                        if has_next:
-                            next_vid_name = vid_titles[curr_idx+1]
-                            # Visuele hint voor volgende
-                            st.markdown(f"""
-                            <div style="text-align:right; font-size:0.8rem; color:#64748B; line-height:1.2; padding-top:5px;">
-                                Volgende: <b style="color:#0F172A;">{next_vid_name[:25]}...</b> 👉
-                            </div>
-                            """, unsafe_allow_html=True)
-                        else:
-                            st.markdown("<div style='text-align:right; color:#94A3B8; font-size:0.8rem; padding-top:5px;'>🏁 Module compleet</div>", unsafe_allow_html=True)
-
+                current_video = next((v for v in videos_in_module if v['title'] == st.session_state.curr_video), videos_in_module[0])
+                st.markdown(f"### {current_video['title']}")
+                st.video(current_video['url'])
+                
+                vid_id = f"vid_{abs(hash(current_video['title']))}"
+                if vid_id not in completed_steps:
+                    if st.button("✅ Les Afronden (+15 XP)", type="primary"):
+                        auth.mark_step_complete(vid_id, 15)
+                        st.balloons()
+                        st.rerun()
                 else:
-                    st.error("Selecteer een video.")
+                    st.success("Deze les is voltooid! ✅")
+
 
 elif pg == "Producten Zoeken":
     # --- HEADER ---
@@ -1813,19 +1554,67 @@ elif pg == "Marketing & Design":
                     else: st.warning("Je dagelijkse credits zijn op.")
     
     with tab4:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nUpload een screenshot van je Facebook/TikTok advertentie. De AI vertelt je precies wat er beter kan.")
+        st.markdown("### 🩺 De Advertentie Dokter")
+        st.write("Upload een screenshot van je ad. De AI beoordeelt hem als een strenge media-buyer.")
+        
         if is_pro:
             with st.container(border=True):
-                st.info("Upload screenshot van Ads Manager.")
-                uploaded_file = st.file_uploader("Bestand", type=['png', 'jpg', 'jpeg'])
-                if uploaded_file and st.button("Diagnose starten", type="primary"):
-                    with st.spinner("AI analyseert je advertentie..."):
-                         advies = ai_coach.analyze_ad_screenshot(uploaded_file)
-                         st.markdown("### 🔍 Analyse Resultaat")
-                         st.write(advies)
-                         st.success("Pas deze tips toe om je ROAS te verhogen!")
+                # Stap 1: Context geven
+                c1, c2, c3 = st.columns(3)
+                platform = c1.selectbox("Platform", ["Facebook / Insta Feed", "Instagram Story/Reel", "TikTok"])
+                goal = c2.selectbox("Doel", ["Sales (Conversie)", "Leads", "Kliks"])
+                niche_ad = c3.text_input("Niche", placeholder="Bv. Beauty")
+                
+                # Stap 2: Upload
+                uploaded_file = st.file_uploader("Upload screenshot van je ad (of video thumbnail)", type=['png', 'jpg', 'jpeg'])
+                
+                if uploaded_file and st.button("Start Diagnose 🚑", type="primary", use_container_width=True):
+                    if not niche_ad:
+                        st.warning("Vul ook even je niche in voor beter advies.")
+                    else:
+                        with st.spinner("De dokter kijkt naar je advertentie... even geduld."):
+                             # We roepen de nieuwe Vision functie aan
+                             audit = ai_coach.analyze_ad_screenshot(uploaded_file, platform, goal, niche_ad)
+                             
+                             if audit:
+                                 st.markdown("---")
+                                 
+                                 # SCORE CARD
+                                 score = audit.get('score', 5)
+                                 
+                                 # Kleur bepalen
+                                 if score >= 8: color = "green"
+                                 elif score >= 6: color = "orange"
+                                 else: color = "red"
+                                 
+                                 # De Header
+                                 st.markdown(f"""
+                                 <div style="text-align:center; padding: 20px; background:#F8FAFC; border-radius:12px; border:1px solid #E2E8F0;">
+                                     <h2 style="margin:0; color:{color}; font-size: 3rem;">{score}/10</h2>
+                                     <h3 style="margin:0; color:#1E293B;">{audit.get('titel', 'Analyse Compleet')}</h3>
+                                 </div>
+                                 """, unsafe_allow_html=True)
+                                 
+                                 st.markdown("<br>", unsafe_allow_html=True)
+                                 
+                                 # De Details
+                                 c_hook, c_copy = st.columns(2)
+                                 with c_hook:
+                                     st.info(f"**👁️ De Hook (Beeld):**\n\n{audit.get('analyse_hook')}")
+                                 with c_copy:
+                                     st.info(f"**✍️ De Copy (Tekst):**\n\n{audit.get('analyse_copy')}")
+                                     
+                                 # De Actiepunten
+                                 st.markdown("#### 🛠️ Direct aanpassen:")
+                                 for punt in audit.get('verbeterpunten', []):
+                                     st.error(f"👉 {punt}")
+                                     
+                                 st.success("Pas dit aan en test opnieuw!")
+                             else:
+                                 st.error("Kon de afbeelding niet analyseren. Probeer een kleiner bestand of ander formaat.")
 
-        else: render_pro_lock("Ads check", "Laat je advertenties beoordelen.", "Gooi geen geld weg aan slechte ads. Laat AI ze checken.")
+        else: 
+            render_pro_lock("Ad Audit", "Laat je advertenties beoordelen door AI.", "Voorkom dat je €1000 verspilt aan een slechte advertentie. Laat de AI hem eerst checken.")
 
     # --- TAB 5: STORE DOCTOR (NIEUW) ---
     with tab5:
