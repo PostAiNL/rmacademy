@@ -841,7 +841,7 @@ if pg == "Dashboard":
     with st.container(border=True):
         if not is_daily_done:
             c1, c2 = st.columns([3, 1], vertical_alignment="center")
-            c1.markdown("**Heb je vandaag minstens 15 minuten aan je shop gewerkt?**Consistentie is de sleutel tot succes.")
+            c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt? Consistentie is de sleutel tot succes.")
             if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True, key="dashboard_daily_focus"):
                 auth.mark_step_complete(daily_id, 10)
                 if "force_completed" not in st.session_state: st.session_state.force_completed = []
