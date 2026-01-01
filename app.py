@@ -1367,7 +1367,7 @@ elif pg == "Marketing & Design":
                     st.rerun()
 
     with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\ Weet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
+        st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
         if is_pro:
             with st.container(border=True):
                 # Haal het product op dat is doorgestuurd vanuit de Hunter
@@ -1389,7 +1389,7 @@ elif pg == "Marketing & Design":
         else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
     
     with tab3:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
+        st.markdown("**ℹ️ Wat doet deze tool?**\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
         t_desc, t_inf = st.tabs(["🛍️ Beschrijvingen", "🤳 Influencer Script"])
         with t_desc:
             with st.container(border=True):
@@ -1630,79 +1630,70 @@ elif pg == "Instellingen":
                 st.rerun()
 
     with tab2:
-        # --- PARTNER / VRIENDEN PAGINA ---
-        
-        # 1. De Header
-        st.markdown("""
-        <div style="text-align:center; margin-bottom: 20px;">
-            <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per vriend</h2>
-            <p style="color:#64748B;">Help anderen starten met e-commerce en wordt zelf beloond.</p>
-        </div>
-        """, unsafe_allow_html=True)
+        # --- DYNAMISCHE HEADER OP BASIS VAN STATUS ---
+        if is_pro:
+            st.markdown("""
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h2 style="color:#1E40AF; margin-bottom:5px;">💼 RM Partner Programma</h2>
+                <p style="color:#64748B;">Je bent PRO-lid. Verdien <b>€250,-</b> per student en betaal je eigen abonnement terug.</p>
+            </div>
+            """, unsafe_allow_html=True)
+        else:
+            st.markdown("""
+            <div style="text-align:center; margin-bottom: 20px;">
+                <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per aanbeveling</h2>
+                <p style="color:#64748B;">Help anderen starten en gebruik je winst om zelf gratis <b>PRO</b> te worden.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-        # 2. De Stats
+        # 2. De Stats (Blijft hetzelfde, maar met strakkere labels)
         stats = auth.get_affiliate_stats()
-        st.markdown(f"""
-        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 25px;">
-            <div style="background:#F8FAFC; padding:15px; border-radius:12px; text-align:center; border:1px solid #E2E8F0;">
-                <div style="font-size:0.8rem; font-weight:700; color:#64748B; text-transform:uppercase;">Kliks</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#0F172A;">{stats[0] * 5}</div> 
-            </div>
-            <div style="background:#F0FDF4; padding:15px; border-radius:12px; text-align:center; border:1px solid #BBF7D0;">
-                <div style="font-size:0.8rem; font-weight:700; color:#166534; text-transform:uppercase;">Studenten</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#15803D;">{stats[1]}</div>
-            </div>
-            <div style="background:#FFF7ED; padding:15px; border-radius:12px; text-align:center; border:1px solid #FED7AA;">
-                <div style="font-size:0.8rem; font-weight:700; color:#9A3412; text-transform:uppercase;">Verdiend</div>
-                <div style="font-size:1.4rem; font-weight:800; color:#C2410C;">€{stats[2]}</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
+        col_s1, col_s2, col_s3 = st.columns(3)
+        with col_s1:
+            st.metric("Kliks op link", stats[0] * 5)
+        with col_s2:
+            st.metric("Inschrijvingen", stats[1])
+        with col_s3:
+            st.metric("Commissie", f"€{stats[2]}", delta="Betaalbaar op aanvraag")
 
-        # 3. Hoe werkt het
+        # 3. Conversie blok
         with st.container(border=True):
-            st.markdown("#### 🚀 Hoe werkt het?")
-            c1, c2, c3 = st.columns(3)
-            c1.markdown("**1. Deel je link**\nStuur je unieke link naar vrienden die ook willen ondernemen.")
-            c2.markdown("**2. Zij starten**\nZij maken een account aan via jouw link.")
-            c3.markdown("**3. Jij casht**\nWorden ze student? Dan krijg jij direct **€250** gestort.")
+            if is_pro:
+                st.markdown("#### 📈 Jouw Partner Business")
+                st.write("Als PRO-lid heb je een streepje voor. Deel je ervaringen in de community en help anderen.")
+            else:
+                st.markdown("#### 🚀 Hoe word ik gratis PRO?")
+                st.write("Eén enkele referral levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
 
-        # --- LOGICA VOOR CODE GENERATIE (TEMP FIX) ---
+        # --- DEEL ACTIES ---
         current_ref = user.get('referral_code', 'TEMP')
-        if current_ref == 'TEMP':
-            safe_name = user.get('first_name') or user.get('email', 'USER')
-            safe_name = safe_name[:3].upper()
-            fake_num = sum(ord(c) for c in user['email']) % 900 + 100
-            current_ref = f"{safe_name}-{fake_num}"
-
-        # 4. Deel Acties
-        st.markdown("### 🔗 Deel direct & Claim XP")
-        
         share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
-        share_text = f"Hee! Ik ben begonnen met mijn eigen webshop via RM Ecom. Gebruik mijn code {current_ref} voor een vliegende start: {share_link}"
-        whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
         
-        st.info("🎁 **Bonus:** Klik op een knop hieronder en ontvang direct **+50 XP**!")
-
-        col_share_1, col_share_2 = st.columns(2)
+        st.markdown("### 🔗 Jouw Unieke Partner Link")
+        st.code(share_link, language="text")
         
-        with col_share_1:
-            st.link_button(f"💚 Deel via WhatsApp", whatsapp_url, use_container_width=True)
-            
-        with col_share_2:
+        c_whatsapp, c_copy = st.columns(2)
+        with c_whatsapp:
+            share_text = f"Hee! Ik volg nu het RM Ecom traject. Als je ook een webshop wilt starten, gebruik mijn link voor een vliegende start: {share_link}"
+            wa_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
+            st.link_button("💚 Deel via WhatsApp", wa_url, use_container_width=True)
+        
+        with c_copy:
             if st.button("📋 Link Kopiëren", use_container_width=True):
-                st.toast(f"Link gekopieerd: {share_link}", icon="✅")
+                st.toast("Link gekopieerd naar klembord!", icon="✅")
                 if "share_xp_claimed" not in st.session_state:
                     auth.mark_step_complete("share_bonus_action", 50)
                     st.session_state.share_xp_claimed = True
-                    st.balloons()
-                    time.sleep(1)
                     st.rerun()
 
-        with st.expander("Toon mijn handmatige code"):
-            st.write("Jouw unieke vriendencode:")
-            st.code(current_ref, language="text")
-            st.caption("Vrienden kunnen deze code invullen bij het aanmaken van een account.")
+        # 4. Extra uitleg voor PRO
+        if is_pro:
+            with st.expander("ℹ️ Uitbetalingsinformatie"):
+                st.write("""
+                - Commissies worden 30 dagen na de inschrijving van de student goedgekeurd (ivm wettelijke bedenktijd).
+                - Uitbetalingen vinden plaats op de 1e van de maand.
+                - Stuur een bericht via de 'Hulp' tab om je eerste uitbetaling aan te vragen.
+                """)
             
     with tab3:
         with st.container(border=True):
@@ -1763,6 +1754,7 @@ elif pg == "Instellingen":
     with tab5:
         st.markdown("#### 💡 Jouw mening telt")
         
+        # Check in de database of de gebruiker de beloning al eens heeft gehad
         has_claimed_before = user.get('feedback_reward_claimed', False)
 
         if has_claimed_before and not is_pro_license:
@@ -1780,14 +1772,14 @@ elif pg == "Instellingen":
             <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
                 <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
-                    Geef ons eerlijke feedback en unlock direct alle PRO tools for 24 uur.
+                    Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
                 </p>
             </div>
             """, unsafe_allow_html=True)
 
-            fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120)
+            fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120, key="feedback_text_input")
             
-            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True):
+            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True, key="feedback_submit_btn"):
                 if len(fb_text) > 20:
                     with st.spinner("Bezig met verwerken..."):
                         is_valid = ai_coach.validate_feedback(fb_text)
@@ -1796,11 +1788,12 @@ elif pg == "Instellingen":
                             status = db.claim_feedback_reward(user['email'], fb_text)
                             
                             if status == "SUCCESS":
-                                st.balloons()
+                                st.cache_data.clear() # ZEER BELANGRIJK: Maakt de cache leeg
                                 st.session_state.feedback_done = True
+                                st.balloons()
                                 st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur toegang.")
                                 time.sleep(2)
-                                st.rerun()
+                                st.rerun() # Herlaad de app met de nieuwe status
                             else:
                                 st.error("Je hebt deze beloning al eens geclaimd.")
                         else:
