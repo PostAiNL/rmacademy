@@ -163,3 +163,13 @@ def set_user_pro(email):
         return True
     except Exception as e:
         return False
+
+def get_daily_winners_from_db():
+    """Haalt de kant-en-klare winners op uit de database."""
+    if not supabase: return []
+    try:
+        res = supabase.table('daily_winners').select("*").execute()
+        return res.data
+    except Exception as e:
+        print(f"DB Error winners: {e}")
+        return []

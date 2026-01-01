@@ -7,6 +7,7 @@ from openai import OpenAI
 
 warnings.simplefilter("ignore")
 
+APIFY_TOKEN = st.secrets["apify"]["token"]
 
 def init_ai():
     """Initialiseert de OpenAI client met de key uit secrets."""
