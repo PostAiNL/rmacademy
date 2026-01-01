@@ -1,0 +1,19 @@
+name: Daily Winners Update
+on:
+  schedule:
+    - cron: '0 2 * * *' # Draait elke nacht om 02:00 uur
+  workflow_dispatch: # Zorgt dat je het ook handmatig kunt starten
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+      - name: Install dependencies
+        run: pip install apify-client supabase
+      - name: Run update script
+        run: python cron_update_winners.py
