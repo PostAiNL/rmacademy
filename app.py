@@ -717,21 +717,13 @@ def render_pro_lock(title, desc, warning_text="Deze tool geeft onze studenten ee
     """
     st.markdown(lock_html.replace("\n", ""), unsafe_allow_html=True)
 
-# --- ONBOARDING WIZARD ---
-# Omdat iedereen zich registreert, kijken we direct in de DATABASE (user_extra).
-# Als daar een shopnaam bekend is, hoeft de wizard niet meer getoond te worden.
+# --- ONBOARDING WIZARD (VERBETERD) ---
+# We kijken direct in het 'user' object dat we bovenaan het script al hebben gesynct met de DB
+has_shop_name = user.get('shop_name') is not None and user.get('shop_name') != ""
+wizard_already_done = st.session_state.get("wizard_complete", False)
 
-# 1. Haal op of er al een shopnaam in de DB staat
-db_shop_name = user_extra.get('shop_name') if user_extra else None
-
-# 2. Check of we de wizard toevallig NET hebben afgerond in deze sessie
-session_wizard_done = st.session_state.get("wizard_complete", False)
-
-# 3. CRUCIALE CHECK: Heeft de gebruiker al XP? (Zo ja -> Sla over)
-has_xp = user.get('xp', 0) > 0
-
-# 4. Logica: Toon Wizard ALLEEN als er GEEN shopnaam is EN niet net afgerond EN nog 0 XP
-if not db_shop_name and not session_wizard_done and not has_xp:
+# Alleen tonen als: Geen shopnaam in DB EN niet net afgerond EN XP is echt 0
+if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         welcome_name = user.get('first_name', 'Ondernemer')
@@ -739,40 +731,35 @@ if not db_shop_name and not session_wizard_done and not has_xp:
         
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
-            shop_name = st.text_input("Hoe gaat je webshop heten?", placeholder="Bijv. Nova Gadgets")
-            goal = st.selectbox("Wat is je eerste maandelijkse doel?", ["€1.000 /maand (Sidehustle)", "€5.000 /maand (Serieus)", "€10.000+ /maand (Fulltime)"])
+            shop_name_input = st.text_input("Hoe gaat je webshop heten?", placeholder="Bijv. Nova Gadgets")
+            goal_input = st.selectbox("Wat is je eerste maandelijkse doel?", ["€1.000 /maand (Sidehustle)", "€5.000 /maand (Serieus)", "€10.000+ /maand (Fulltime)"])
             
             st.markdown("<br>", unsafe_allow_html=True)
             
             if st.button("🚀 Start Mijn Avontuur (+10 XP)", type="primary", use_container_width=True):
-                if shop_name:
-                    # 1. OPSLAAN IN DATABASE
-                    # Tip: Zorg dat in Supabase de kolommen 'shop_name' (text) en 'income_goal' (text) bestaan in de 'users' tabel!
-                    db.update_onboarding_data(user['email'], shop_name, goal)
-                    
-                    # 2. Update XP in Database
-                    new_xp = user['xp'] + 10
-                    if auth.supabase:
-                        auth.supabase.table('users').update({"xp": new_xp}).eq('email', user['email']).execute()
-                    
-                    # 3. Markeer stap als voltooid
-                    auth.mark_step_complete("onboarding_done", 0) 
-                    
-                    # 4. Update Sessie Status
-                    st.session_state.shop_name = shop_name 
-                    st.session_state.income_goal = goal
-                    st.session_state.wizard_complete = True
-                    st.session_state.user['xp'] = new_xp
-                    
-                    # 5. Feest & Reload
-                    st.balloons()
-                    st.cache_data.clear() 
-                    time.sleep(1)
-                    st.rerun()
+                if shop_name_input:
+                    with st.spinner("Profiel opslaan..."):
+                        # 1. Direct naar DB schrijven
+                        db.update_onboarding_data(user['email'], shop_name_input, goal_input)
+                        
+                        # 2. XP verhogen in DB
+                        new_xp = user.get('xp', 0) + 10
+                        if auth.supabase:
+                            auth.supabase.table('users').update({"xp": new_xp}).eq('email', user['email']).execute()
+                        
+                        # 3. Sessie direct updaten zodat wizard verdwijnt
+                        st.session_state.wizard_complete = True
+                        st.session_state.user['shop_name'] = shop_name_input
+                        st.session_state.user['income_goal'] = goal_input
+                        st.session_state.user['xp'] = new_xp
+                        
+                        st.balloons()
+                        time.sleep(1)
+                        st.rerun()
                 else: 
                     st.warning("Vul een naam in!")
     
-    # Stop de rest van de app zolang de wizard er is
+    # Blokkeer de rest van de app
     st.stop()
 
 if pg == "Dashboard":
