@@ -597,15 +597,19 @@ with st.sidebar:
     elif not is_pro:
         st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
     
+# --- VERVANG VANAF HIER ---
     options = ["Dashboard", "Academy", "Producten Zoeken", "Marketing & Design", "Financiën", "Instellingen"]
     icons = ["house-fill", "mortarboard-fill", "search", "palette-fill", "cash-stack", "gear-fill"]
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design"]:
+        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design", "Financiën"]:
              menu_display_options.append(f"{opt} 🔒")
         else:
              menu_display_options.append(opt)
+
+    # De menu_key zorgt ervoor dat het menu 'geforceerd' verspringt als de app merkt dat de index verandert
+    menu_key = f"menu_state_{st.session_state.nav_index}"
 
     selected_display = option_menu(
         menu_title=None,
@@ -619,8 +623,20 @@ with st.sidebar:
             "nav-link": {"font-size": "14px", "text-align": "left", "margin": "0px", "padding": "10px", "--hover-color": "#EFF6FF", "color": "#0F172A"}, 
             "nav-link-selected": {"background-color": "#2563EB", "color": "white", "font-weight": "600"},
         },
-        key="main_sidebar_menu"
+        key=menu_key
     )
+
+    # Als de gebruiker op een menu-item klikt, updaten we de nav_index
+    if selected_display:
+        clean_selection = selected_display.replace(" 🔒", "")
+        new_index = options.index(clean_selection)
+        if new_index != st.session_state.nav_index:
+            st.session_state.nav_index = new_index
+            st.rerun()
+
+    # Deze variabele bepaalt welke pagina de gebruiker ziet
+    pg = options[st.session_state.nav_index]
+    # --- TOT HIER ---
 
     # --- NIEUW: AUTO-CLOSE SIDEBAR OP MOBIEL ---
     st.markdown("""
@@ -1434,19 +1450,25 @@ elif pg == "Marketing & Design":
                     st.rerun()
 
     with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
+        st.markdown("**ℹ️ Wat doet deze tool?**\ Weet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
         if is_pro:
             with st.container(border=True):
-                # WORKFLOW PRE-FILL
+                # Haal het product op dat is doorgestuurd vanuit de Hunter
                 default_prod = st.session_state.get('workflow_product', '')
-                prod = st.text_input("Product", value=default_prod, key="vid_prod")
                 
-                if st.button("Genereer scripts", type="primary", key="vid_btn") and prod:
-                    res = ai_coach.generate_viral_scripts(prod, "", "Viral")
-                    st.markdown("### Hooks")
-                    for h in res['hooks']: st.info(h)
-                    with st.expander("Script"): st.text_area("Script", res['full_script'])
-                    with st.expander("Briefing"): st.code(res['creator_brief'])
+                # De 'value' zorgt dat het veld al ingevuld is
+                prod = st.text_input("Voor welk product wil je een script?", value=default_prod, key="vid_prod_input")
+                
+                if st.button("Genereer scripts", type="primary", key="vid_btn"):
+                    if prod:
+                        with st.spinner("AI schrijft je virale script..."):
+                            res = ai_coach.generate_viral_scripts(prod, "", "Viral")
+                            st.markdown("### 🪝 Hooks")
+                            for h in res['hooks']: st.info(h)
+                            with st.expander("📄 Volledig Script"): st.write(res['full_script'])
+                            with st.expander("📝 Briefing voor Creator"): st.code(res['creator_brief'])
+                    else:
+                        st.warning("Vul eerst een productnaam in.")
         else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
     
     with tab3:
