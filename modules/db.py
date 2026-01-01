@@ -111,25 +111,29 @@ def save_feedback(email, message, is_valid):
     except: return False
 
 def claim_feedback_reward(email, message=None):
-    """Geeft 24u PRO en blokkeert herhaling."""
     if not supabase: return "ERROR"
     try:
-        # Check of al geclaimd
+        # 1. Check of al geclaimd
         res = supabase.table('users').select("feedback_reward_claimed").eq('email', email).execute()
         if res.data and res.data[0].get('feedback_reward_claimed'): 
             return "ALREADY_CLAIMED"
         
-        # Zet vervaldatum op +24 uur
-        new_expiry = (datetime.now(timezone.utc) + timedelta(hours=24)).isoformat()
+        # 2. Bereken eindtijd (24 uur vanaf NU)
+        # We gebruiken een formaat dat Supabase 100% begrijpt
+        now = datetime.now(timezone.utc)
+        expiry_date = now + timedelta(hours=24)
+        expiry_str = expiry_date.strftime("%Y-%m-%dT%H:%M:%S+00:00")
         
-        # Update gebruiker: 24u pro en vlag op True
+        # 3. Update de gebruiker in de DB
         supabase.table('users').update({
-            "pro_expiry": new_expiry, 
+            "pro_expiry": expiry_str, 
             "feedback_reward_claimed": True
         }).eq('email', email).execute()
         
         return "SUCCESS"
-    except: return "ERROR"
+    except Exception as e:
+        print(f"Error in claim_feedback_reward: {e}")
+        return "ERROR"
 
 # --- FINANCIËN ---
 def save_daily_stats(email, revenue, ad_spend, cogs):
@@ -173,3 +177,19 @@ def get_daily_winners_from_db():
     except Exception as e:
         print(f"DB Error winners: {e}")
         return []
+
+def can_user_search(email, is_pro):
+    if is_pro: return True # PRO mag altijd
+    
+    today = datetime.now().strftime("%Y-%m-%d")
+    try:
+        # Check of er vandaag al een record is voor deze user in een 'logs' tabel
+        res = supabase.table('search_logs').select("*").eq('email', email).eq('date', today).execute()
+        if len(res.data) >= 1: # Limiet van 1 per dag
+            return False
+        
+        # Log de zoekopdracht direct
+        supabase.table('search_logs').insert({"email": email, "date": today}).execute()
+        return True
+    except:
+        return False # Bij error voor de zekerheid blokkeren
