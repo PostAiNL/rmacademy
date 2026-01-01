@@ -1814,25 +1814,20 @@ elif pg == "Instellingen":
             c3.markdown("**3. Jij casht**\nWorden ze student? Dan krijg jij direct **€250** gestort.")
 
         # --- LOGICA VOOR CODE GENERATIE (TEMP FIX) ---
-        # Als de user 'TEMP' heeft, maken we een mooie code op basis van de naam
         current_ref = user.get('referral_code', 'TEMP')
         if current_ref == 'TEMP':
-            # Pak eerste 3 letters van naam (of email) + random getal
             safe_name = user.get('first_name') or user.get('email', 'USER')
             safe_name = safe_name[:3].upper()
-            # We gebruiken een hash van de email zodat het getal altijd hetzelfde is voor deze user, maar wel 'random' lijkt
             fake_num = sum(ord(c) for c in user['email']) % 900 + 100
             current_ref = f"{safe_name}-{fake_num}"
 
         # 4. Deel Acties
         st.markdown("### 🔗 Deel direct & Claim XP")
         
-        # Deel Link maken
         share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
         share_text = f"Hee! Ik ben begonnen met mijn eigen webshop via RM Ecom. Gebruik mijn code {current_ref} voor een vliegende start: {share_link}"
         whatsapp_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
         
-        # Duidelijke beloning tekst
         st.info("🎁 **Bonus:** Klik op een knop hieronder en ontvang direct **+50 XP**!")
 
         col_share_1, col_share_2 = st.columns(2)
@@ -1843,7 +1838,6 @@ elif pg == "Instellingen":
         with col_share_2:
             if st.button("📋 Link Kopiëren", use_container_width=True):
                 st.toast(f"Link gekopieerd: {share_link}", icon="✅")
-                # XP Beloning toekennen
                 if "share_xp_claimed" not in st.session_state:
                     auth.mark_step_complete("share_bonus_action", 50)
                     st.session_state.share_xp_claimed = True
@@ -1851,7 +1845,6 @@ elif pg == "Instellingen":
                     time.sleep(1)
                     st.rerun()
 
-        # 5. Handmatige code tonen
         with st.expander("Toon mijn handmatige code"):
             st.write("Jouw unieke vriendencode:")
             st.code(current_ref, language="text")
@@ -1913,10 +1906,9 @@ elif pg == "Instellingen":
             Neem even contact op via de mail, dan lossen we het op!
             """)
     
-with tab5:
+    with tab5:
         st.markdown("#### 💡 Jouw mening telt")
         
-        # Check in de database of de gebruiker de beloning al eens heeft gehad
         has_claimed_before = user.get('feedback_reward_claimed', False)
 
         if has_claimed_before and not is_pro_license:
@@ -1934,7 +1926,7 @@ with tab5:
             <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
                 <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
                 <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
-                    Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
+                    Geef ons eerlijke feedback en unlock direct alle PRO tools for 24 uur.
                 </p>
             </div>
             """, unsafe_allow_html=True)
@@ -1942,12 +1934,11 @@ with tab5:
             fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120)
             
             if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True):
-                if len(fb_text) > 20: # Iets strenger op lengte
+                if len(fb_text) > 20:
                     with st.spinner("Bezig met verwerken..."):
                         is_valid = ai_coach.validate_feedback(fb_text)
                         
                         if is_valid:
-                            # Sla feedback op én zet de vlag 'feedback_reward_claimed' op TRUE in de DB
                             status = db.claim_feedback_reward(user['email'], fb_text)
                             
                             if status == "SUCCESS":
