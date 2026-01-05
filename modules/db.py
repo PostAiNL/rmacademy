@@ -55,16 +55,18 @@ def update_user_credits(email, new_credits):
     except: return False
 
 # --- WIZARD & BRAND IDENTITY ---
-def update_onboarding_data(email, shop_name, income_goal, niche="Algemeen"):
-    if not supabase: return False
+def update_onboarding_data(email, shop_name, income_goal):
+    from modules import auth
     try:
-        supabase.table('users').update({
-            "shop_name": shop_name,
-            "income_goal": income_goal,
-            "niche": niche
-        }).eq('email', email).execute()
-        return True
-    except: return False
+        if auth.supabase:
+            res = auth.supabase.table('users').update({
+                "shop_name": shop_name,
+                "income_goal": income_goal
+            }).eq('email', email).execute()
+            return True
+    except Exception as e:
+        print(f"Update error: {e}")
+    return False
 
 def get_user_data(email):
     if not supabase: return {}
