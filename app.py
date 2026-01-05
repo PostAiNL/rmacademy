@@ -745,12 +745,12 @@ if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         welcome_name = user.get('first_name', 'Ondernemer')
-        st.markdown(f"""<div style="text-align: center; padding: 20px;"><h1 style="color: #2563EB; margin-bottom: 10px;">👋 Welkom bij de Academy, {welcome_name}!</h1><p style="font-size: 1.1rem; color: #64748B;">Laten we je profiel instellen voor maximaal succes.</p></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="text-align: center; padding: 20px;"><h1 style="color: #2563EB; margin-bottom: 10px;">👋Welkom bij RM Academy, {welcome_name}!</h1><p style="font-size: 1.1rem; color: #64748B;">Laten we je profiel instellen voor maximaal succes.</p></div>""", unsafe_allow_html=True)
         
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             shop_name_input = st.text_input("Hoe gaat je webshop heten?", placeholder="Bijv. Nova Gadgets")
-            goal_input = st.selectbox("Wat is je eerste maandelijkse doel?", ["€1.000 /maand (Sidehustle)", "€5.000 /maand (Serieus)", "€10.000+ /maand (Fulltime)"])
+            goal_input = st.selectbox("Wat is je eerste maandelijkse doel?", ["€5.000 /maand (Sidehustle)", "€10.000 /maand (Serieus)", "€15.000+ /maand (Fulltime)"])
             
             st.markdown("<br>", unsafe_allow_html=True)
             
@@ -781,51 +781,64 @@ if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
     st.stop()
 
 if pg == "Dashboard":
-# 1. Level Up Overlay Fix
+# 1. Level Up Melding (Subtiel rechtsboven, geen popup)
     if user['level'] > st.session_state.prev_level:
         st.balloons()
-        # CRUCIAAL: Update de status EERST. 
-        # Zelfs als de pagina ververst, weet de app nu dat de popup niet meer getoond moet worden.
+        # We updaten de status direct zodat de melding bij de volgende klik weer weggaat
         st.session_state.prev_level = user['level']
         
-        # De HTML hieronder mag GEEN spaties aan het begin van de regel hebben
-        overlay_html = f"""
-<div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(15, 23, 42, 0.85); z-index: 999999; display: flex; justify-content: center; align-items: center; text-align: center; padding: 20px;">
-    <div style="background: white; padding: 40px; border-radius: 24px; border: 1px solid #E2E8F0; box-shadow: 0 20px 50px rgba(0,0,0,0.1); max-width: 400px;">
-        <div style="font-size: 60px; margin-bottom: 10px;">🏆</div>
-        <h1 style="color: #F59E0B !important; margin: 0; font-weight: 800; font-size: 2.2rem;">Level Up!</h1>
-        <h3 style="color: #0F172A; margin-top: 10px; font-size: 1.4rem;">Gefeliciteerd, je bent nu Level {user['level']}!</h3>
-        <p style="color: #64748B; margin: 15px 0 25px 0; line-height: 1.5; font-size: 1.1rem;">Je hebt nieuwe features vrijgespeeld op je dashboard. Ga zo door!</p>
-        <a href="./" target="_self" style="text-decoration: none;">
-            <div style="background: #2563EB; color: white; padding: 16px 45px; border-radius: 50px; font-weight: bold; cursor: pointer; font-size: 1.1rem; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); display: inline-block;">
-                Doorgaan 🚀
-            </div>
-        </a>
+        st.markdown(f"""
+<div style="position: fixed; top: 80px; right: 20px; z-index: 9999; animation: slideIn 0.5s ease-out;">
+    <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
+                padding: 15px 25px; 
+                border-radius: 12px; 
+                box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+                border: 1px solid #FCD34D;
+                display: flex; 
+                align-items: center; 
+                gap: 15px;">
+        <span style="font-size: 24px;">🏆</span>
+        <div style="text-align: left;">
+            <div style="color: #78350F; font-weight: 800; font-size: 0.9rem; margin: 0; line-height: 1;">LEVEL UP!</div>
+            <div style="color: #92400E; font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Je bent nu Level {user['level']}</div>
+        </div>
     </div>
 </div>
-"""
-        st.markdown(overlay_html, unsafe_allow_html=True)
+
+<style>
+@keyframes slideIn {{
+    0% {{ transform: translateX(100%); opacity: 0; }}
+    100% {{ transform: translateX(0); opacity: 1; }}
+}}
+</style>
+""", unsafe_allow_html=True)
 
     if "force_completed" not in st.session_state: st.session_state.force_completed = []
     @st.cache_data(ttl=60, show_spinner=False)
     def get_cached_progress_db(uid): return auth.get_progress()
     db_progress = get_cached_progress_db(user['id'])
     completed_steps = list(set(db_progress + st.session_state.force_completed))
-# --- 1. LOGICA & VOORTGANG ---
+# --- 1. LOGICA & VARIABELEN (FIXED: OPSLAAN & WEERGAVE) ---
     full_map = roadmap.get_roadmap()
+    # Haal ALTIJD de laatste voortgang op uit de database
+    db_progress = auth.get_progress()
+    completed_steps = list(set(db_progress + st.session_state.force_completed))
+    
     all_roadmap_ids = [s['id'] for fase in full_map.values() for s in fase['steps']]
     valid_done_count = len([sid for sid in completed_steps if sid in all_roadmap_ids])
     total_steps_count = len(all_roadmap_ids)
+    
     progress_pct = int((valid_done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
     safe_progress = min(progress_pct, 100)
     is_finished = valid_done_count >= total_steps_count
 
-    # Variabelen voor de kaart instellen
+    # Initialiseer knoppen
+    btn_url = "#roadmap_start"
     btn_pro_url = STRATEGY_CALL_URL
     btn_student_url = "https://calendly.com/rmecomacademy/30min"
-    card_icon = "bi-crosshair"
 
     if not is_finished:
+        # --- BLAUWE KAART LOGICA ---
         next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Laden...", 0, None, False, ""
         for idx, (fase_key, fase) in enumerate(full_map.items()):
             phase_done = True
@@ -836,73 +849,67 @@ if pg == "Dashboard":
                     break
             if not phase_done: break
             
-        is_step_pro = next_step_locked and not is_pro
-        if is_step_pro:
-            card_bg, accent_color, btn_text, btn_url, card_icon = "linear-gradient(135deg, #0F172A 0%, #1E293B 100%)", "#F59E0B", "🚀 Word Student", STRATEGY_CALL_URL, "bi-lock-fill"
-        else:
-            card_bg, accent_color, btn_text, btn_url, card_icon = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)", "#DBEAFE", "🚀 Start Opdracht", "#roadmap_start", "bi-crosshair"
-        
-        buttons_html = f'''<a href="{btn_url}" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 14px 30px; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">{btn_text}</div></a>'''
+        card_bg = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
+        accent_color = "#FFFFFF"
+        card_icon = "bi-crosshair"
+        # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
+        buttons_html = f"""<div style="margin-top: 15px;"><a href="#roadmap_start" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🚀 Start Opdracht</div></a></div>"""
     else:
+        # --- GOUDEN KAART LOGICA ---
         next_step_title = "Basisfundament Voltooid! 💎"
-        next_step_desc = "Gefeliciteerd, je shop staat. Maar een shop zonder sales is slechts een dure hobby. Tijd om in 70 dagen te schalen naar €15.000+ per maand."
+        next_step_desc = "Gefeliciteerd, je shop staat! Tijd om in 70 dagen te schalen naar €15.000+/maand met onze Elite strategieën. 🎁 ELITE BONUS: Als PRO-lid loot je ELKE maand mee voor een volledig RM Traject!"
         next_step_phase_index = 6
-        card_bg, accent_color, card_icon = "linear-gradient(135deg, #111827 0%, #1f2937 100%)", "#FBBF24", "bi-trophy-fill"
-# HTML voor Elite Modus (GEFIXED: Geen inspringing voor de tekst)
+        card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
+        accent_color = "#FFFFFF"
+        card_icon = "bi-trophy-fill"
+        # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
         buttons_html = f"""
-<div style="display: flex; gap: 15px; flex-wrap: wrap;">
-    <a href="{btn_student_url}" target="_blank" style="text-decoration:none;">
-        <div style="background: #FBBF24; color: #000; padding: 14px 30px; border-radius: 12px; font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🎓 Start Elite Traject</div>
-    </a>
-    <a href="{btn_pro_url}" target="_blank" style="text-decoration:none;">
-        <div style="background: rgba(255,255,255,0.1); color: #FFF; padding: 14px 30px; border-radius: 12px; font-weight: 800; font-size: 1rem; cursor: pointer; border: 1px solid rgba(255,255,255,0.3);">⚡ Word PRO Lid (€49,95)</div>
-    </a>
+<div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
+<a href="{btn_student_url}" target="_blank" style="text-decoration:none;">
+<div style="background: #1a1a1a; color: #FFD700; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer;">🎓 Start Elite Traject</div>
+</a>
+<a href="{btn_pro_url}" target="_blank" style="text-decoration:none;">
+<div style="background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 12px 25px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; border: 1px solid #FFFFFF;">⚡ Word PRO Lid (€49,95)</div>
+</a>
 </div>"""
 
-    # --- 2. HEADER & PROGRESS (GEFIXED: GEEN 'NONE' MEER) ---
-    name = user.get('first_name') or user['email'].split('@')[0].capitalize()
-    
-    # Haal waarden op en vervang 'None' direct door een standaard tekst
+# --- 2. HEADER & PROGRESS ---
     db_shop_name = user.get('shop_name')
     db_goal = user.get('income_goal')
-    
-    us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn doel"
+    us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn Webshop"
     ug = db_goal if db_goal and str(db_goal) != "None" else "€15k/maand"
     
-    c_head, c_prog = st.columns([2, 1], vertical_alignment="bottom")
-    with c_head:
-        st.markdown(f"<h1 style='margin-bottom: 4px;'>Goedemorgen, {name} 👋</h1>", unsafe_allow_html=True)
-        st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
-    with c_prog: 
-        st.progress(safe_progress / 100)
+    st.markdown(f"<h1>Goedemorgen, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
+    st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
+    st.progress(safe_progress / 100)
 
-
-    # --- 3. UITLEG EXPANDER (Inklapbaar) ---
+    # --- 3. UITLEG EXPANDER (HERSTELD) ---
     st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
     with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
         col_vid, col_txt = st.columns([1.2, 1], gap="medium")
         with col_vid:
             st.video(COACH_VIDEO_URL)
         with col_txt:
-            st.markdown("#### 🚀 Startgids")
-            st.markdown('<div style="font-size: 0.85rem; line-height: 1.4; color: #475569;">Volg de Roadmap stappen en gebruik de AI tools om te groeien.</div>', unsafe_allow_html=True)
+            st.markdown("#### Belangrijke info:")
+            st.markdown('<div style="font-size: 0.85rem; line-height: 1.4; color: #475569;">Volg de Roadmap en gebruik de AI tools om te groeien.</div>', unsafe_allow_html=True)
             st.markdown(f"""
-            <div style="margin-top: 8px;">
-                <div style="margin-bottom: 5px;"><span style="background:#F1F5F9; color:#475569; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">DEMO</span> <span style="font-size:0.75rem; color:#64748B;">Roadmap + 3 AI credits</span></div>
-                <div style="margin-bottom: 5px;"><span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">PRO Lid ⚡</span> <span style="font-size:0.75rem; color:#64748B;">Onbeperkt AI + Spy-tools</span></div>
-                <div style="margin-bottom: 5px;"><span style="background:#DBEAFE; color:#1E40AF; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">STUDENT 🎓</span> <span style="font-size:0.75rem; color:#64748B;">Volledige cursus + Coaching</span></div>
-            </div>""", unsafe_allow_html=True)
+<div style="margin-top: 8px;">
+<div style="margin-bottom: 5px;"><span style="background:#F1F5F9; color:#475569; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">DEMO</span> <span style="font-size:0.75rem; color:#64748B;">Roadmap + 3 AI credits</span></div>
+<div style="margin-bottom: 5px;"><span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">PRO Lid ⚡</span> <span style="font-size:0.75rem; color:#64748B;">Onbeperkt AI + Spy-tools + <b>Maandelijkse Giveaway 🎁</b></span></div>
+<div style="margin-bottom: 5px;"><span style="background:#DBEAFE; color:#1E40AF; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">STUDENT 🎓</span> <span style="font-size:0.75rem; color:#64748B;">Volledige cursus + 1op1 Coaching</span></div>
+</div>""", unsafe_allow_html=True)
             if not is_pro:
-                st.link_button("Upgrade naar PRO", STRATEGY_CALL_URL, use_container_width=True)
+                st.link_button("Upgrade naar PRO (€49,95)", STRATEGY_CALL_URL, use_container_width=True)
 
-    # --- 4. DAILY HABIT ---
+    # --- 4. DAILY HABIT SECTIE ---
     daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
     is_daily_done = daily_id in completed_steps
-    st.markdown("### 📅 Jouw Daily Focus")
+
+    st.markdown("### 📅 Jouw Focus (Roadmap)")
     with st.container(border=False):
         if not is_daily_done:
             c1, c2 = st.columns([3, 1], vertical_alignment="center")
-            c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt?")
+            c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt? Consistentie is de sleutel tot succes.")
             if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True, key="dashboard_daily_focus"):
                 auth.mark_step_complete(daily_id, 10)
                 st.cache_data.clear()
@@ -910,31 +917,23 @@ if pg == "Dashboard":
         else:
             st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
 
-    # --- 5. PROGRESS STEPS (Bolletjes) ---
-    html_steps = ""
-    labels = ["Start", "Bouwen", "Product", "Verkoop", "Schalen", "Beheer"] 
-    for i in range(1, 7):
-        status_class = "completed" if i < next_step_phase_index else "active" if i == next_step_phase_index else ""
-        icon_content = f'<i class="bi bi-check-lg"></i>' if status_class == "completed" else f"{i}"
-        html_steps += f'<div class="progress-step {status_class}">{icon_content}<div class="progress-label">{labels[i-1]}</div></div>'
-    st.markdown(f'<div class="progress-container"><div class="progress-line"></div>{html_steps}</div>', unsafe_allow_html=True)
-
-    # --- 6. DE FOCUS KAART (Wordt Elite na 100%) ---
+    # --- 3. RENDERING VAN DE KAART ---
     st.markdown(f"""
-<div style="background: {card_bg}; padding: 30px; border-radius: 24px; color: white; margin-bottom: 30px; border: 2px solid {accent_color if is_finished else 'rgba(214,255,255,0.1)'}; box-shadow: 0 15px 35px rgba(0,0,0,0.4); position: relative; overflow: hidden;">
-    <div style="position: relative; z-index: 2;">
-        <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; font-weight: 800; color: {accent_color};">
-            <i class="bi {card_icon}"></i> { '🏆 ELITE STATUS BEREIKBAAR' if is_finished else 'AANBEVOLEN FOCUS' }
-        </div>
-        <div style="margin: 0; font-size: 2rem; color: #FFFFFF !important; font-weight: 900; letter-spacing: -0.5px; line-height: 1.1; margin-bottom: 15px;">
-            {next_step_title}
-        </div>
-        <p style="margin: 0 0 30px 0 !important; font-size: 1.15rem !important; line-height: 1.6 !important; color: white !important; -webkit-text-fill-color: white !important; max-width: 650px !important; opacity: 1 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.5) !important;">
-            {next_step_desc}
-        </p>
-        {buttons_html}
-    </div>
-</div>""", unsafe_allow_html=True)
+<div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+<div style="color: white !important; font-family: sans-serif;">
+<div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; -webkit-text-fill-color: white !important; opacity: 0.9;">
+<i class="bi {card_icon}"></i> { '🏆 ELITE STATUS BEREIKBAAR' if is_finished else 'AANBEVOLEN FOCUS' }
+</div>
+<h2 style="margin: 0; font-size: 1.8rem; color: white !important; -webkit-text-fill-color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+{next_step_title}
+</h2>
+<p style="margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.4; color: white !important; -webkit-text-fill-color: white !important; max-width: 650px; font-weight: 500; opacity: 1 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+{next_step_desc}
+</p>
+{buttons_html}
+</div>
+</div>
+    """, unsafe_allow_html=True)
 
     # --- 7. STATS GRID ---
     needed = next_xp_goal_sidebar - user['xp']
