@@ -7,6 +7,11 @@ from openai import OpenAI
 
 warnings.simplefilter("ignore")
 
+try:
+    IDEOGRAM_API_KEY = st.secrets["ideogram"]["api_key"]
+except:
+    IDEOGRAM_API_KEY = "PLAK_HIER"
+
 APIFY_TOKEN = st.secrets["apify"]["token"]
 
 def init_ai():
