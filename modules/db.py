@@ -111,6 +111,7 @@ def save_feedback(email, message, is_valid):
     except: return False
 
 def claim_feedback_reward(email, message=None):
+    """Zorgt dat de feedback wordt opgeslagen EN de gebruiker 24u PRO krijgt."""
     if not supabase: return "ERROR"
     try:
         # 1. Check of al geclaimd
@@ -118,13 +119,19 @@ def claim_feedback_reward(email, message=None):
         if res.data and res.data[0].get('feedback_reward_claimed'): 
             return "ALREADY_CLAIMED"
         
-        # 2. Bereken eindtijd (24 uur vanaf NU)
-        # We gebruiken een formaat dat Supabase 100% begrijpt
+        # 2. Sla de feedback tekst op in de 'feedback' tabel
+        if message:
+            supabase.table('feedback').insert({
+                "user_email": email,
+                "message": message,
+                "created_at": datetime.now(timezone.utc).isoformat()
+            }).execute()
+        
+        # 3. Geef 24 uur PRO toegang
         now = datetime.now(timezone.utc)
         expiry_date = now + timedelta(hours=24)
         expiry_str = expiry_date.strftime("%Y-%m-%dT%H:%M:%S+00:00")
         
-        # 3. Update de gebruiker in de DB
         supabase.table('users').update({
             "pro_expiry": expiry_str, 
             "feedback_reward_claimed": True
@@ -132,7 +139,7 @@ def claim_feedback_reward(email, message=None):
         
         return "SUCCESS"
     except Exception as e:
-        print(f"Error in claim_feedback_reward: {e}")
+        print(f"Database Error Feedback: {e}")
         return "ERROR"
 
 # --- FINANCIËN ---
@@ -169,11 +176,19 @@ def set_user_pro(email):
         return False
 
 def get_daily_winners_from_db():
-    """Haalt de kant-en-klare winners op uit de database."""
+    """Haalt winners uit DB, of geeft fallback als de tabel leeg is."""
     if not supabase: return []
     try:
         res = supabase.table('daily_winners').select("*").execute()
-        return res.data
+        if res.data and len(res.data) > 0:
+            return res.data
+        
+        # FALLBACK: Als je tabel in Supabase nog leeg is, tonen we deze demo-data
+        return [
+            {"title": "Portable Blender Pro", "reason": "Hoge viraliteit op TikTok fitness-niche.", "video_url": "https://tiktok.com", "cover_url": "https://placehold.co/600x400?text=Blender+Pro"},
+            {"title": "Crystal Hair Eraser", "reason": "Bewezen winnaar in de beauty-niche.", "video_url": "https://tiktok.com", "cover_url": "https://placehold.co/600x400?text=Hair+Eraser"},
+            {"title": "Sunset Lamp Projector", "reason": "Perfect voor UGC content en sfeer-branding.", "video_url": "https://tiktok.com", "cover_url": "https://placehold.co/600x400?text=Sunset+Lamp"}
+        ]
     except Exception as e:
         print(f"DB Error winners: {e}")
         return []
