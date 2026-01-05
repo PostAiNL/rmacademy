@@ -326,10 +326,15 @@ def set_view(name):
 
 # Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
-    cookie_email = cookie_manager.get("rmecom_user_email")
-    if cookie_email:
-        with st.spinner(f"👋 Welkom terug! Automatisch inloggen als {cookie_email}..."):
-            time.sleep(0.3) 
+    # Belangrijk: Geef de browser tijd om cookies te verzenden (Render fix)
+    time.sleep(0.6) 
+    all_cookies = cookie_manager.get_all()
+    
+    # Debug (optioneel): st.write(all_cookies)
+    
+    if all_cookies and "rmecom_user_email" in all_cookies:
+        cookie_email = all_cookies["rmecom_user_email"]
+        if cookie_email and len(cookie_email) > 3: # Check of het een echt emailadres is
             auth.login_or_register(cookie_email)
             st.rerun()
 
@@ -415,7 +420,7 @@ if "user" not in st.session_state:
                             status = db.create_user(email, password, first_name)
                             if status == "SUCCESS":
                                 auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
-                                cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30))
+                                cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
                                 st.rerun()
                             elif status == "EXISTS": st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
                             else: st.error("Er ging iets mis met de database.")
@@ -431,7 +436,7 @@ if "user" not in st.session_state:
                     if log_email and log_pass:
                         if db.verify_user(log_email, log_pass):
                             auth.login_or_register(log_email)
-                            cookie_manager.set("rmecom_user_email", log_email, expires_at=datetime.now() + timedelta(days=30))
+                            cookie_manager.set("rmecom_user_email", log_email, expires_at=datetime.now() + timedelta(days=30), path="/")
                             st.rerun()
                         else: st.error("Onjuiste gegevens.")
                     else: st.warning("Vul alles in.")
@@ -945,7 +950,7 @@ else:
         else:
             # --- GOUDEN KAART LOGICA ---
             next_step_title = "Basisfundament Voltooid! 💎"
-            next_step_desc = "Gefeliciteerd, je shop staat! Tijd om in 70 dagen te schalen naar €15.000+/maand met onze Elite strategieën. 🎁 ELITE BONUS: Als PRO-lid loot je ELKE maand mee voor een volledig RM Traject!"
+            next_step_desc = "Gefeliciteerd, je shop staat! Tijd om in 70 dagen te schalen naar €15.000+/maand met onze Elite strategieën. 🎁 ELITE BONUS: Als actief PRO-lid loot je ELKE maand mee voor een volledig RM Traject!"
             next_step_phase_index = 6
             card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
             accent_color = "#FFFFFF"
