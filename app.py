@@ -634,7 +634,7 @@ with st.sidebar:
     
     menu_display_options = []
     for opt in options:
-        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design", "Financiën"]:
+        if not is_pro and opt in ["Producten Zoeken", "Marketing & Design"]:
              menu_display_options.append(f"{opt} 🔒")
         else:
              menu_display_options.append(opt)
@@ -770,23 +770,25 @@ if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
             if st.button("🚀 Start Mijn Avontuur (+10 XP)", type="primary", use_container_width=True):
                 if shop_name_input:
                     with st.spinner("Profiel opslaan..."):
-                        # 1. Direct naar DB schrijven
-                        db.update_onboarding_data(user['email'], shop_name_input, goal_input)
+                        # 1. Direct naar DB schrijven via de gecorrigeerde functie
+                        success = db.update_onboarding_data(user['email'], shop_name_input, goal_input)
                         
-                        # 2. XP verhogen in DB
-                        new_xp = user.get('xp', 0) + 10
-                        if auth.supabase:
+                        if success:
+                            # 2. XP verhogen in DB
+                            new_xp = user.get('xp', 0) + 10
                             auth.supabase.table('users').update({"xp": new_xp}).eq('email', user['email']).execute()
-                        
-                        # 3. Sessie direct updaten zodat wizard verdwijnt
-                        st.session_state.wizard_complete = True
-                        st.session_state.user['shop_name'] = shop_name_input
-                        st.session_state.user['income_goal'] = goal_input
-                        st.session_state.user['xp'] = new_xp
-                        
-                        st.balloons()
-                        time.sleep(1)
-                        st.rerun()
+                            
+                            # 3. CRUCIAAL: Update de sessie data direct
+                            st.session_state.user['shop_name'] = shop_name_input
+                            st.session_state.user['income_goal'] = goal_input
+                            st.session_state.user['xp'] = new_xp
+                            st.session_state.wizard_complete = True
+                            
+                            st.balloons()
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("Kon profiel niet opslaan. Controleer database verbinding.")
                 else: 
                     st.warning("Vul een naam in!")
     
@@ -1155,7 +1157,7 @@ else:
                     st.markdown("**4. Je eerste advertentie 🔥**")
                     st.video("https://www.youtube.com/embed/cA8Gvhfic-s")
 
-            st.markdown("<br> 🔒 Wat je onder andere mist in de volledige cursus:", unsafe_allow_html=True)
+            st.markdown("<br> 🔒 Wat je onder andere mist van de volledige cursus:", unsafe_allow_html=True)
             locked_modules = ["Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup", "Module 9: Opschalen", "Module 11: Private Agents", "Module 12: Viral Content"]
             lc1, lc2 = st.columns(2)
             for i, mod in enumerate(locked_modules):
