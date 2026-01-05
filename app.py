@@ -316,6 +316,14 @@ st.markdown("""
 # --- 2. COOKIE MANAGER ---
 cookie_manager = stx.CookieManager()
 
+# --- INITIALISEER PAGINA STATUS ---
+if "view" not in st.session_state:
+    st.session_state.view = "main"
+
+def set_view(name):
+    st.session_state.view = name
+    st.rerun()
+
 # Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
     cookie_email = cookie_manager.get("rmecom_user_email")
@@ -780,1100 +788,1184 @@ if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
     # Blokkeer de rest van de app
     st.stop()
 
-if pg == "Dashboard":
-# 1. Level Up Melding (Subtiel rechtsboven, geen popup)
-    if user['level'] > st.session_state.prev_level:
-        st.balloons()
-        # We updaten de status direct zodat de melding bij de volgende klik weer weggaat
-        st.session_state.prev_level = user['level']
-        
+# =========================================================
+# 📄 LEGAL PAGES & FOOTER DEFINITIES
+# =========================================================
+
+def render_footer():
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("---")
+    col1, col2, col3 = st.columns([2, 1, 1])
+    with col1:
+        # Gebruik de huidige datum voor het jaartal
+        current_year = datetime.now().year
+        st.markdown(f"<p style='font-size:0.8rem; color:#64748B;'>© {current_year} RM Ecom Academy. Alle rechten voorbehouden.</p>", unsafe_allow_html=True)
+    with col2:
+        if st.button("🔒 Privacybeleid", key="btn_footer_priv", use_container_width=True):
+            st.session_state.view = "privacy"
+            st.rerun()
+    with col3:
+        if st.button("📄 Voorwaarden", key="btn_footer_terms", use_container_width=True):
+            st.session_state.view = "terms"
+            st.rerun()
+
+def render_privacy_page():
+    st.markdown("<h1>🔒 Privacybeleid</h1>", unsafe_allow_html=True)
+    if st.button("⬅️ Terug naar Dashboard", type="primary", key="priv_back_top"):
+        st.session_state.view = "main"
+        st.rerun()
+    
+    with st.container(border=True):
         st.markdown(f"""
-<div style="position: fixed; top: 80px; right: 20px; z-index: 9999; animation: slideIn 0.5s ease-out;">
-    <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
-                padding: 15px 25px; 
-                border-radius: 12px; 
-                box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-                border: 1px solid #FCD34D;
-                display: flex; 
-                align-items: center; 
-                gap: 15px;">
-        <span style="font-size: 24px;">🏆</span>
-        <div style="text-align: left;">
-            <div style="color: #78350F; font-weight: 800; font-size: 0.9rem; margin: 0; line-height: 1;">LEVEL UP!</div>
-            <div style="color: #92400E; font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Je bent nu Level {user['level']}</div>
+        ### 1. Hoe we je gegevens gebruiken
+        RM Ecom Academy gebruikt je e-mail en voornaam alleen om je account te beheren en je voortgang (XP en Levels) op te slaan in onze beveiligde database.
+        
+        ### 2. Cookies
+        We gebruiken lokale cookies om je ingelogd te houden. Zonder deze cookies zou je bij elke verversing opnieuw moeten inloggen.
+        
+        ### 3. Derden
+        Je gegevens worden nooit verkocht. We maken gebruik van Supabase voor database-opslag en OpenAI voor de AI-coach functies. De data die je invoert bij de AI-tools wordt anoniem verwerkt.
+        
+        ### 4. Verwijderen
+        Wil je je account en al je XP-data verwijderen? Stuur een e-mail naar support@rmacademy.nl en we regelen het binnen 48 uur.
+        """)
+    st.button("Terug naar Dashboard", key="btn_priv_bottom", on_click=lambda: setattr(st.session_state, 'view', 'main'))
+
+def render_terms_page():
+    st.markdown("<h1>📄 Algemene Voorwaarden</h1>", unsafe_allow_html=True)
+    if st.button("⬅️ Terug naar Dashboard", type="primary", key="terms_back_top"):
+        st.session_state.view = "main"
+        st.rerun()
+        
+    with st.container(border=True):
+        st.markdown(f"""
+        ### 1. Gebruik van de App
+        Door gebruik te maken van RM Ecom Academy ga je akkoord met onze methodiek. Je bent zelf verantwoordelijk voor de uitvoering van je webshop.
+        
+        ### 2. AI & Credits
+        Misbruik van de AI-tools (zoals het genereren van ongepaste content) kan leiden tot een directe blokkering van je account zonder teruggave van credits.
+        
+        ### 3. Partner Programma
+        Referral commissies (€250,- per student) worden pas uitgekeerd nadat de aangebrachte student de wettelijke bedenktijd van 14 dagen heeft doorlopen en de betaling definitief is.
+        
+        ### 4. PRO Lidmaatschap
+        PRO-toegang is persoonlijk. Het delen van accounts is niet toegestaan en wordt gedetecteerd door ons systeem.
+        
+        ### 5. Resultaten
+        E-commerce resultaten verschillen per persoon. Wij bieden de tools en roadmap, maar kunnen geen omzetgaranties geven.
+        """)
+    st.button("Terug naar Dashboard", key="btn_terms_bottom", on_click=lambda: setattr(st.session_state, 'view', 'main'))
+
+# =========================================================
+# 🏠 PAGINA ROUTING (PRIVACY, VOORWAARDEN OF DASHBOARD)
+# =========================================================
+
+if st.session_state.view == "privacy":
+    render_privacy_page()
+
+elif st.session_state.view == "terms":
+    render_terms_page()
+
+else:
+    # --- DIT IS DE ORIGINELE APP INHOUD ---
+    if pg == "Dashboard":
+        # 1. Level Up Melding (Subtiel rechtsboven, geen popup)
+        if user['level'] > st.session_state.prev_level:
+            st.balloons()
+            # We updaten de status direct zodat de melding bij de volgende klik weer weggaat
+            st.session_state.prev_level = user['level']
+            
+            st.markdown(f"""
+    <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; animation: slideIn 0.5s ease-out;">
+        <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
+                    padding: 15px 25px; 
+                    border-radius: 12px; 
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
+                    border: 1px solid #FCD34D;
+                    display: flex; 
+                    align-items: center; 
+                    gap: 15px;">
+            <span style="font-size: 24px;">🏆</span>
+            <div style="text-align: left;">
+                <div style="color: #78350F; font-weight: 800; font-size: 0.9rem; margin: 0; line-height: 1;">LEVEL UP!</div>
+                <div style="color: #92400E; font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Je bent nu Level {user['level']}</div>
+            </div>
         </div>
     </div>
-</div>
 
-<style>
-@keyframes slideIn {{
-    0% {{ transform: translateX(100%); opacity: 0; }}
-    100% {{ transform: translateX(0); opacity: 1; }}
-}}
-</style>
-""", unsafe_allow_html=True)
-
-    if "force_completed" not in st.session_state: st.session_state.force_completed = []
-    @st.cache_data(ttl=60, show_spinner=False)
-    def get_cached_progress_db(uid): return auth.get_progress()
-    db_progress = get_cached_progress_db(user['id'])
-    completed_steps = list(set(db_progress + st.session_state.force_completed))
-# --- 1. LOGICA & VARIABELEN (FIXED: OPSLAAN & WEERGAVE) ---
-    full_map = roadmap.get_roadmap()
-    # Haal ALTIJD de laatste voortgang op uit de database
-    db_progress = auth.get_progress()
-    completed_steps = list(set(db_progress + st.session_state.force_completed))
-    
-    all_roadmap_ids = [s['id'] for fase in full_map.values() for s in fase['steps']]
-    valid_done_count = len([sid for sid in completed_steps if sid in all_roadmap_ids])
-    total_steps_count = len(all_roadmap_ids)
-    
-    progress_pct = int((valid_done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
-    safe_progress = min(progress_pct, 100)
-    is_finished = valid_done_count >= total_steps_count
-
-    # Initialiseer knoppen
-    btn_url = "#roadmap_start"
-    btn_pro_url = STRATEGY_CALL_URL
-    btn_student_url = "https://calendly.com/rmecomacademy/30min"
-
-    if not is_finished:
-        # --- BLAUWE KAART LOGICA ---
-        next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Laden...", 0, None, False, ""
-        for idx, (fase_key, fase) in enumerate(full_map.items()):
-            phase_done = True
-            for s in fase['steps']:
-                if s['id'] not in completed_steps:
-                    next_step_title, next_step_desc, next_step_phase_index, next_step_id, next_step_locked = s['title'], s.get('teaser', 'Voltooi deze stap.'), idx + 1, s['id'], s.get('locked', False)
-                    phase_done = False
-                    break
-            if not phase_done: break
-            
-        card_bg = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
-        accent_color = "#FFFFFF"
-        card_icon = "bi-crosshair"
-        # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
-        buttons_html = f"""<div style="margin-top: 15px;"><a href="#roadmap_start" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🚀 Start Opdracht</div></a></div>"""
-    else:
-        # --- GOUDEN KAART LOGICA ---
-        next_step_title = "Basisfundament Voltooid! 💎"
-        next_step_desc = "Gefeliciteerd, je shop staat! Tijd om in 70 dagen te schalen naar €15.000+/maand met onze Elite strategieën. 🎁 ELITE BONUS: Als PRO-lid loot je ELKE maand mee voor een volledig RM Traject!"
-        next_step_phase_index = 6
-        card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
-        accent_color = "#FFFFFF"
-        card_icon = "bi-trophy-fill"
-        # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
-        buttons_html = f"""
-<div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
-<a href="{btn_student_url}" target="_blank" style="text-decoration:none;">
-<div style="background: #1a1a1a; color: #FFD700; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer;">🎓 Start Elite Traject</div>
-</a>
-<a href="{btn_pro_url}" target="_blank" style="text-decoration:none;">
-<div style="background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 12px 25px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; border: 1px solid #FFFFFF;">⚡ Word PRO Lid (€49,95)</div>
-</a>
-</div>"""
-
-# --- 2. HEADER & PROGRESS ---
-    db_shop_name = user.get('shop_name')
-    db_goal = user.get('income_goal')
-    us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn Webshop"
-    ug = db_goal if db_goal and str(db_goal) != "None" else "€15k/maand"
-    
-    st.markdown(f"<h1>Goedemorgen, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
-    st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
-    st.progress(safe_progress / 100)
-
-    # --- 3. UITLEG EXPANDER (HERSTELD) ---
-    st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
-    with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
-        col_vid, col_txt = st.columns([1.2, 1], gap="medium")
-        with col_vid:
-            st.video(COACH_VIDEO_URL)
-        with col_txt:
-            st.markdown("#### Belangrijke info:")
-            st.markdown('<div style="font-size: 0.85rem; line-height: 1.4; color: #475569;">Volg de Roadmap en gebruik de AI tools om te groeien.</div>', unsafe_allow_html=True)
-            st.markdown(f"""
-<div style="margin-top: 8px;">
-<div style="margin-bottom: 5px;"><span style="background:#F1F5F9; color:#475569; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">DEMO</span> <span style="font-size:0.75rem; color:#64748B;">Roadmap + 3 AI credits</span></div>
-<div style="margin-bottom: 5px;"><span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">PRO Lid ⚡</span> <span style="font-size:0.75rem; color:#64748B;">Onbeperkt AI + Spy-tools + <b>Maandelijkse Giveaway 🎁</b></span></div>
-<div style="margin-bottom: 5px;"><span style="background:#DBEAFE; color:#1E40AF; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">STUDENT 🎓</span> <span style="font-size:0.75rem; color:#64748B;">Volledige cursus + 1op1 Coaching</span></div>
-</div>""", unsafe_allow_html=True)
-            if not is_pro:
-                st.link_button("Upgrade naar PRO (€49,95)", STRATEGY_CALL_URL, use_container_width=True)
-
-    # --- 4. DAILY HABIT SECTIE ---
-    daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
-    is_daily_done = daily_id in completed_steps
-
-    st.markdown("### 📅 Jouw Focus (Roadmap)")
-    with st.container(border=False):
-        if not is_daily_done:
-            c1, c2 = st.columns([3, 1], vertical_alignment="center")
-            c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt? Consistentie is de sleutel tot succes.")
-            if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True, key="dashboard_daily_focus"):
-                auth.mark_step_complete(daily_id, 10)
-                st.cache_data.clear()
-                st.rerun()
-        else:
-            st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
-
-    # --- 3. RENDERING VAN DE KAART ---
-    st.markdown(f"""
-<div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-<div style="color: white !important; font-family: sans-serif;">
-<div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; -webkit-text-fill-color: white !important; opacity: 0.9;">
-<i class="bi {card_icon}"></i> { '🏆 ELITE STATUS BEREIKBAAR' if is_finished else 'AANBEVOLEN FOCUS' }
-</div>
-<h2 style="margin: 0; font-size: 1.8rem; color: white !important; -webkit-text-fill-color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-{next_step_title}
-</h2>
-<p style="margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.4; color: white !important; -webkit-text-fill-color: white !important; max-width: 650px; font-weight: 500; opacity: 1 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-{next_step_desc}
-</p>
-{buttons_html}
-</div>
-</div>
-    """, unsafe_allow_html=True)
-
-    # --- 7. STATS GRID ---
-    needed = next_xp_goal_sidebar - user['xp']
-    next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
-    st.markdown(f"""
-    <div class="stat-grid">
-        <div class="stat-card">
-            <div class="stat-icon">Level</div>
-            <div class="stat-value">{user['level']}</div>
-            <div class="stat-sub">{rank_title}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">XP</div>
-            <div class="stat-value">{user['xp']}</div>
-            <div class="stat-sub">Nog {needed} voor Lvl {user['level']+1}</div>
-        </div>
-        <div class="stat-card">
-            <div class="stat-icon">Beloning</div>
-            <div class="stat-value" style="font-size: 1.2rem;">\U0001F381</div>
-            <div class="stat-sub" style="color:#2563EB;">{next_reward}</div>
-        </div>
-    </div>""", unsafe_allow_html=True)
-    
-    
-    st.markdown("<div id='roadmap_start' style='height: 0px;'></div>", unsafe_allow_html=True)
-    st.markdown("### 📍 Jouw Roadmap")
-    st.caption("Klik op een fase om je taken te bekijken.")
-    
-    active_phase_idx = next_step_phase_index 
-    for idx, (fase_key, fase) in enumerate(full_map.items()):
-        phase_num = idx + 1
-        is_current_phase = (phase_num == active_phase_idx)
-        if phase_num < active_phase_idx: phase_icon, phase_label = "✅", f"{fase['title']} (Voltooid)"
-        elif phase_num == active_phase_idx: phase_icon, phase_label = "📍", f"{fase['title']} (Nu Actief)" 
-        else: phase_icon, phase_label = "📂", fase['title']
-            
-        with st.expander(f"{phase_icon} {phase_label}", expanded=is_current_phase):
-            st.caption(fase['desc'])
-            for step in fase['steps']:
-                is_done = step['id'] in completed_steps
-                if is_done:
-                    with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
-                else:
-                    is_recommended = (step['id'] == next_step_id)
-                    just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
-                    if just_completed_id:
-                        with st.spinner("Opslaan..."):
-                            auth.mark_step_complete(just_completed_id, xp)
-                            if "force_completed" not in st.session_state: st.session_state.force_completed = []
-                            st.session_state.force_completed.append(just_completed_id)
-                            st.toast(f"🚀 Lekker bezig! +{xp} XP", icon="🎉") 
-                            st.rerun()
-    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
-
-elif pg == "Academy":
-    # --- CSS VOOR PREMIUM LOOK ---
-    st.markdown("""
     <style>
-        .premium-card {
-            background: white; border: 1px solid #E2E8F0; border-radius: 12px;
-            padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-        }
-        .locked-module {
-            background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px;
-            padding: 12px 15px; margin-bottom: 8px; color: #94A3B8;
-            display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem;
-        }
-        div.stButton > button[kind="secondary"] {
-            border: 1px solid #E2E8F0 !important; background: white !important;
-            color: #475569 !important; justify-content: flex-start !important;
-            padding-left: 15px !important; text-align: left !important;
-        }
-        div.stButton > button[kind="primary"] {
-            background: #2563EB !important; border: 1px solid #2563EB !important;
-            justify-content: flex-start !important; padding-left: 15px !important;
-        }
+    @keyframes slideIn {{
+        0% {{ transform: translateX(100%); opacity: 0; }}
+        100% {{ transform: translateX(0); opacity: 1; }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
-    st.markdown("<h1><i class='bi bi-mortarboard-fill'></i> Academy</h1>", unsafe_allow_html=True)
-    
-    tab_free, tab_pro_course = st.tabs(["🎁 Gratis Mini Training", "🎓 Volledige Cursus (70+ Video's)"])
-
-    # =========================================================
-    # --- TAB 1: GRATIS MINI TRAINING (Iedereen ziet dit) ---
-    # =========================================================
-    with tab_free:
-        st.markdown("""
-        <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #1E3A8A; font-size: 0.9rem;">
-            <i class="bi bi-info-circle-fill"></i>
-            <span>Je hebt <b>Preview Toegang</b>: 4 van de 74 lessen zijn beschikbaar.</span>
-        </div>
-        """, unsafe_allow_html=True)
+        if "force_completed" not in st.session_state: st.session_state.force_completed = []
+        @st.cache_data(ttl=60, show_spinner=False)
+        def get_cached_progress_db(uid): return auth.get_progress()
+        db_progress = get_cached_progress_db(user['id'])
+        completed_steps = list(set(db_progress + st.session_state.force_completed))
+    # --- 1. LOGICA & VARIABELEN (FIXED: OPSLAAN & WEERGAVE) ---
+        full_map = roadmap.get_roadmap()
+        # Haal ALTIJD de laatste voortgang op uit de database
+        db_progress = auth.get_progress()
+        completed_steps = list(set(db_progress + st.session_state.force_completed))
         
-        c1, c2 = st.columns(2)
-        with c1:
-            with st.container(border=True):
-                st.markdown("**1. Van Chaos naar Actie 🚀**")
-                st.video("https://www.youtube.com/embed/nYN7EyMb7uQ")
-            with st.container(border=True):
-                st.markdown("**2. Jouw volgende stap 📈**")
-                st.video("https://www.youtube.com/embed/yIJJbwIZL6k")
-        with c2:
-            with st.container(border=True):
-                st.markdown("**3. Kies het juiste product 📦**")
-                st.video("https://www.youtube.com/embed/CM5CtnXrvEU")
-            with st.container(border=True):
-                st.markdown("**4. Je eerste advertentie 🔥**")
-                st.video("https://www.youtube.com/embed/cA8Gvhfic-s")
+        all_roadmap_ids = [s['id'] for fase in full_map.values() for s in fase['steps']]
+        valid_done_count = len([sid for sid in completed_steps if sid in all_roadmap_ids])
+        total_steps_count = len(all_roadmap_ids)
+        
+        progress_pct = int((valid_done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
+        safe_progress = min(progress_pct, 100)
+        is_finished = valid_done_count >= total_steps_count
 
-        st.markdown("<br> 🔒 Wat je onder andere mist in de volledige cursus:", unsafe_allow_html=True)
-        locked_modules = ["Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup", "Module 9: Opschalen", "Module 11: Private Agents", "Module 12: Viral Content"]
-        lc1, lc2 = st.columns(2)
-        for i, mod in enumerate(locked_modules):
-            html = f'<div class="locked-module"><span><i class="bi bi-lock-fill"></i> {mod}</span></div>'
-            if i % 2 == 0: lc1.markdown(html, unsafe_allow_html=True)
-            else: lc2.markdown(html, unsafe_allow_html=True)
+        # Initialiseer knoppen
+        btn_url = "#roadmap_start"
+        btn_pro_url = STRATEGY_CALL_URL
+        btn_student_url = "https://calendly.com/rmecomacademy/30min"
 
-    # =========================================================
-    # --- TAB 2: DE ECHTE CURSUS (DE HARDE LOCK) ---
-    # =========================================================
-    with tab_pro_course:
-        # Check op de speciale 'Academy Student' status (niet alleen PRO)
-        is_academy_student = user.get('is_academy_student', False)
-
-        if not is_academy_student:
-            # DIT SCHERM ZIE JE ALTIJD, TENZIJ HANDMATIG TOEGEVOEGD IN DB
-            st.markdown("<br>", unsafe_allow_html=True)
-            st.markdown(f"""
-            <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-                <div style="font-size: 50px; margin-bottom: 20px;">🎓</div>
-                <h2 style="color: #0F172A; margin-bottom: 10px;">Full Academy Toegang</h2>
-                <p style="color: #64748B; font-size: 1.1rem; max-width: 500px; margin: 0 auto 25px auto;">
-                    De volledige cursus met 70+ video's, copy-paste templates en 1-op-1 begeleiding is <b>exclusief voor traject-studenten</b>.
-                </p>
-                <div style="background: #FFF7ED; border: 1px solid #FED7AA; padding: 12px; border-radius: 8px; margin-bottom: 30px; display: inline-block;">
-                    <p style="margin: 0; color: #9A3412; font-size: 0.9rem; font-weight: 700;">
-                        🔒 Toegang wordt pas verleend na een Strategie Gesprek.
-                    </p>
-                </div>
-                <br>
-                <a href="https://calendly.com/rmecomacademy/30min" target="_blank" style="text-decoration: none;">
-                    <div style="background: #2563EB; color: white; padding: 15px 35px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
-                        📞 Plan Gratis Strategie Call
-                    </div>
-                </a>
-            </div>
-            """, unsafe_allow_html=True)
+        if not is_finished:
+            # --- BLAUWE KAART LOGICA ---
+            next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Laden...", 0, None, False, ""
+            for idx, (fase_key, fase) in enumerate(full_map.items()):
+                phase_done = True
+                for s in fase['steps']:
+                    if s['id'] not in completed_steps:
+                        next_step_title, next_step_desc, next_step_phase_index, next_step_id, next_step_locked = s['title'], s.get('teaser', 'Voltooi deze stap.'), idx + 1, s['id'], s.get('locked', False)
+                        phase_done = False
+                        break
+                if not phase_done: break
+                
+            card_bg = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
+            accent_color = "#FFFFFF"
+            card_icon = "bi-crosshair"
+            # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
+            buttons_html = f"""<div style="margin-top: 15px;"><a href="#roadmap_start" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🚀 Start Opdracht</div></a></div>"""
         else:
-            # --- DE VIDEOS (Alleen voor geverifieerde studenten) ---
-            course_content = {
-                "Module 1: Welkom": [
-                    {"title": "Introductie - Welkom bij RM Ecom Academy", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
-                    {"title": "Jouw 100K Laserfocus Systeem", "url": "https://youtu.be/aBpsJN0D3QE", "duration": "10 min"},
-                    {"title": "Jouw Transformatieplan in 70 Dagen", "url": "https://youtu.be/gx5dJ6nUrf4", "duration": "15 min"},
-                    {"title": "De eerste stappen naar succes", "url": "https://youtu.be/ajnJeKuKp7c", "duration": "8 min"},
-                ],
-                "Module 2: Het begin": [
-                    {"title": "Het openen van een zakelijke rekening", "url": "https://youtu.be/x90vvuup1I8", "duration": "10 min"},
-                    {"title": "Een creditcard aanvragen", "url": "https://youtu.be/lrhhCsRCcUE", "duration": "5 min"},
-                    {"title": "Mindset voor de 70-dagen transformatieplan", "url": "https://youtu.be/_0W4z1yR_Lg", "duration": "20 min"},
-                ],
-                "Module 3: Dropshipping": [
-                    {"title": "Wat betekend branded dropshipping?", "url": "https://youtu.be/puq-WqF8JMQ", "duration": "10 min"},
-                    {"title": "Wat is dropshipping en hoe werkt het?", "url": "https://youtu.be/Dq8E6G5Fgc8", "duration": "15 min"},
-                ],
-                "Module 4: De fundering": [
-                    {"title": "Een markt kiezen", "url": "https://youtu.be/vcxTcT5rnV4", "duration": "15 min"},
-                    {"title": "Een niche kiezen", "url": "https://youtu.be/4bfnKWIQYbY", "duration": "20 min"},
-                ],
-                "Module 5: Shopify": [
-                    {"title": "Shopify account aanmaken", "url": "https://youtu.be/gwxx5fUouKQ", "duration": "5 min"},
-                    {"title": "Website termen", "url": "https://youtu.be/d9NPDvrYUHc", "duration": "5 min"},
-                    {"title": "Rondleiding Shopify (algemeen)", "url": "https://youtu.be/zkMAybKHnnc", "duration": "15 min"},
-                    {"title": "De webshop inrichten", "url": "https://youtu.be/xBS66G6OK84", "duration": "25 min"},
-                    {"title": "Een betaling ontvangen (Shopify Payments)", "url": "https://youtu.be/hW2hmKlBcEQ", "duration": "10 min"},
-                    {"title": "Een domein kiezen en aanschaffen", "url": "https://youtu.be/PxNTMe-qsOA", "duration": "5 min"},
-                    {"title": "Custom codes gebruiken", "url": "https://youtu.be/zi3fXCyBYdI", "duration": "10 min"},
-                    {"title": "De navigatie van je webshop", "url": "https://youtu.be/F3INLon0pnY", "duration": "10 min"},
-                    {"title": "Een productpagina aanmaken", "url": "https://youtu.be/0PJ4NpR1ibs", "duration": "15 min"},
-                    {"title": "Een collectiepagina aanmaken", "url": "https://youtu.be/Grh2GVnKJRk", "duration": "10 min"},
-                    {"title": "Een verzendmethode instellen", "url": "https://youtu.be/8aGzEJrV0M8", "duration": "10 min"},
-                    {"title": "Kortingscodes aanmaken", "url": "https://youtu.be/k2uGrjto_fo", "duration": "5 min"},
-                    {"title": "Conversie optimaliseren (CRO)", "url": "https://youtu.be/0QNxhi7aXBA", "duration": "20 min"},
-                    {"title": "De checkout optimaliseren", "url": "https://youtu.be/y0-giNe1Pes", "duration": "10 min"},
-                    {"title": "Shopify markten instellen", "url": "https://youtu.be/OCPcbo0JsMo", "duration": "15 min"},
-                ],
-                "Module 6: Apps in Shopify": [
-                    {"title": "Poky", "url": "https://youtu.be/qKLYDk9-7x8", "duration": "5 min"},
-                    {"title": "Section store", "url": "https://youtu.be/Gc3G_x2D_4k", "duration": "5 min"},
-                    {"title": "Parcel panel", "url": "https://youtu.be/TsMKOtsIz7Y", "duration": "5 min"},
-                    {"title": "Slize Cart by AMP", "url": "https://youtu.be/JLNFlfSLqjI", "duration": "5 min"},
-                    {"title": "BF size charts", "url": "https://youtu.be/iP__ahhzXfo", "duration": "5 min"},
-                    {"title": "Kaching Bundles en hoe AOV verhogen", "url": "https://youtu.be/9SBXwXFrIkQ", "duration": "10 min"},
-                    {"title": "Conversie Verhogen - Trust Badges", "url": "https://youtu.be/718tg9QR50Y", "duration": "5 min"},
-                ],
-                "Module 7: Facebook (Setup)": [
-                    {"title": "Start van je Facebook blueprint", "url": "https://youtu.be/pvIAASq9jfg", "duration": "10 min"},
-                    {"title": "De Businessmanager aanmaken", "url": "https://youtu.be/_7vF_nc6dzo", "duration": "10 min"},
-                    {"title": "Een Rondleiding door de businessmanager", "url": "https://youtu.be/M-BAExvxyzU", "duration": "15 min"},
-                    {"title": "Het aanmaken van een Facebookpagina", "url": "https://youtu.be/2sh_raKCa_Q", "duration": "5 min"},
-                    {"title": "Het opwarmen van de pagina", "url": "https://youtu.be/FY08rYyjwlM", "duration": "5 min"},
-                    {"title": "Het aanmaken van je advertentieaccount", "url": "https://youtu.be/dmJIS8Ujuec", "duration": "5 min"},
-                    {"title": "Opzetten van je agency advertentieaccount", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
-                    {"title": "Het aanmaken en koppelen van je pixel", "url": "https://youtu.be/NeIB1Ime_2cR", "duration": "15 min"},
-                    {"title": "Het verifiëren van je domein", "url": "https://youtu.be/eE9aziZogjw", "duration": "5 min"},
-                    {"title": "Facebook structuur opzetten", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
-                    {"title": "Je Instagram account koppelen", "url": "https://youtu.be/ZOaOr56EqGc", "duration": "5 min"},
-                ],
-                "Module 8: Facebook Live gaan": [
-                    {"title": "Wat is een ABO campagne?", "url": "https://youtu.be/0w32dh7yS9I", "duration": "10 min"},
-                    {"title": "Wat is een CBO campagne?", "url": "https://youtu.be/zBk2oR_MGbI", "duration": "10 min"},
-                    {"title": "Het aanmaken van een testcampagne", "url": "https://youtu.be/gwlKJ9XhwBE", "duration": "20 min"},
-                    {"title": "Facebooktermen", "url": "https://youtu.be/EVE_Xhu1qjI", "duration": "10 min"},
-                    {"title": "Het instellen van kolommen", "url": "https://youtu.be/M1ek9iua7sg", "duration": "5 min"},
-                    {"title": "Opschalen van je advertenties (de basis)", "url": "https://youtu.be/qGG30Y-0HVw", "duration": "15 min"},
-                    {"title": "Hoe analyseer je advertenties?", "url": "https://youtu.be/C3qXa4r-8yo", "duration": "15 min"},
-                    {"title": "Wat doe je als een product onder presteert?", "url": "https://youtu.be/u0giYTGBcfA", "duration": "10 min"},
-                    {"title": "Comments automatisch verbergen", "url": "https://youtu.be/FIyEYO6yd18", "duration": "5 min"},
-                    {"title": "Wetracked of Trackbee installeren", "url": "https://youtu.be/dsk8nUqkDtI", "duration": "10 min"},
-                ],
-                "Module 9: Facebook geavanceerd": [
-                    {"title": "Veilig opschalen met 20%", "url": "https://youtu.be/yHEDftamMc8", "duration": "10 min"},
-                    {"title": "Gemiddeld opschalen met 50%", "url": "https://youtu.be/mHVh_PY-ja4", "duration": "10 min"},
-                    {"title": "Agressief opschalen met 100%", "url": "https://youtu.be/8ayQ1ecqoCg", "duration": "10 min"},
-                    {"title": "Ultra agressief opschalen (Surfscalen)", "url": "https://youtu.be/lfskezYSM1Y", "duration": "15 min"},
-                    {"title": "Creatives testen (voor een lage cpc)", "url": "https://youtu.be/SCjQilN9W2s", "duration": "15 min"},
-                ],
-                "Module 10: Branding": [
-                    {"title": "Social Media branding", "url": "https://youtu.be/3Vccoluq43U", "duration": "10 min"},
-                    {"title": "Logo maken", "url": "https://youtu.be/GqehPhoMnX0", "duration": "10 min"},
-                ],
-                "Module 11: Agent (Prive leverancier)": [
-                    {"title": "Het gebruiken van een privé leverancier", "url": "https://youtu.be/lvIv6vq2dQY", "duration": "10 min"},
-                    {"title": "De kwaliteit van je producten checken", "url": "https://youtu.be/WDCebfTe4jQ", "duration": "5 min"},
-                    {"title": "Een gepersonaliseerde verpakking maken", "url": "https://youtu.be/2GZIH6HnV2k", "duration": "10 min"},
-                ],
-                "Module 12: Content Creation": [
-                    {"title": "De 5 stadia van bewustzijn", "url": "https://youtu.be/RBvrN_JdNsI", "duration": "10 min"},
-                    {"title": "Canva rondleiding", "url": "https://youtu.be/SekM6oFOQNs", "duration": "15 min"},
-                    {"title": "Advertentie creatives maken", "url": "https://youtu.be/aJHm6_yFgSg", "duration": "20 min"},
-                    {"title": "Video's vanuit de AD library downloaden", "url": "https://youtu.be/WFE3l88O5iM", "duration": "5 min"},
-                    {"title": "De opbouw van een winnende video creatie", "url": "https://youtu.be/Oeh276FU0iQ", "duration": "15 min"},
-                    {"title": "Scroll stoppers maken voor je video", "url": "https://youtu.be/TeohCu7NEwE", "duration": "10 min"},
-                    {"title": "Advertentieteksten schrijven met Chat-GPT", "url": "https://youtu.be/LVk0No917sI", "duration": "10 min"},
-                    {"title": "UGC content gebruiken", "url": "https://youtu.be/GKmWZFkgFeg", "duration": "10 min"},
-                ],
-                "Module 13: Klantenservice": [
-                    {"title": "Hoe ga je met klanten om?", "url": "https://youtu.be/08qt2ND4pLY", "duration": "10 min"},
-                    {"title": "Klantenservice templates", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "5 min"},
-                    {"title": "Retourfunnel (verminder je retouren)", "url": "https://youtu.be/C5So4rh8Xx0", "duration": "10 min"},
-                ],
-                "Module 14: Must Have": [
-                    {"title": "Handige Tools (MUST HAVE)", "url": "https://youtu.be/9cmTsNGat2s", "duration": "10 min"},
-                    {"title": "Ad strategie (Collecties)", "url": "https://youtu.be/7YNWLMsexnw", "duration": "15 min"},
-                    {"title": "Website reviews (Fouten van anderen)", "url": "https://youtu.be/gzOMw4O-b00", "duration": "20 min"},
-                ],
+            # --- GOUDEN KAART LOGICA ---
+            next_step_title = "Basisfundament Voltooid! 💎"
+            next_step_desc = "Gefeliciteerd, je shop staat! Tijd om in 70 dagen te schalen naar €15.000+/maand met onze Elite strategieën. 🎁 ELITE BONUS: Als PRO-lid loot je ELKE maand mee voor een volledig RM Traject!"
+            next_step_phase_index = 6
+            card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
+            accent_color = "#FFFFFF"
+            card_icon = "bi-trophy-fill"
+            # GEFIXTE HTML (GEEN SPATIES VOOR DE TAGS)
+            buttons_html = f"""
+    <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 15px;">
+    <a href="{btn_student_url}" target="_blank" style="text-decoration:none;">
+    <div style="background: #1a1a1a; color: #FFD700; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer;">🎓 Start Elite Traject</div>
+    </a>
+    <a href="{btn_pro_url}" target="_blank" style="text-decoration:none;">
+    <div style="background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 12px 25px; border-radius: 12px; font-weight: 800; font-size: 0.95rem; cursor: pointer; border: 1px solid #FFFFFF;">⚡ Word PRO Lid (€49,95)</div>
+    </a>
+    </div>"""
+
+    # --- 2. HEADER & PROGRESS ---
+        db_shop_name = user.get('shop_name')
+        db_goal = user.get('income_goal')
+        us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn Webshop"
+        ug = db_goal if db_goal and str(db_goal) != "None" else "€15k/maand"
+        
+        st.markdown(f"<h1>Goedemorgen, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
+        st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
+        st.progress(safe_progress / 100)
+
+        # --- 3. UITLEG EXPANDER (HERSTELD) ---
+        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
+        with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
+            col_vid, col_txt = st.columns([1.2, 1], gap="medium")
+            with col_vid:
+                st.video(COACH_VIDEO_URL)
+            with col_txt:
+                st.markdown("#### Belangrijke info:")
+                st.markdown('<div style="font-size: 0.85rem; line-height: 1.4; color: #475569;">Volg de Roadmap en gebruik de AI tools om te groeien.</div>', unsafe_allow_html=True)
+                st.markdown(f"""
+    <div style="margin-top: 8px;">
+    <div style="margin-bottom: 5px;"><span style="background:#F1F5F9; color:#475569; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">DEMO</span> <span style="font-size:0.75rem; color:#64748B;">Roadmap + 3 AI credits</span></div>
+    <div style="margin-bottom: 5px;"><span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">PRO Lid ⚡</span> <span style="font-size:0.75rem; color:#64748B;">Onbeperkt AI + Spy-tools + <b>Maandelijkse Giveaway 🎁</b></span></div>
+    <div style="margin-bottom: 5px;"><span style="background:#DBEAFE; color:#1E40AF; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">STUDENT 🎓</span> <span style="font-size:0.75rem; color:#64748B;">Volledige cursus + 1op1 Coaching</span></div>
+    </div>""", unsafe_allow_html=True)
+                if not is_pro:
+                    st.link_button("Upgrade naar PRO (€49,95)", STRATEGY_CALL_URL, use_container_width=True)
+
+        # --- 4. DAILY HABIT SECTIE ---
+        daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
+        is_daily_done = daily_id in completed_steps
+
+        st.markdown("### 📅 Jouw Focus (Roadmap)")
+        with st.container(border=False):
+            if not is_daily_done:
+                c1, c2 = st.columns([3, 1], vertical_alignment="center")
+                c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt? Consistentie is de sleutel tot succes.")
+                if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True, key="dashboard_daily_focus"):
+                    auth.mark_step_complete(daily_id, 10)
+                    st.cache_data.clear()
+                    st.rerun()
+            else:
+                st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
+
+        # --- 3. RENDERING VAN DE KAART ---
+        st.markdown(f"""
+    <div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+    <div style="color: white !important; font-family: sans-serif;">
+    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; -webkit-text-fill-color: white !important; opacity: 0.9;">
+    <i class="bi {card_icon}"></i> { '🏆 ELITE STATUS BEREIKBAAR' if is_finished else 'AANBEVOLEN FOCUS' }
+    </div>
+    <h2 style="margin: 0; font-size: 1.8rem; color: white !important; -webkit-text-fill-color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
+    {next_step_title}
+    </h2>
+    <p style="margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.4; color: white !important; -webkit-text-fill-color: white !important; max-width: 650px; font-weight: 500; opacity: 1 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
+    {next_step_desc}
+    </p>
+    {buttons_html}
+    </div>
+    </div>
+        """, unsafe_allow_html=True)
+
+        # --- 7. STATS GRID ---
+        needed = next_xp_goal_sidebar - user['xp']
+        next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
+        st.markdown(f"""
+        <div class="stat-grid">
+            <div class="stat-card">
+                <div class="stat-icon">Level</div>
+                <div class="stat-value">{user['level']}</div>
+                <div class="stat-sub">{rank_title}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">XP</div>
+                <div class="stat-value">{user['xp']}</div>
+                <div class="stat-sub">Nog {needed} voor Lvl {user['level']+1}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon">Beloning</div>
+                <div class="stat-value" style="font-size: 1.2rem;">\U0001F381</div>
+                <div class="stat-sub" style="color:#2563EB;">{next_reward}</div>
+            </div>
+        </div>""", unsafe_allow_html=True)
+        
+        
+        st.markdown("<div id='roadmap_start' style='height: 0px;'></div>", unsafe_allow_html=True)
+        st.markdown("### 📍 Jouw Roadmap")
+        st.caption("Klik op een fase om je taken te bekijken.")
+        
+        active_phase_idx = next_step_phase_index 
+        for idx, (fase_key, fase) in enumerate(full_map.items()):
+            phase_num = idx + 1
+            is_current_phase = (phase_num == active_phase_idx)
+            if phase_num < active_phase_idx: phase_icon, phase_label = "✅", f"{fase['title']} (Voltooid)"
+            elif phase_num == active_phase_idx: phase_icon, phase_label = "📍", f"{fase['title']} (Nu Actief)" 
+            else: phase_icon, phase_label = "📂", fase['title']
+                
+            with st.expander(f"{phase_icon} {phase_label}", expanded=is_current_phase):
+                st.caption(fase['desc'])
+                for step in fase['steps']:
+                    is_done = step['id'] in completed_steps
+                    if is_done:
+                        with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
+                    else:
+                        is_recommended = (step['id'] == next_step_id)
+                        just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
+                        if just_completed_id:
+                            with st.spinner("Opslaan..."):
+                                auth.mark_step_complete(just_completed_id, xp)
+                                if "force_completed" not in st.session_state: st.session_state.force_completed = []
+                                st.session_state.force_completed.append(just_completed_id)
+                                st.toast(f"🚀 Lekker bezig! +{xp} XP", icon="🎉") 
+                                st.rerun()
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+
+    elif pg == "Academy":
+        # --- CSS VOOR PREMIUM LOOK ---
+        st.markdown("""
+        <style>
+            .premium-card {
+                background: white; border: 1px solid #E2E8F0; border-radius: 12px;
+                padding: 20px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
             }
+            .locked-module {
+                background: #F8FAFC; border: 1px dashed #CBD5E1; border-radius: 8px;
+                padding: 12px 15px; margin-bottom: 8px; color: #94A3B8;
+                display: flex; align-items: center; justify-content: space-between; font-size: 0.9rem;
+            }
+            div.stButton > button[kind="secondary"] {
+                border: 1px solid #E2E8F0 !important; background: white !important;
+                color: #475569 !important; justify-content: flex-start !important;
+                padding-left: 15px !important; text-align: left !important;
+            }
+            div.stButton > button[kind="primary"] {
+                background: #2563EB !important; border: 1px solid #2563EB !important;
+                justify-content: flex-start !important; padding-left: 15px !important;
+            }
+        </style>
+        """, unsafe_allow_html=True)
 
-            col_nav, col_content = st.columns([1, 2.2], gap="large")
-            with col_nav:
-                st.markdown("#### 📂 Modules")
-                module_names = list(course_content.keys())
-                if "curr_module" not in st.session_state: st.session_state.curr_module = module_names[0]
-                selected_module = st.selectbox("Kies module:", module_names, label_visibility="collapsed")
-                st.session_state.curr_module = selected_module
-                videos_in_module = course_content[selected_module]
-                if "curr_video" not in st.session_state: st.session_state.curr_video = videos_in_module[0]['title']
-                
-                for v in videos_in_module:
-                    title = v['title']
-                    is_active = (title == st.session_state.curr_video)
-                    btn_type = "primary" if is_active else "secondary"
-                    if st.button(f"📺 {title}", key=f"nav_{title}", type=btn_type, use_container_width=True):
-                        st.session_state.curr_video = title
-                        st.rerun()
+        st.markdown("<h1><i class='bi bi-mortarboard-fill'></i> Academy</h1>", unsafe_allow_html=True)
+        
+        tab_free, tab_pro_course = st.tabs(["🎁 Gratis Mini Training", "🎓 Volledige Cursus (70+ Video's)"])
 
-            with col_content:
-                current_video = next((v for v in videos_in_module if v['title'] == st.session_state.curr_video), videos_in_module[0])
-                st.markdown(f"### {current_video['title']}")
-                st.video(current_video['url'])
-                
-                vid_id = f"vid_{abs(hash(current_video['title']))}"
-                if vid_id not in completed_steps:
-                    if st.button("✅ Les Afronden (+15 XP)", type="primary"):
-                        auth.mark_step_complete(vid_id, 15)
-                        st.balloons()
-                        st.rerun()
-                else:
-                    st.success("Deze les is voltooid! ✅")
-
-
-elif pg == "Producten Zoeken":
-    # --- HEADER ---
-    st.markdown("<h1><i class='bi bi-search'></i> Winning Product Hunter</h1>", unsafe_allow_html=True)
-    st.caption("De ultieme toolkit om winstgevende producten te vinden en te analyseren.")
-
-    # =========================================================
-    # 🏆 SECTIE 1: PRO DAILY WINNERS (EXCLUSIEF VOOR PRO)
-    # =========================================================
-    if is_pro:
-        with st.container(border=True):
-            st.markdown("### 🏆 PRO Daily Winners")
-            st.write("Onze AI selectie van de 3 grootste kanshebbers van vandaag.")
-            if st.button("✨ Onthul Winners van Vandaag", type="primary", use_container_width=True):
-                picks = db.get_daily_winners_from_db()
-                if picks:
-                    st.session_state.pro_daily_picks = picks
-                else:
-                    st.error("Winners worden momenteel ververst. Probeer het over 5 minuten opnieuw.")
-
-            if "pro_daily_picks" in st.session_state:
-                picks = st.session_state.pro_daily_picks
-                cols = st.columns(3)
-                for idx, item in enumerate(picks):
-                    with cols[idx]:
-                        with st.container(border=True):
-                            if item.get('cover_url'): st.image(item['cover_url'], use_container_width=True)
-                            st.markdown(f"**{item.get('title', 'Product')[:35]}...**")
-                            st.info(f"💡 {item.get('reason', 'Hoge viraliteit.')}")
-                            c1, c2 = st.columns(2)
-                            c1.link_button("🎵 Bekijk", item.get('video_url', '#'), use_container_width=True)
-                            if c2.button("✍️ Script", key=f"pro_script_{idx}", use_container_width=True):
-                                st.session_state.workflow_product = item.get('title', '')
-                                st.session_state.nav_index = 3
-                                st.rerun()
-    else:
-        # Gratis gebruikers zien de 'Locked' state voor Daily Winners
-        render_pro_lock("Daily Winners 🔒", "Krijg elke dag 3 kant-en-klare winstgevende producten.", "Exclusief voor PRO studenten.")
-
-    # =========================================================
-    # 🔍 SECTIE 2: DE ZOEK TOOLS (1x Gratis voor Demo gebruikers)
-    # =========================================================
-    st.markdown("---")
-    tab1, tab2, tab3 = st.tabs(["🔥 Viral TikTok Hunter", "🧿 Meta Ad Spy", "🕵️ Concurrenten Spy"]) 
-    
-    # --- TAB 1: TIKTOK HUNTER ---
-    with tab1:
-        st.markdown("""
-            <div style="background:#F8FAFC; border-left: 4px solid #2563EB; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-                <p style="margin:0; color:#1E293B; font-weight: 700;">🌪️ The Viral Hunter</p>
-                <p style="margin:0; color:#64748B; font-size:0.9rem;">Vind producten die <b>nu</b> viraal gaan op TikTok.</p>
+        # =========================================================
+        # --- TAB 1: GRATIS MINI TRAINING (Iedereen ziet dit) ---
+        # =========================================================
+        with tab_free:
+            st.markdown("""
+            <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #1E3A8A; font-size: 0.9rem;">
+                <i class="bi bi-info-circle-fill"></i>
+                <span>Je hebt <b>Preview Toegang</b>: 4 van de 74 lessen zijn beschikbaar.</span>
             </div>
-        """, unsafe_allow_html=True)
-        
-        with st.container(border=True):
-            st.write("**Stel je filters in:**")
-            search_query = st.text_input("Zoekwoord of Hashtag:", value="tiktokmademebuyit", key="hunter_q")
-            col_f1, col_f2 = st.columns(2)
-            min_v = col_f1.selectbox("Min. Views", [10000, 100000, 500000], index=1)
-            sort_o = col_f2.selectbox("Sorteer op", ["Views", "Omzet", "Viral Score"])
-
-            # Knop label verandert op basis van status
-            btn_label = "🚀 Zoek Winners" if is_pro else "🚀 Zoek Winners (1x Gratis Zoeken)"
+            """, unsafe_allow_html=True)
             
-            if st.button(btn_label, type="primary", use_container_width=True):
-                if db.can_user_search(user['email'], is_pro):
-                    with st.status(f"🕵️‍♂️ Scannen naar '{search_query}'...", expanded=True) as status:
-                        from modules import viral_finder
-                        results = viral_finder.search_tiktok_winning_products(search_query, min_v, sort_o)
-                        if results == "LIMIT_REACHED":
-                            status.update(label="⚠️ Serverlimiet bereikt", state="error", expanded=False)
-                        else:
-                            status.update(label="Analyse voltooid!", state="complete", expanded=False)
-                        st.session_state.tiktok_results = results
-                else:
-                    st.warning("⚠️ Je hebt je gratis zoekopdracht voor vandaag verbruikt.")
-                    st.info("Upgrade naar PRO voor onbeperkt product-onderzoek.")
-
-        # Resultaten tonen (als ze er zijn)
-        if st.session_state.get("tiktok_results") == "LIMIT_REACHED":
-            st.error("De servers zijn momenteel overbelast. Probeer de PRO Daily Winners.")
-        elif st.session_state.get("tiktok_results"):
-            res = st.session_state.tiktok_results
-            for i in range(0, len(res), 2):
-                ca, cb = st.columns(2)
-                def draw_item(col, item, k):
-                    with col:
-                        with st.container(border=True):
-                            if item.get('cover'): st.image(item['cover'], use_container_width=True)
-                            st.markdown(f"**{item['desc'][:50]}...**")
-                            st.metric("Views", f"{item['views']//1000}k")
-                            c1, c2 = st.columns(2)
-                            c1.link_button("🎵 Bekijk", item['url'], use_container_width=True)
-                            if c2.button("✍️ Script", key=f"tk_scr_{k}", use_container_width=True):
-                                st.session_state.workflow_product = item['desc']
-                                st.session_state.nav_index = 3
-                                st.rerun()
-                draw_item(ca, res[i], i)
-                if i+1 < len(res): draw_item(cb, res[i+1], i+1)
-
-    # --- TAB 2: META AD SPY ---
-    with tab2:
-        st.markdown("### 🧿 Meta (Facebook) Ad Spy")
-        with st.container(border=True):
-            fb_query = st.text_input("Zoekwoord voor advertenties:", placeholder="Bijv. Home Decor", key="fb_q")
-            fb_btn_label = "🕵️‍♂️ Scan Facebook Ads" if is_pro else "🕵️‍♂️ Scan Facebook Ads (1x Gratis)"
-            
-            if st.button(fb_btn_label, type="primary", use_container_width=True):
-                if db.can_user_search(user['email'], is_pro):
-                    with st.spinner("Facebook Ad Library wordt doorzocht..."):
-                        from modules import facebook_spy
-                        st.session_state.fb_results = facebook_spy.search_facebook_ads(fb_query, max_results=30)
-                else:
-                    st.warning("⚠️ Je dagelijkse gratis scan is op!")
-
-            if st.session_state.get("fb_results"):
-                for ad in st.session_state.fb_results[:12]:
-                    with st.container(border=True):
-                        c1, c2 = st.columns([1, 2])
-                        if ad['media']: c1.image(ad['media'], use_container_width=True)
-                        c2.markdown(f"**{ad['page_name']}**")
-                        c2.caption(f"Actief: {ad['days_active']} dagen")
-                        c2.link_button("🛒 Bekijk Shop", ad['shop_link'], use_container_width=True)
-
-    # --- TAB 3: CONCURRENTEN SPY ---
-    with tab3:
-        st.markdown("### 🕵️ Shopify Store Spy")
-        # Deze tool is technisch lichter, maar we houden hem voor PRO om waarde te behouden
-        if is_pro:
-            url_in = st.text_input("URL van concurrent:", placeholder="www.concurrent.nl")
-            if url_in and st.button("🚀 Scan Producten", type="primary"):
-                from modules import competitor_spy
-                prods = competitor_spy.scrape_shopify_store(url_in)
-                if prods:
-                    for p in prods:
-                        st.write(f"📦 **{p['title']}** - {p['price']}")
-        else:
-            render_pro_lock("Store Spy 🔒", "Scan elke Shopify store voor hun bestsellers.", "Exclusief voor studenten.")
-
-
-elif pg == "Marketing & Design": 
-    st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check", "🩺 Store Doctor"])
-    
-    with tab1:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nMaak binnen 10 seconden een uniek logo voor je merk. Typ je naam in en kies een stijl.")
-        
-        # --- INIT SESSION STATE VOOR LOGOS ---
-        if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
-        if "generated_logos" not in st.session_state: st.session_state.generated_logos = [] 
-        
-        # Check toegang
-        has_access = is_pro or st.session_state.logo_generations < 3
-        
-        if not has_access: 
-            render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.", "Concurrenten betalen €200 voor een logo. Jij krijgt dit gratis.")
-        else:
-            if not is_pro: 
-                st.info(f"🎁 Je hebt nog **{3 - st.session_state.logo_generations}** gratis logo generaties over.")
-            
-            with st.container(border=True):
-                col1, col2 = st.columns(2)
-                brand_name = col1.text_input("Bedrijfsnaam", placeholder="Bijv. Lumina")
-                niche = col1.text_input("Niche", placeholder="Bijv. Online growth, speed")
-                style = col2.selectbox("Stijl", ["Minimalistisch", "Modern & strak", "Vintage", "Luxe", "Speels"])
-                color = col2.text_input("Voorkeurskleuren", placeholder="Bijv. Zwart en goud")
-                
-                # GENEREER KNOP
-                if st.button("Genereer logo's", type="primary", use_container_width=True):
-                    if not brand_name or not niche: 
-                        st.warning("Vul alles in.")
-                    else:
-                        st.session_state.logo_generations += 1
-                        with st.spinner("Onze designers zijn bezig... (Dit duurt ca. 10 sec)"):
-                            import requests
-                            
-                            new_logos = []
-                            for i in range(3):
-                                img_url = ai_coach.generate_logo(brand_name, niche, style, color)
-                                if img_url and "placehold" not in img_url:
-                                    try:
-                                        resp = requests.get(img_url)
-                                        if resp.status_code == 200:
-                                            new_logos.append({
-                                                "url": img_url,
-                                                "data": resp.content,
-                                                "name": f"logo_{brand_name}_{i+1}.png"
-                                            })
-                                    except: pass
-                            
-                            if new_logos:
-                                st.session_state.generated_logos = new_logos
-                            else:
-                                st.error("Er ging iets mis bij het genereren. Probeer het opnieuw.")
-
-            # --- WEERGAVE ---
-            if st.session_state.generated_logos:
-                st.markdown("---")
-                st.markdown("### 🎉 Jouw resultaten:")
-                st.success("Tip: Klik op de knop onder het logo om hem in hoge kwaliteit op te slaan.")
-                
-                cols = st.columns(3)
-                for idx, logo in enumerate(st.session_state.generated_logos):
-                    with cols[idx]:
-                        st.image(logo["url"], use_container_width=True)
-                        st.download_button(
-                            label="📥 Download Logo",
-                            data=logo["data"],
-                            file_name=logo["name"],
-                            mime="image/png",
-                            key=f"dl_btn_persistent_{idx}",
-                            use_container_width=True
-                        )
-                
-                if st.button("Opnieuw beginnen (Wist huidige logo's)", type="secondary"):
-                    st.session_state.generated_logos = []
-                    st.rerun()
-
-    with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
-        if is_pro:
-            with st.container(border=True):
-                # Haal het product op dat is doorgestuurd vanuit de Hunter
-                default_prod = st.session_state.get('workflow_product', '')
-                
-                # De 'value' zorgt dat het veld al ingevuld is
-                prod = st.text_input("Voor welk product wil je een script?", value=default_prod, key="vid_prod_input")
-                
-                if st.button("Genereer scripts", type="primary", key="vid_btn"):
-                    if prod:
-                        with st.spinner("AI schrijft je virale script..."):
-                            res = ai_coach.generate_viral_scripts(prod, "", "Viral")
-                            st.markdown("### 🪝 Hooks")
-                            for h in res['hooks']: st.info(h)
-                            with st.expander("📄 Volledig Script"): st.write(res['full_script'])
-                            with st.expander("📝 Briefing voor Creator"): st.code(res['creator_brief'])
-                    else:
-                        st.warning("Vul eerst een productnaam in.")
-        else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
-    
-    with tab3:
-        st.markdown("**ℹ️ Wat doet deze tool?**\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
-        t_desc, t_inf = st.tabs(["🛍️ Beschrijvingen", "🤳 Influencer Script"])
-        with t_desc:
-            with st.container(border=True):
-                # WORKFLOW PRE-FILL
-                default_prod = st.session_state.get('workflow_product', '')
-                prod_name = st.text_input("Productnaam / URL (AliExpress)", value=default_prod, placeholder="Bv. Galaxy Star Projector")
-                
-                if st.button("✨ Genereer Beschrijving", type="primary", use_container_width=True):
-                    if not prod_name: st.warning("Vul een naam in.")
-                    elif check_credits():
-                        with st.spinner("AI is aan het schrijven..."):
-                            res = ai_coach.generate_product_description(prod_name)
-                            st.markdown(res)
-                            st.success("Tekst gegenereerd!")
-                    else: st.warning("Je dagelijkse credits zijn op. Word student voor onbeperkt toegang.")
-        with t_inf:
-            with st.container(border=True):
-                inf_prod = st.text_input("Jouw Product", placeholder="Bv. Organic Face Serum")
-                if st.button("📩 Genereer DM Script", type="primary", use_container_width=True):
-                    if not inf_prod: st.warning("Vul een product in.")
-                    elif check_credits():
-                        with st.spinner("Script schrijven..."):
-                            res = ai_coach.generate_influencer_dm(inf_prod)
-                            st.code(res, language="text")
-                            st.success("Kopieer en plak dit in Instagram DM!")
-                    else: st.warning("Je dagelijkse credits zijn op.")
-    
-    with tab4:
-        st.markdown("### 🩺 De Advertentie Dokter")
-        st.write("Upload een screenshot van je ad. De AI beoordeelt hem als een strenge media-buyer.")
-        
-        if is_pro:
-            with st.container(border=True):
-                # Stap 1: Context geven
-                c1, c2, c3 = st.columns(3)
-                platform = c1.selectbox("Platform", ["Facebook / Insta Feed", "Instagram Story/Reel", "TikTok"])
-                goal = c2.selectbox("Doel", ["Sales (Conversie)", "Leads", "Kliks"])
-                niche_ad = c3.text_input("Niche", placeholder="Bv. Beauty")
-                
-                # Stap 2: Upload
-                uploaded_file = st.file_uploader("Upload screenshot van je ad (of video thumbnail)", type=['png', 'jpg', 'jpeg'])
-                
-                if uploaded_file and st.button("Start Diagnose 🚑", type="primary", use_container_width=True):
-                    if not niche_ad:
-                        st.warning("Vul ook even je niche in voor beter advies.")
-                    else:
-                        with st.spinner("De dokter kijkt naar je advertentie... even geduld."):
-                             # We roepen de nieuwe Vision functie aan
-                             audit = ai_coach.analyze_ad_screenshot(uploaded_file, platform, goal, niche_ad)
-                             
-                             if audit:
-                                 st.markdown("---")
-                                 
-                                 # SCORE CARD
-                                 score = audit.get('score', 5)
-                                 
-                                 # Kleur bepalen
-                                 if score >= 8: color = "green"
-                                 elif score >= 6: color = "orange"
-                                 else: color = "red"
-                                 
-                                 # De Header
-                                 st.markdown(f"""
-                                 <div style="text-align:center; padding: 20px; background:#F8FAFC; border-radius:12px; border:1px solid #E2E8F0;">
-                                     <h2 style="margin:0; color:{color}; font-size: 3rem;">{score}/10</h2>
-                                     <h3 style="margin:0; color:#1E293B;">{audit.get('titel', 'Analyse Compleet')}</h3>
-                                 </div>
-                                 """, unsafe_allow_html=True)
-                                 
-                                 st.markdown("<br>", unsafe_allow_html=True)
-                                 
-                                 # De Details
-                                 c_hook, c_copy = st.columns(2)
-                                 with c_hook:
-                                     st.info(f"**👁️ De Hook (Beeld):**\n\n{audit.get('analyse_hook')}")
-                                 with c_copy:
-                                     st.info(f"**✍️ De Copy (Tekst):**\n\n{audit.get('analyse_copy')}")
-                                     
-                                 # De Actiepunten
-                                 st.markdown("#### 🛠️ Direct aanpassen:")
-                                 for punt in audit.get('verbeterpunten', []):
-                                     st.error(f"👉 {punt}")
-                                     
-                                 st.success("Pas dit aan en test opnieuw!")
-                             else:
-                                 st.error("Kon de afbeelding niet analyseren. Probeer een kleiner bestand of ander formaat.")
-
-        else: 
-            render_pro_lock("Ad Audit", "Laat je advertenties beoordelen door AI.", "Voorkom dat je €1000 verspilt aan een slechte advertentie. Laat de AI hem eerst checken.")
-
-    # --- TAB 5: STORE DOCTOR (NIEUW) ---
-    with tab5:
-        st.markdown("### 🩺 The Store Doctor")
-        st.write("Laat AI je webshop scannen en krijg direct een rapportcijfer + verbeterpunten.")
-        
-        if is_pro:
-            with st.container(border=True):
-                store_url = st.text_input("Jouw Webshop URL:", placeholder="bijv. www.mijnshop.nl")
-                
-                if st.button("🏥 Start Audit", type="primary", use_container_width=True):
-                    if "." not in store_url:
-                        st.warning("Vul een geldige URL in.")
-                    else:
-                        with st.spinner("De dokter is bezig met de operatie... 👨‍⚕️"):
-                            # 1. Scrape tekst
-                            scrape_res = competitor_spy.scrape_homepage_text(store_url)
-                            
-                            if scrape_res['status'] == 'success':
-                                # 2. AI Analyse
-                                audit_rapport = ai_coach.analyze_store_audit(scrape_res)
-                                
-                                st.markdown("---")
-                                st.markdown("### 📋 Het Rapport")
-                                st.markdown(audit_rapport)
-                                st.balloons()
-                            else:
-                                st.error(f"Kon de shop niet scannen: {scrape_res['message']}")
-        else:
-            render_pro_lock("Store Doctor", "Laat je shop keuren door AI.", "Voorkom dat je live gaat met fouten die je sales kosten.")
-
-elif pg == "Financiën":
-    st.markdown("<h1><i class='bi bi-cash-stack'></i> Financiën</h1>", unsafe_allow_html=True)
-    tab1, tab2 = st.tabs(["💡 Winst Calculator", "📈 Dagelijkse Stats"])
-    
-    with tab1:
-        st.markdown("""
-        <div style="background:#F0FDF4; padding:15px; border-radius:8px; border:1px solid #BBF7D0; margin-bottom:20px; color:#166534;">
-            <b>💰 Gratis Tool:</b> Gebruik dit <u>VOORDAT</u> je geld uitgeeft aan inkoop.
-            Weet zeker dat je product winstgevend is.
-        </div>
-        """, unsafe_allow_html=True)
-        
-        with st.container(border=True):
-            st.markdown("### 🧮 Product Profit Calculator")
             c1, c2 = st.columns(2)
-            
-            # WORKFLOW PRE-FILL
-            default_price = st.session_state.get('workflow_price', 29.95)
-            
-            vp = c1.number_input("Verkoopprijs (€)", value=float(default_price), step=1.0)
-            ip = c1.number_input("Inkoop + Verzenden (€)", value=12.00, step=0.50)
-            cpa = c2.number_input("Verwachte Ads kosten (CPA) (€)", value=10.00, step=0.50, help="Gemiddeld kost een sale €10-€15 aan ads.")
-            
-            tr = vp * 0.03 # Transactiekosten schatting
-            winst = vp - (ip + cpa + tr)
-            marge = (winst / vp * 100) if vp > 0 else 0
-            
-            st.markdown("---")
-            cc1, cc2, cc3 = st.columns(3)
-            cc1.metric("Transactiekosten (est.)", f"€{tr:.2f}")
-            cc2.metric("Netto Winst", f"€{winst:.2f}", delta="Goed bezig" if winst > 5 else "Risicovol", delta_color="normal")
-            cc3.metric("Marge", f"{marge:.1f}%", delta="> 20% is doel" if marge > 20 else "Te laag", delta_color="normal")
-            
-            if winst < 0:
-                st.error("⚠️ Pas op: Je maakt verlies met deze prijzen!")
+            with c1:
+                with st.container(border=True):
+                    st.markdown("**1. Van Chaos naar Actie 🚀**")
+                    st.video("https://www.youtube.com/embed/nYN7EyMb7uQ")
+                with st.container(border=True):
+                    st.markdown("**2. Jouw volgende stap 📈**")
+                    st.video("https://www.youtube.com/embed/yIJJbwIZL6k")
+            with c2:
+                with st.container(border=True):
+                    st.markdown("**3. Kies het juiste product 📦**")
+                    st.video("https://www.youtube.com/embed/CM5CtnXrvEU")
+                with st.container(border=True):
+                    st.markdown("**4. Je eerste advertentie 🔥**")
+                    st.video("https://www.youtube.com/embed/cA8Gvhfic-s")
 
-    with tab2:
-        st.markdown("**ℹ️ Wat doet deze tool?**\n\nHier zie je in één oogopslag of je vandaag winst of verlies hebt gemaakt. Vul elke ochtend je cijfers in.")
-        with st.container(border=True):
-            st.markdown("#### 📅 Resultaten van vandaag")
-            c1, c2, c3 = st.columns(3)
-            rev = c1.number_input("Totale Omzet (€)", 0.0, step=10.0, help="Alles wat Shopify zegt dat je hebt verkocht.")
-            spend = c2.number_input("Advertentiekosten (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.")
-            cogs = c3.number_input("Inkoopkosten (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.")
-            if st.button("Opslaan in Database", type="primary"):
-                if db.save_daily_stats(user['email'], rev, spend, cogs): st.success("Opgeslagen! Check de grafieken hieronder.")
-                else: st.error("Kon niet opslaan (Database error).")
-        history = db.get_daily_stats_history(user['email'])
-        if history:
-            st.markdown("### 📊 Trends & Cijfers (Laatste 7 dagen)")
-            df = pd.DataFrame(history)
-            df['Profit'] = df['revenue'] - df['ad_spend'] - df['cogs']
-            df['ROAS'] = df.apply(lambda x: x['revenue'] / x['ad_spend'] if x['ad_spend'] > 0 else 0, axis=1)
-            total_rev = df['revenue'].sum()
-            total_profit = df['Profit'].sum()
-            avg_roas = df['ROAS'].mean()
-            col1, col2, col3 = st.columns(3)
-            col1.metric("Totaal Omzet", f"€{total_rev:.2f}")
-            col2.metric("Netto Winst", f"€{total_profit:.2f}", delta="Winstgevend" if total_profit > 0 else "Verlies", delta_color="normal")
-            col3.metric("Gemiddelde ROAS", f"{avg_roas:.2f}", delta="> 3.0 is top" if avg_roas > 3 else "Kan beter", delta_color="off")
-            st.bar_chart(df, x="date", y="Profit", color="#10B981") 
-            with st.expander("Bekijk ruwe data"): st.dataframe(df)
-        else: st.info("Nog geen data. Vul hierboven je eerste dag in om de grafieken te zien!")
+            st.markdown("<br> 🔒 Wat je onder andere mist in de volledige cursus:", unsafe_allow_html=True)
+            locked_modules = ["Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup", "Module 9: Opschalen", "Module 11: Private Agents", "Module 12: Viral Content"]
+            lc1, lc2 = st.columns(2)
+            for i, mod in enumerate(locked_modules):
+                html = f'<div class="locked-module"><span><i class="bi bi-lock-fill"></i> {mod}</span></div>'
+                if i % 2 == 0: lc1.markdown(html, unsafe_allow_html=True)
+                else: lc2.markdown(html, unsafe_allow_html=True)
 
-elif pg == "Instellingen":
-    st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
-    tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
-    
-    with tab1:
-        # --- PROFIEL PAGINA (PLAYER CARD STYLE) ---
-        st.markdown("### 👤 Jouw Profiel")
-        
-        with st.container(border=True):
-            col_p1, col_p2 = st.columns([1, 3], vertical_alignment="center")
-            
-            with col_p1:
-                # Grote Avatar Letter
-                display_name = user.get('first_name') or "Gast"
-                letter = display_name[0].upper()
+        # =========================================================
+        # --- TAB 2: DE ECHTE CURSUS (DE HARDE LOCK) ---
+        # =========================================================
+        with tab_pro_course:
+            # Check op de speciale 'Academy Student' status (niet alleen PRO)
+            is_academy_student = user.get('is_academy_student', False)
+
+            if not is_academy_student:
+                # DIT SCHERM ZIE JE ALTIJD, TENZIJ HANDMATIG TOEGEVOEGD IN DB
+                st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown(f"""
-                <div style="width:80px; height:80px; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); 
-                border-radius:50%; display:flex; justify-content:center; align-items:center; 
-                font-size:35px; color:#2563EB; font-weight:800; border:3px solid #BFDBFE; margin: 0 auto;">
-                    {letter}
+                <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+                    <div style="font-size: 50px; margin-bottom: 20px;">🎓</div>
+                    <h2 style="color: #0F172A; margin-bottom: 10px;">Full Academy Toegang</h2>
+                    <p style="color: #64748B; font-size: 1.1rem; max-width: 500px; margin: 0 auto 25px auto;">
+                        De volledige cursus met 70+ video's, copy-paste templates en 1-op-1 begeleiding is <b>exclusief voor traject-studenten</b>.
+                    </p>
+                    <div style="background: #FFF7ED; border: 1px solid #FED7AA; padding: 12px; border-radius: 8px; margin-bottom: 30px; display: inline-block;">
+                        <p style="margin: 0; color: #9A3412; font-size: 0.9rem; font-weight: 700;">
+                            🔒 Toegang wordt pas verleend na een Strategie Gesprek.
+                        </p>
+                    </div>
+                    <br>
+                    <a href="https://calendly.com/rmecomacademy/30min" target="_blank" style="text-decoration: none;">
+                        <div style="background: #2563EB; color: white; padding: 15px 35px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
+                            📞 Plan Gratis Strategie Call
+                        </div>
+                    </a>
                 </div>
                 """, unsafe_allow_html=True)
-            
-            with col_p2:
-                # Naam & Status Badge
-                user_status = "Student 🎓" if is_pro else "Gast 👤"
-                status_color = "#DCFCE7" if is_pro else "#F1F5F9"
-                status_text_color = "#166534" if is_pro else "#64748B"
-                
-                st.markdown(f"""
-                <h3 style="margin:0; padding:0;">{display_name}</h3>
-                <div style="margin-top:5px; margin-bottom:10px;">
-                    <span style="background:{status_color}; color:{status_text_color}; padding: 4px 10px; border-radius:15px; font-size:0.8rem; font-weight:700; border: 1px solid rgba(0,0,0,0.05);">
-                        {user_status}
-                    </span>
-                    <span style="color:#94A3B8; font-size:0.9rem; margin-left:10px;">{user['email']}</span>
-                </div>
-                """, unsafe_allow_html=True)
-
-            # Voortgangsbalkje in profiel
-            st.markdown("---")
-            c_lvl, c_xp = st.columns([1, 4], vertical_alignment="bottom")
-            c_lvl.markdown(f"**Lvl {user['level']}**")
-            # Herbereken percentage voor visualisatie
-            range_span = next_xp_goal_sidebar - prev_threshold
-            xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0)
-            c_xp.progress(xp_pct)
-            c_xp.caption(f"Nog {next_xp_goal_sidebar - user['xp']} XP tot volgende level")
-
-            st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🚪 Uitloggen", use_container_width=True):
-                cookie_manager.delete("rmecom_user_email")
-                st.session_state.clear()
-                st.rerun()
-
-    with tab2:
-        # --- DYNAMISCHE HEADER OP BASIS VAN STATUS ---
-        if is_pro:
-            st.markdown("""
-            <div style="text-align:center; margin-bottom: 20px;">
-                <h2 style="color:#1E40AF; margin-bottom:5px;">💼 RM Partner Programma</h2>
-                <p style="color:#64748B;">Je bent nu PRO-lid. Verdien <b>€250,-</b> per student die onze curcus via jouw gaat volgen</p>
-            </div>
-            """, unsafe_allow_html=True)
-        else:
-            st.markdown("""
-            <div style="text-align:center; margin-bottom: 20px;">
-                <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per echte student</h2>
-                <p style="color:#64748B;">Help anderen starten en gebruik je winst om zelf gratis <b>PRO</b> te worden.</p>
-            </div>
-            """, unsafe_allow_html=True)
-
-        # 2. De Stats (Blijft hetzelfde, maar met strakkere labels)
-        stats = auth.get_affiliate_stats()
-        col_s1, col_s2, col_s3 = st.columns(3)
-        with col_s1:
-            st.metric("Kliks op link", stats[0] * 5)
-        with col_s2:
-            st.metric("Inschrijvingen", stats[1])
-        with col_s3:
-            st.metric("Commissie", f"€{stats[2]}", delta="Betaalbaar op aanvraag")
-
-        # 3. Conversie blok
-        with st.container(border=True):
-            if is_pro:
-                st.markdown("#### 📈 Jouw Partner Business")
-                st.write("Als PRO-lid heb je een streepje voor. Deel je ervaringen in de community en help anderen.")
             else:
-                st.markdown("#### 🚀 Hoe word ik gratis PRO?")
-                st.write("Eén enkele referral (Student levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
+                # --- DE VIDEOS (Alleen voor geverifieerde studenten) ---
+                course_content = {
+                    "Module 1: Welkom": [
+                        {"title": "Introductie - Welkom bij RM Ecom Academy", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
+                        {"title": "Jouw 100K Laserfocus Systeem", "url": "https://youtu.be/aBpsJN0D3QE", "duration": "10 min"},
+                        {"title": "Jouw Transformatieplan in 70 Dagen", "url": "https://youtu.be/gx5dJ6nUrf4", "duration": "15 min"},
+                        {"title": "De eerste stappen naar succes", "url": "https://youtu.be/ajnJeKuKp7c", "duration": "8 min"},
+                    ],
+                    "Module 2: Het begin": [
+                        {"title": "Het openen van een zakelijke rekening", "url": "https://youtu.be/x90vvuup1I8", "duration": "10 min"},
+                        {"title": "Een creditcard aanvragen", "url": "https://youtu.be/lrhhCsRCcUE", "duration": "5 min"},
+                        {"title": "Mindset voor de 70-dagen transformatieplan", "url": "https://youtu.be/_0W4z1yR_Lg", "duration": "20 min"},
+                    ],
+                    "Module 3: Dropshipping": [
+                        {"title": "Wat betekend branded dropshipping?", "url": "https://youtu.be/puq-WqF8JMQ", "duration": "10 min"},
+                        {"title": "Wat is dropshipping en hoe werkt het?", "url": "https://youtu.be/Dq8E6G5Fgc8", "duration": "15 min"},
+                    ],
+                    "Module 4: De fundering": [
+                        {"title": "Een markt kiezen", "url": "https://youtu.be/vcxTcT5rnV4", "duration": "15 min"},
+                        {"title": "Een niche kiezen", "url": "https://youtu.be/4bfnKWIQYbY", "duration": "20 min"},
+                    ],
+                    "Module 5: Shopify": [
+                        {"title": "Shopify account aanmaken", "url": "https://youtu.be/gwxx5fUouKQ", "duration": "5 min"},
+                        {"title": "Website termen", "url": "https://youtu.be/d9NPDvrYUHc", "duration": "5 min"},
+                        {"title": "Rondleiding Shopify (algemeen)", "url": "https://youtu.be/zkMAybKHnnc", "duration": "15 min"},
+                        {"title": "De webshop inrichten", "url": "https://youtu.be/xBS66G6OK84", "duration": "25 min"},
+                        {"title": "Een betaling ontvangen (Shopify Payments)", "url": "https://youtu.be/hW2hmKlBcEQ", "duration": "10 min"},
+                        {"title": "Een domein kiezen en aanschaffen", "url": "https://youtu.be/PxNTMe-qsOA", "duration": "5 min"},
+                        {"title": "Custom codes gebruiken", "url": "https://youtu.be/zi3fXCyBYdI", "duration": "10 min"},
+                        {"title": "De navigatie van je webshop", "url": "https://youtu.be/F3INLon0pnY", "duration": "10 min"},
+                        {"title": "Een productpagina aanmaken", "url": "https://youtu.be/0PJ4NpR1ibs", "duration": "15 min"},
+                        {"title": "Een collectiepagina aanmaken", "url": "https://youtu.be/Grh2GVnKJRk", "duration": "10 min"},
+                        {"title": "Een verzendmethode instellen", "url": "https://youtu.be/8aGzEJrV0M8", "duration": "10 min"},
+                        {"title": "Kortingscodes aanmaken", "url": "https://youtu.be/k2uGrjto_fo", "duration": "5 min"},
+                        {"title": "Conversie optimaliseren (CRO)", "url": "https://youtu.be/0QNxhi7aXBA", "duration": "20 min"},
+                        {"title": "De checkout optimaliseren", "url": "https://youtu.be/y0-giNe1Pes", "duration": "10 min"},
+                        {"title": "Shopify markten instellen", "url": "https://youtu.be/OCPcbo0JsMo", "duration": "15 min"},
+                    ],
+                    "Module 6: Apps in Shopify": [
+                        {"title": "Poky", "url": "https://youtu.be/qKLYDk9-7x8", "duration": "5 min"},
+                        {"title": "Section store", "url": "https://youtu.be/Gc3G_x2D_4k", "duration": "5 min"},
+                        {"title": "Parcel panel", "url": "https://youtu.be/TsMKOtsIz7Y", "duration": "5 min"},
+                        {"title": "Slize Cart by AMP", "url": "https://youtu.be/JLNFlfSLqjI", "duration": "5 min"},
+                        {"title": "BF size charts", "url": "https://youtu.be/iP__ahhzXfo", "duration": "5 min"},
+                        {"title": "Kaching Bundles en hoe AOV verhogen", "url": "https://youtu.be/9SBXwXFrIkQ", "duration": "10 min"},
+                        {"title": "Conversie Verhogen - Trust Badges", "url": "https://youtu.be/718tg9QR50Y", "duration": "5 min"},
+                    ],
+                    "Module 7: Facebook (Setup)": [
+                        {"title": "Start van je Facebook blueprint", "url": "https://youtu.be/pvIAASq9jfg", "duration": "10 min"},
+                        {"title": "De Businessmanager aanmaken", "url": "https://youtu.be/_7vF_nc6dzo", "duration": "10 min"},
+                        {"title": "Een Rondleiding door de businessmanager", "url": "https://youtu.be/M-BAExvxyzU", "duration": "15 min"},
+                        {"title": "Het aanmaken van een Facebookpagina", "url": "https://youtu.be/2sh_raKCa_Q", "duration": "5 min"},
+                        {"title": "Het opwarmen van de pagina", "url": "https://youtu.be/FY08rYyjwlM", "duration": "5 min"},
+                        {"title": "Het aanmaken van je advertentieaccount", "url": "https://youtu.be/dmJIS8Ujuec", "duration": "5 min"},
+                        {"title": "Opzetten van je agency advertentieaccount", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
+                        {"title": "Het aanmaken en koppelen van je pixel", "url": "https://youtu.be/NeIB1Ime_2cR", "duration": "15 min"},
+                        {"title": "Het verifiëren van je domein", "url": "https://youtu.be/eE9aziZogjw", "duration": "5 min"},
+                        {"title": "Facebook structuur opzetten", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "10 min"},
+                        {"title": "Je Instagram account koppelen", "url": "https://youtu.be/ZOaOr56EqGc", "duration": "5 min"},
+                    ],
+                    "Module 8: Facebook Live gaan": [
+                        {"title": "Wat is een ABO campagne?", "url": "https://youtu.be/0w32dh7yS9I", "duration": "10 min"},
+                        {"title": "Wat is een CBO campagne?", "url": "https://youtu.be/zBk2oR_MGbI", "duration": "10 min"},
+                        {"title": "Het aanmaken van een testcampagne", "url": "https://youtu.be/gwlKJ9XhwBE", "duration": "20 min"},
+                        {"title": "Facebooktermen", "url": "https://youtu.be/EVE_Xhu1qjI", "duration": "10 min"},
+                        {"title": "Het instellen van kolommen", "url": "https://youtu.be/M1ek9iua7sg", "duration": "5 min"},
+                        {"title": "Opschalen van je advertenties (de basis)", "url": "https://youtu.be/qGG30Y-0HVw", "duration": "15 min"},
+                        {"title": "Hoe analyseer je advertenties?", "url": "https://youtu.be/C3qXa4r-8yo", "duration": "15 min"},
+                        {"title": "Wat doe je als een product onder presteert?", "url": "https://youtu.be/u0giYTGBcfA", "duration": "10 min"},
+                        {"title": "Comments automatisch verbergen", "url": "https://youtu.be/FIyEYO6yd18", "duration": "5 min"},
+                        {"title": "Wetracked of Trackbee installeren", "url": "https://youtu.be/dsk8nUqkDtI", "duration": "10 min"},
+                    ],
+                    "Module 9: Facebook geavanceerd": [
+                        {"title": "Veilig opschalen met 20%", "url": "https://youtu.be/yHEDftamMc8", "duration": "10 min"},
+                        {"title": "Gemiddeld opschalen met 50%", "url": "https://youtu.be/mHVh_PY-ja4", "duration": "10 min"},
+                        {"title": "Agressief opschalen met 100%", "url": "https://youtu.be/8ayQ1ecqoCg", "duration": "10 min"},
+                        {"title": "Ultra agressief opschalen (Surfscalen)", "url": "https://youtu.be/lfskezYSM1Y", "duration": "15 min"},
+                        {"title": "Creatives testen (voor een lage cpc)", "url": "https://youtu.be/SCjQilN9W2s", "duration": "15 min"},
+                    ],
+                    "Module 10: Branding": [
+                        {"title": "Social Media branding", "url": "https://youtu.be/3Vccoluq43U", "duration": "10 min"},
+                        {"title": "Logo maken", "url": "https://youtu.be/GqehPhoMnX0", "duration": "10 min"},
+                    ],
+                    "Module 11: Agent (Prive leverancier)": [
+                        {"title": "Het gebruiken van een privé leverancier", "url": "https://youtu.be/lvIv6vq2dQY", "duration": "10 min"},
+                        {"title": "De kwaliteit van je producten checken", "url": "https://youtu.be/WDCebfTe4jQ", "duration": "5 min"},
+                        {"title": "Een gepersonaliseerde verpakking maken", "url": "https://youtu.be/2GZIH6HnV2k", "duration": "10 min"},
+                    ],
+                    "Module 12: Content Creation": [
+                        {"title": "De 5 stadia van bewustzijn", "url": "https://youtu.be/RBvrN_JdNsI", "duration": "10 min"},
+                        {"title": "Canva rondleiding", "url": "https://youtu.be/SekM6oFOQNs", "duration": "15 min"},
+                        {"title": "Advertentie creatives maken", "url": "https://youtu.be/aJHm6_yFgSg", "duration": "20 min"},
+                        {"title": "Video's vanuit de AD library downloaden", "url": "https://youtu.be/WFE3l88O5iM", "duration": "5 min"},
+                        {"title": "De opbouw van een winnende video creatie", "url": "https://youtu.be/Oeh276FU0iQ", "duration": "15 min"},
+                        {"title": "Scroll stoppers maken voor je video", "url": "https://youtu.be/TeohCu7NEwE", "duration": "10 min"},
+                        {"title": "Advertentieteksten schrijven met Chat-GPT", "url": "https://youtu.be/LVk0No917sI", "duration": "10 min"},
+                        {"title": "UGC content gebruiken", "url": "https://youtu.be/GKmWZFkgFeg", "duration": "10 min"},
+                    ],
+                    "Module 13: Klantenservice": [
+                        {"title": "Hoe ga je met klanten om?", "url": "https://youtu.be/08qt2ND4pLY", "duration": "10 min"},
+                        {"title": "Klantenservice templates", "url": "https://youtu.be/JOUW_LINK_HIER", "duration": "5 min"},
+                        {"title": "Retourfunnel (verminder je retouren)", "url": "https://youtu.be/C5So4rh8Xx0", "duration": "10 min"},
+                    ],
+                    "Module 14: Must Have": [
+                        {"title": "Handige Tools (MUST HAVE)", "url": "https://youtu.be/9cmTsNGat2s", "duration": "10 min"},
+                        {"title": "Ad strategie (Collecties)", "url": "https://youtu.be/7YNWLMsexnw", "duration": "15 min"},
+                        {"title": "Website reviews (Fouten van anderen)", "url": "https://youtu.be/gzOMw4O-b00", "duration": "20 min"},
+                    ],
+                }
 
-        # --- DEEL ACTIES ---
-        current_ref = user.get('referral_code', 'TEMP')
-        share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
+                col_nav, col_content = st.columns([1, 2.2], gap="large")
+                with col_nav:
+                    st.markdown("#### 📂 Modules")
+                    module_names = list(course_content.keys())
+                    if "curr_module" not in st.session_state: st.session_state.curr_module = module_names[0]
+                    selected_module = st.selectbox("Kies module:", module_names, label_visibility="collapsed")
+                    st.session_state.curr_module = selected_module
+                    videos_in_module = course_content[selected_module]
+                    if "curr_video" not in st.session_state: st.session_state.curr_video = videos_in_module[0]['title']
+                    
+                    for v in videos_in_module:
+                        title = v['title']
+                        is_active = (title == st.session_state.curr_video)
+                        btn_type = "primary" if is_active else "secondary"
+                        if st.button(f"📺 {title}", key=f"nav_{title}", type=btn_type, use_container_width=True):
+                            st.session_state.curr_video = title
+                            st.rerun()
+
+                with col_content:
+                    current_video = next((v for v in videos_in_module if v['title'] == st.session_state.curr_video), videos_in_module[0])
+                    st.markdown(f"### {current_video['title']}")
+                    st.video(current_video['url'])
+                    
+                    vid_id = f"vid_{abs(hash(current_video['title']))}"
+                    if vid_id not in completed_steps:
+                        if st.button("✅ Les Afronden (+15 XP)", type="primary"):
+                            auth.mark_step_complete(vid_id, 15)
+                            st.balloons()
+                            st.rerun()
+                    else:
+                        st.success("Deze les is voltooid! ✅")
+
+
+    elif pg == "Producten Zoeken":
+        # --- HEADER ---
+        st.markdown("<h1><i class='bi bi-search'></i> Winning Product Hunter</h1>", unsafe_allow_html=True)
+        st.caption("De ultieme toolkit om winstgevende producten te vinden en te analyseren.")
+
+        # =========================================================
+        # 🏆 SECTIE 1: PRO DAILY WINNERS (EXCLUSIEF VOOR PRO)
+        # =========================================================
+        if is_pro:
+            with st.container(border=True):
+                st.markdown("### 🏆 PRO Daily Winners")
+                st.write("Onze AI selectie van de 3 grootste kanshebbers van vandaag.")
+                if st.button("✨ Onthul Winners van Vandaag", type="primary", use_container_width=True):
+                    picks = db.get_daily_winners_from_db()
+                    if picks:
+                        st.session_state.pro_daily_picks = picks
+                    else:
+                        st.error("Winners worden momenteel ververst. Probeer het over 5 minuten opnieuw.")
+
+                if "pro_daily_picks" in st.session_state:
+                    picks = st.session_state.pro_daily_picks
+                    cols = st.columns(3)
+                    for idx, item in enumerate(picks):
+                        with cols[idx]:
+                            with st.container(border=True):
+                                if item.get('cover_url'): st.image(item['cover_url'], use_container_width=True)
+                                st.markdown(f"**{item.get('title', 'Product')[:35]}...**")
+                                st.info(f"💡 {item.get('reason', 'Hoge viraliteit.')}")
+                                c1, c2 = st.columns(2)
+                                c1.link_button("🎵 Bekijk", item.get('video_url', '#'), use_container_width=True)
+                                if c2.button("✍️ Script", key=f"pro_script_{idx}", use_container_width=True):
+                                    st.session_state.workflow_product = item.get('title', '')
+                                    st.session_state.nav_index = 3
+                                    st.rerun()
+        else:
+            # Gratis gebruikers zien de 'Locked' state voor Daily Winners
+            render_pro_lock("Daily Winners 🔒", "Krijg elke dag 3 kant-en-klare winstgevende producten.", "Exclusief voor PRO studenten.")
+
+        # =========================================================
+        # 🔍 SECTIE 2: DE ZOEK TOOLS (1x Gratis voor Demo gebruikers)
+        # =========================================================
+        st.markdown("---")
+        tab1, tab2, tab3 = st.tabs(["🔥 Viral TikTok Hunter", "🧿 Meta Ad Spy", "🕵️ Concurrenten Spy"]) 
         
-        st.markdown("### 🔗 Jouw Unieke Partner Link")
-        st.code(share_link, language="text")
+        # --- TAB 1: TIKTOK HUNTER ---
+        with tab1:
+            st.markdown("""
+                <div style="background:#F8FAFC; border-left: 4px solid #2563EB; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+                    <p style="margin:0; color:#1E293B; font-weight: 700;">🌪️ The Viral Hunter</p>
+                    <p style="margin:0; color:#64748B; font-size:0.9rem;">Vind producten die <b>nu</b> viraal gaan op TikTok.</p>
+                </div>
+            """, unsafe_allow_html=True)
+            
+            with st.container(border=True):
+                st.write("**Stel je filters in:**")
+                search_query = st.text_input("Zoekwoord of Hashtag:", value="tiktokmademebuyit", key="hunter_q")
+                col_f1, col_f2 = st.columns(2)
+                min_v = col_f1.selectbox("Min. Views", [10000, 100000, 500000], index=1)
+                sort_o = col_f2.selectbox("Sorteer op", ["Views", "Omzet", "Viral Score"])
+
+                # Knop label verandert op basis van status
+                btn_label = "🚀 Zoek Winners" if is_pro else "🚀 Zoek Winners (1x Gratis Zoeken)"
+                
+                if st.button(btn_label, type="primary", use_container_width=True):
+                    if db.can_user_search(user['email'], is_pro):
+                        with st.status(f"🕵️‍♂️ Scannen naar '{search_query}'...", expanded=True) as status:
+                            from modules import viral_finder
+                            results = viral_finder.search_tiktok_winning_products(search_query, min_v, sort_o)
+                            if results == "LIMIT_REACHED":
+                                status.update(label="⚠️ Serverlimiet bereikt", state="error", expanded=False)
+                            else:
+                                status.update(label="Analyse voltooid!", state="complete", expanded=False)
+                            st.session_state.tiktok_results = results
+                    else:
+                        st.warning("⚠️ Je hebt je gratis zoekopdracht voor vandaag verbruikt.")
+                        st.info("Upgrade naar PRO voor onbeperkt product-onderzoek.")
+
+            # Resultaten tonen (als ze er zijn)
+            if st.session_state.get("tiktok_results") == "LIMIT_REACHED":
+                st.error("De servers zijn momenteel overbelast. Probeer de PRO Daily Winners.")
+            elif st.session_state.get("tiktok_results"):
+                res = st.session_state.tiktok_results
+                for i in range(0, len(res), 2):
+                    ca, cb = st.columns(2)
+                    def draw_item(col, item, k):
+                        with col:
+                            with st.container(border=True):
+                                if item.get('cover'): st.image(item['cover'], use_container_width=True)
+                                st.markdown(f"**{item['desc'][:50]}...**")
+                                st.metric("Views", f"{item['views']//1000}k")
+                                c1, c2 = st.columns(2)
+                                c1.link_button("🎵 Bekijk", item['url'], use_container_width=True)
+                                if c2.button("✍️ Script", key=f"tk_scr_{k}", use_container_width=True):
+                                    st.session_state.workflow_product = item['desc']
+                                    st.session_state.nav_index = 3
+                                    st.rerun()
+                    draw_item(ca, res[i], i)
+                    if i+1 < len(res): draw_item(cb, res[i+1], i+1)
+
+        # --- TAB 2: META AD SPY ---
+        with tab2:
+            st.markdown("### 🧿 Meta (Facebook) Ad Spy")
+            with st.container(border=True):
+                fb_query = st.text_input("Zoekwoord voor advertenties:", placeholder="Bijv. Home Decor", key="fb_q")
+                fb_btn_label = "🕵️‍♂️ Scan Facebook Ads" if is_pro else "🕵️‍♂️ Scan Facebook Ads (1x Gratis)"
+                
+                if st.button(fb_btn_label, type="primary", use_container_width=True):
+                    if db.can_user_search(user['email'], is_pro):
+                        with st.spinner("Facebook Ad Library wordt doorzocht..."):
+                            from modules import facebook_spy
+                            st.session_state.fb_results = facebook_spy.search_facebook_ads(fb_query, max_results=30)
+                    else:
+                        st.warning("⚠️ Je dagelijkse gratis scan is op!")
+
+                if st.session_state.get("fb_results"):
+                    for ad in st.session_state.fb_results[:12]:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([1, 2])
+                            if ad['media']: c1.image(ad['media'], use_container_width=True)
+                            c2.markdown(f"**{ad['page_name']}**")
+                            c2.caption(f"Actief: {ad['days_active']} dagen")
+                            c2.link_button("🛒 Bekijk Shop", ad['shop_link'], use_container_width=True)
+
+        # --- TAB 3: CONCURRENTEN SPY ---
+        with tab3:
+            st.markdown("### 🕵️ Shopify Store Spy")
+            # Deze tool is technisch lichter, maar we houden hem voor PRO om waarde te behouden
+            if is_pro:
+                url_in = st.text_input("URL van concurrent:", placeholder="www.concurrent.nl")
+                if url_in and st.button("🚀 Scan Producten", type="primary"):
+                    from modules import competitor_spy
+                    prods = competitor_spy.scrape_shopify_store(url_in)
+                    if prods:
+                        for p in prods:
+                            st.write(f"📦 **{p['title']}** - {p['price']}")
+            else:
+                render_pro_lock("Store Spy 🔒", "Scan elke Shopify store voor hun bestsellers.", "Exclusief voor studenten.")
+
+
+    elif pg == "Marketing & Design": 
+        st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Logo Maker", "Video Scripts", "Teksten Schrijven", "Advertentie Check", "🩺 Store Doctor"])
         
-        c_whatsapp, c_copy = st.columns(2)
-        with c_whatsapp:
-            share_text = f"Hee! Ik volg nu het RM Ecom traject. Als je ook een webshop wilt starten, gebruik mijn link voor een vliegende start: {share_link}"
-            wa_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
-            st.link_button("💚 Deel via WhatsApp", wa_url, use_container_width=True)
+        with tab1:
+            st.markdown("**ℹ️ Wat doet deze tool?**\n\nMaak binnen 10 seconden een uniek logo voor je merk. Typ je naam in en kies een stijl.")
+            
+            # --- INIT SESSION STATE VOOR LOGOS ---
+            if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
+            if "generated_logos" not in st.session_state: st.session_state.generated_logos = [] 
+            
+            # Check toegang
+            has_access = is_pro or st.session_state.logo_generations < 3
+            
+            if not has_access: 
+                render_pro_lock("Credits op", "Je hebt 3 gratis logo's gemaakt. Word student om onbeperkt te genereren.", "Concurrenten betalen €200 voor een logo. Jij krijgt dit gratis.")
+            else:
+                if not is_pro: 
+                    st.info(f"🎁 Je hebt nog **{3 - st.session_state.logo_generations}** gratis logo generaties over.")
+                
+                with st.container(border=True):
+                    col1, col2 = st.columns(2)
+                    brand_name = col1.text_input("Bedrijfsnaam", placeholder="Bijv. Lumina")
+                    niche = col1.text_input("Niche", placeholder="Bijv. Online growth, speed")
+                    style = col2.selectbox("Stijl", ["Minimalistisch", "Modern & strak", "Vintage", "Luxe", "Speels"])
+                    color = col2.text_input("Voorkeurskleuren", placeholder="Bijv. Zwart en goud")
+                    
+                    # GENEREER KNOP
+                    if st.button("Genereer logo's", type="primary", use_container_width=True):
+                        if not brand_name or not niche: 
+                            st.warning("Vul alles in.")
+                        else:
+                            st.session_state.logo_generations += 1
+                            with st.spinner("Onze designers zijn bezig... (Dit duurt ca. 10 sec)"):
+                                import requests
+                                
+                                new_logos = []
+                                for i in range(3):
+                                    img_url = ai_coach.generate_logo(brand_name, niche, style, color)
+                                    if img_url and "placehold" not in img_url:
+                                        try:
+                                            resp = requests.get(img_url)
+                                            if resp.status_code == 200:
+                                                new_logos.append({
+                                                    "url": img_url,
+                                                    "data": resp.content,
+                                                    "name": f"logo_{brand_name}_{i+1}.png"
+                                                })
+                                        except: pass
+                                
+                                if new_logos:
+                                    st.session_state.generated_logos = new_logos
+                                else:
+                                    st.error("Er ging iets mis bij het genereren. Probeer het opnieuw.")
+
+                # --- WEERGAVE ---
+                if st.session_state.generated_logos:
+                    st.markdown("---")
+                    st.markdown("### 🎉 Jouw resultaten:")
+                    st.success("Tip: Klik op de knop onder het logo om hem in hoge kwaliteit op te slaan.")
+                    
+                    cols = st.columns(3)
+                    for idx, logo in enumerate(st.session_state.generated_logos):
+                        with cols[idx]:
+                            st.image(logo["url"], use_container_width=True)
+                            st.download_button(
+                                label="📥 Download Logo",
+                                data=logo["data"],
+                                file_name=logo["name"],
+                                mime="image/png",
+                                key=f"dl_btn_persistent_{idx}",
+                                use_container_width=True
+                            )
+                    
+                    if st.button("Opnieuw beginnen (Wist huidige logo's)", type="secondary"):
+                        st.session_state.generated_logos = []
+                        st.rerun()
+
+        with tab2:
+            st.markdown("**ℹ️ Wat doet deze tool?**\n\nWeet je niet wat je moet zeggen in je video? Deze tool schrijft virale scripts voor TikTok en Instagram Reels.")
+            if is_pro:
+                with st.container(border=True):
+                    # Haal het product op dat is doorgestuurd vanuit de Hunter
+                    default_prod = st.session_state.get('workflow_product', '')
+                    
+                    # De 'value' zorgt dat het veld al ingevuld is
+                    prod = st.text_input("Voor welk product wil je een script?", value=default_prod, key="vid_prod_input")
+                    
+                    if st.button("Genereer scripts", type="primary", key="vid_btn"):
+                        if prod:
+                            with st.spinner("AI schrijft je virale script..."):
+                                res = ai_coach.generate_viral_scripts(prod, "", "Viral")
+                                st.markdown("### 🪝 Hooks")
+                                for h in res['hooks']: st.info(h)
+                                with st.expander("📄 Volledig Script"): st.write(res['full_script'])
+                                with st.expander("📝 Briefing voor Creator"): st.code(res['creator_brief'])
+                        else:
+                            st.warning("Vul eerst een productnaam in.")
+            else: render_pro_lock("Viral video scripts", "Laat AI scripts schrijven.", "Dit script ging vorige week 3x viraal. Alleen voor studenten.")
         
-        with c_copy:
-            if st.button("📋 Link Kopiëren", use_container_width=True):
-                st.toast("Link gekopieerd naar klembord!", icon="✅")
-                if "share_xp_claimed" not in st.session_state:
-                    auth.mark_step_complete("share_bonus_action", 50)
-                    st.session_state.share_xp_claimed = True
+        with tab3:
+            st.markdown("**ℹ️ Wat doet deze tool?**\nLaat AI een verkopende productbeschrijving schrijven of een berichtje maken om naar influencers te sturen.")
+            t_desc, t_inf = st.tabs(["🛍️ Beschrijvingen", "🤳 Influencer Script"])
+            with t_desc:
+                with st.container(border=True):
+                    # WORKFLOW PRE-FILL
+                    default_prod = st.session_state.get('workflow_product', '')
+                    prod_name = st.text_input("Productnaam / URL (AliExpress)", value=default_prod, placeholder="Bv. Galaxy Star Projector")
+                    
+                    if st.button("✨ Genereer Beschrijving", type="primary", use_container_width=True):
+                        if not prod_name: st.warning("Vul een naam in.")
+                        elif check_credits():
+                            with st.spinner("AI is aan het schrijven..."):
+                                res = ai_coach.generate_product_description(prod_name)
+                                st.markdown(res)
+                                st.success("Tekst gegenereerd!")
+                        else: st.warning("Je dagelijkse credits zijn op. Word student voor onbeperkt toegang.")
+            with t_inf:
+                with st.container(border=True):
+                    inf_prod = st.text_input("Jouw Product", placeholder="Bv. Organic Face Serum")
+                    if st.button("📩 Genereer DM Script", type="primary", use_container_width=True):
+                        if not inf_prod: st.warning("Vul een product in.")
+                        elif check_credits():
+                            with st.spinner("Script schrijven..."):
+                                res = ai_coach.generate_influencer_dm(inf_prod)
+                                st.code(res, language="text")
+                                st.success("Kopieer en plak dit in Instagram DM!")
+                        else: st.warning("Je dagelijkse credits zijn op.")
+        
+        with tab4:
+            st.markdown("### 🩺 De Advertentie Dokter")
+            st.write("Upload een screenshot van je ad. De AI beoordeelt hem als een strenge media-buyer.")
+            
+            if is_pro:
+                with st.container(border=True):
+                    # Stap 1: Context geven
+                    c1, c2, c3 = st.columns(3)
+                    platform = c1.selectbox("Platform", ["Facebook / Insta Feed", "Instagram Story/Reel", "TikTok"])
+                    goal = c2.selectbox("Doel", ["Sales (Conversie)", "Leads", "Kliks"])
+                    niche_ad = c3.text_input("Niche", placeholder="Bv. Beauty")
+                    
+                    # Stap 2: Upload
+                    uploaded_file = st.file_uploader("Upload screenshot van je ad (of video thumbnail)", type=['png', 'jpg', 'jpeg'])
+                    
+                    if uploaded_file and st.button("Start Diagnose 🚑", type="primary", use_container_width=True):
+                        if not niche_ad:
+                            st.warning("Vul ook even je niche in voor beter advies.")
+                        else:
+                            with st.spinner("De dokter kijkt naar je advertentie... even geduld."):
+                                 # We roepen de nieuwe Vision functie aan
+                                 audit = ai_coach.analyze_ad_screenshot(uploaded_file, platform, goal, niche_ad)
+                                 
+                                 if audit:
+                                     st.markdown("---")
+                                     
+                                     # SCORE CARD
+                                     score = audit.get('score', 5)
+                                     
+                                     # Kleur bepalen
+                                     if score >= 8: color = "green"
+                                     elif score >= 6: color = "orange"
+                                     else: color = "red"
+                                     
+                                     # De Header
+                                     st.markdown(f"""
+                                     <div style="text-align:center; padding: 20px; background:#F8FAFC; border-radius:12px; border:1px solid #E2E8F0;">
+                                         <h2 style="margin:0; color:{color}; font-size: 3rem;">{score}/10</h2>
+                                         <h3 style="margin:0; color:#1E293B;">{audit.get('titel', 'Analyse Compleet')}</h3>
+                                     </div>
+                                     """, unsafe_allow_html=True)
+                                     
+                                     st.markdown("<br>", unsafe_allow_html=True)
+                                     
+                                     # De Details
+                                     c_hook, c_copy = st.columns(2)
+                                     with c_hook:
+                                         st.info(f"**👁️ De Hook (Beeld):**\n\n{audit.get('analyse_hook')}")
+                                     with c_copy:
+                                         st.info(f"**✍️ De Copy (Tekst):**\n\n{audit.get('analyse_copy')}")
+                                         
+                                     # De Actiepunten
+                                     st.markdown("#### 🛠️ Direct aanpassen:")
+                                     for punt in audit.get('verbeterpunten', []):
+                                         st.error(f"👉 {punt}")
+                                         
+                                     st.success("Pas dit aan en test opnieuw!")
+                                 else:
+                                     st.error("Kon de afbeelding niet analyseren. Probeer een kleiner bestand of ander formaat.")
+
+            else: 
+                render_pro_lock("Ad Audit", "Laat je advertenties beoordelen door AI.", "Voorkom dat je €1000 verspilt aan een slechte advertentie. Laat de AI hem eerst checken.")
+
+        # --- TAB 5: STORE DOCTOR (NIEUW) ---
+        with tab5:
+            st.markdown("### 🩺 The Store Doctor")
+            st.write("Laat AI je webshop scannen en krijg direct een rapportcijfer + verbeterpunten.")
+            
+            if is_pro:
+                with st.container(border=True):
+                    store_url = st.text_input("Jouw Webshop URL:", placeholder="bijv. www.mijnshop.nl")
+                    
+                    if st.button("🏥 Start Audit", type="primary", use_container_width=True):
+                        if "." not in store_url:
+                            st.warning("Vul een geldige URL in.")
+                        else:
+                            with st.spinner("De dokter is bezig met de operatie... 👨‍⚕️"):
+                                # 1. Scrape tekst
+                                scrape_res = competitor_spy.scrape_homepage_text(store_url)
+                                
+                                if scrape_res['status'] == 'success':
+                                    # 2. AI Analyse
+                                    audit_rapport = ai_coach.analyze_store_audit(scrape_res)
+                                    
+                                    st.markdown("---")
+                                    st.markdown("### 📋 Het Rapport")
+                                    st.markdown(audit_rapport)
+                                    st.balloons()
+                                else:
+                                    st.error(f"Kon de shop niet scannen: {scrape_res['message']}")
+            else:
+                render_pro_lock("Store Doctor", "Laat je shop keuren door AI.", "Voorkom dat je live gaat met fouten die je sales kosten.")
+
+    elif pg == "Financiën":
+        st.markdown("<h1><i class='bi bi-cash-stack'></i> Financiën</h1>", unsafe_allow_html=True)
+        tab1, tab2 = st.tabs(["💡 Winst Calculator", "📈 Dagelijkse Stats"])
+        
+        with tab1:
+            st.markdown("""
+            <div style="background:#F0FDF4; padding:15px; border-radius:8px; border:1px solid #BBF7D0; margin-bottom:20px; color:#166534;">
+                <b>💰 Gratis Tool:</b> Gebruik dit <u>VOORDAT</u> je geld uitgeeft aan inkoop.
+                Weet zeker dat je product winstgevend is.
+            </div>
+            """, unsafe_allow_html=True)
+            
+            with st.container(border=True):
+                st.markdown("### 🧮 Product Profit Calculator")
+                c1, c2 = st.columns(2)
+                
+                # WORKFLOW PRE-FILL
+                default_price = st.session_state.get('workflow_price', 29.95)
+                
+                vp = c1.number_input("Verkoopprijs (€)", value=float(default_price), step=1.0)
+                ip = c1.number_input("Inkoop + Verzenden (€)", value=12.00, step=0.50)
+                cpa = c2.number_input("Verwachte Ads kosten (CPA) (€)", value=10.00, step=0.50, help="Gemiddeld kost een sale €10-€15 aan ads.")
+                
+                tr = vp * 0.03 # Transactiekosten schatting
+                winst = vp - (ip + cpa + tr)
+                marge = (winst / vp * 100) if vp > 0 else 0
+                
+                st.markdown("---")
+                cc1, cc2, cc3 = st.columns(3)
+                cc1.metric("Transactiekosten (est.)", f"€{tr:.2f}")
+                cc2.metric("Netto Winst", f"€{winst:.2f}", delta="Goed bezig" if winst > 5 else "Risicovol", delta_color="normal")
+                cc3.metric("Marge", f"{marge:.1f}%", delta="> 20% is doel" if marge > 20 else "Te laag", delta_color="normal")
+                
+                if winst < 0:
+                    st.error("⚠️ Pas op: Je maakt verlies met deze prijzen!")
+
+        with tab2:
+            st.markdown("**ℹ️ Wat doet deze tool?**\n\nHier zie je in één oogopslag of je vandaag winst of verlies hebt gemaakt. Vul elke ochtend je cijfers in.")
+            with st.container(border=True):
+                st.markdown("#### 📅 Resultaten van vandaag")
+                c1, c2, c3 = st.columns(3)
+                rev = c1.number_input("Totale Omzet (€)", 0.0, step=10.0, help="Alles wat Shopify zegt dat je hebt verkocht.")
+                spend = c2.number_input("Advertentiekosten (€)", 0.0, step=5.0, help="Wat je aan Facebook/TikTok hebt betaald.")
+                cogs = c3.number_input("Inkoopkosten (€)", 0.0, step=5.0, help="Wat de producten jou kosten bij de leverancier.")
+                if st.button("Opslaan in Database", type="primary"):
+                    if db.save_daily_stats(user['email'], rev, spend, cogs): st.success("Opgeslagen! Check de grafieken hieronder.")
+                    else: st.error("Kon niet opslaan (Database error).")
+            history = db.get_daily_stats_history(user['email'])
+            if history:
+                st.markdown("### 📊 Trends & Cijfers (Laatste 7 dagen)")
+                df = pd.DataFrame(history)
+                df['Profit'] = df['revenue'] - df['ad_spend'] - df['cogs']
+                df['ROAS'] = df.apply(lambda x: x['revenue'] / x['ad_spend'] if x['ad_spend'] > 0 else 0, axis=1)
+                total_rev = df['revenue'].sum()
+                total_profit = df['Profit'].sum()
+                avg_roas = df['ROAS'].mean()
+                col1, col2, col3 = st.columns(3)
+                col1.metric("Totaal Omzet", f"€{total_rev:.2f}")
+                col2.metric("Netto Winst", f"€{total_profit:.2f}", delta="Winstgevend" if total_profit > 0 else "Verlies", delta_color="normal")
+                col3.metric("Gemiddelde ROAS", f"{avg_roas:.2f}", delta="> 3.0 is top" if avg_roas > 3 else "Kan beter", delta_color="off")
+                st.bar_chart(df, x="date", y="Profit", color="#10B981") 
+                with st.expander("Bekijk ruwe data"): st.dataframe(df)
+            else: st.info("Nog geen data. Vul hierboven je eerste dag in om de grafieken te zien!")
+
+    elif pg == "Instellingen":
+        st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
+        
+        with tab1:
+            # --- PROFIEL PAGINA (PLAYER CARD STYLE) ---
+            st.markdown("### 👤 Jouw Profiel")
+            
+            with st.container(border=True):
+                col_p1, col_p2 = st.columns([1, 3], vertical_alignment="center")
+                
+                with col_p1:
+                    # Grote Avatar Letter
+                    display_name = user.get('first_name') or "Gast"
+                    letter = display_name[0].upper()
+                    st.markdown(f"""
+                    <div style="width:80px; height:80px; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); 
+                    border-radius:50%; display:flex; justify-content:center; align-items:center; 
+                    font-size:35px; color:#2563EB; font-weight:800; border:3px solid #BFDBFE; margin: 0 auto;">
+                        {letter}
+                    </div>
+                    """, unsafe_allow_html=True)
+                
+                with col_p2:
+                    # Naam & Status Badge
+                    user_status = "Student 🎓" if is_pro else "Gast 👤"
+                    status_color = "#DCFCE7" if is_pro else "#F1F5F9"
+                    status_text_color = "#166534" if is_pro else "#64748B"
+                    
+                    st.markdown(f"""
+                    <h3 style="margin:0; padding:0;">{display_name}</h3>
+                    <div style="margin-top:5px; margin-bottom:10px;">
+                        <span style="background:{status_color}; color:{status_text_color}; padding: 4px 10px; border-radius:15px; font-size:0.8rem; font-weight:700; border: 1px solid rgba(0,0,0,0.05);">
+                            {user_status}
+                        </span>
+                        <span style="color:#94A3B8; font-size:0.9rem; margin-left:10px;">{user['email']}</span>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # Voortgangsbalkje in profiel
+                st.markdown("---")
+                c_lvl, c_xp = st.columns([1, 4], vertical_alignment="bottom")
+                c_lvl.markdown(f"**Lvl {user['level']}**")
+                # Herbereken percentage voor visualisatie
+                range_span = next_xp_goal_sidebar - prev_threshold
+                xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0)
+                c_xp.progress(xp_pct)
+                c_xp.caption(f"Nog {next_xp_goal_sidebar - user['xp']} XP tot volgende level")
+
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("🚪 Uitloggen", use_container_width=True):
+                    cookie_manager.delete("rmecom_user_email")
+                    st.session_state.clear()
                     st.rerun()
 
-        # 4. Extra uitleg voor PRO
-        if is_pro:
-            with st.expander("ℹ️ Uitbetalingsinformatie"):
-                st.write("""
-                - Commissies worden 30 dagen na de inschrijving van de student goedgekeurd (ivm wettelijke bedenktijd).
-                - Uitbetalingen vinden plaats op de 1e van de maand.
-                - Stuur een bericht via de 'Hulp' tab om je eerste uitbetaling aan te vragen.
-                """)
-            
-    with tab3:
-        with st.container(border=True):
-            st.markdown("#### Shopify koppeling")
-            sh_url = st.text_input("Shop URL", value=st.session_state.get("sh_url", ""), placeholder="mijnshop.myshopify.com")
-            sh_token = st.text_input("Private app token", type="password", value=st.session_state.get("sh_token", ""))
-            if st.button("Opslaan", use_container_width=True):
-                st.session_state["sh_url"] = sh_url.strip()
-                st.session_state["sh_token"] = sh_token.strip()
-                st.success("Opgeslagen.")
-    
-    with tab4:
-        # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
-        st.markdown("### 🆘 Waar heb je hulp bij nodig?")
-        st.markdown("Kies de juiste weg voor het snelste antwoord.")
-
-        col_h1, col_h2 = st.columns(2)
-
-        with col_h1:
-            with st.container(border=True):
+        with tab2:
+            # --- DYNAMISCHE HEADER OP BASIS VAN STATUS ---
+            if is_pro:
                 st.markdown("""
-                <div style="text-align:center;">
-                    <div style="font-size:40px; margin-bottom:10px;">💬</div>
-                    <h4 style="margin:0;">Vragen over E-com?</h4>
-                    <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
-                        "Hoe werkt Shopify?", "Is dit product goed?".<br>Vraag het aan 500+ andere studenten.
-                    </p>
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h2 style="color:#1E40AF; margin-bottom:5px;">💼 RM Partner Programma</h2>
+                    <p style="color:#64748B;">Je bent nu PRO-lid. Verdien <b>€250,-</b> per student die onze curcus via jouw gaat volgen</p>
                 </div>
                 """, unsafe_allow_html=True)
-                st.link_button("Naar Discord Community", COMMUNITY_URL, type="primary", use_container_width=True)
-
-        with col_h2:
-            with st.container(border=True):
-                st.markdown("""
-                <div style="text-align:center;">
-                    <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
-                    <h4 style="margin:0;">Account Problemen?</h4>
-                    <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
-                        Inloggen lukt niet, wachtwoord vergeten of betalingsvragen.<br>Wij helpen je persoonlijk.
-                    </p>
-                </div>
-                """, unsafe_allow_html=True)
-                st.link_button("Stuur Email", "mailto:support@rmecom.nl", use_container_width=True)
-        
-        st.markdown("<br>", unsafe_allow_html=True)
-        with st.expander("❓ Veelgestelde vragen"):
-            st.markdown("""
-            **Is de app gratis?**
-            Ja, de basis is gratis. Voor geavanceerde tools (Spy Tool, AI content) heb je de cursus nodig.
-            
-            **Hoe krijg ik meer XP?**
-            Voltooi stappen in de Roadmap of gebruik de tools in het dashboard.
-            
-            **Mijn vriendencode werkt niet?**
-            Neem even contact op via de mail, dan lossen we het op!
-            """)
-    
-    with tab5:
-        st.markdown("#### 💡 Jouw mening telt")
-        
-        # Check in de database of de gebruiker de beloning al eens heeft gehad
-        has_claimed_before = user.get('feedback_reward_claimed', False)
-
-        if has_claimed_before and not is_pro_license:
-            if is_temp_pro:
-                st.success(f"✅ Je 24u PRO toegang is momenteel actief! (Nog {time_left_str})")
             else:
-                st.info("Je hebt je eenmalige 24u PRO beloning al gebruikt. Word PRO lid voor onbeperkte toegang.")
-                st.link_button("Word PRO Lid", STRATEGY_CALL_URL, use_container_width=True)
-        
-        elif st.session_state.get("feedback_done", False):
-            st.success("Bedankt! Je feedback is verwerkt.")
-        
-        else:
-            st.markdown("""
-            <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
-                <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
-                    Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
-                </p>
-            </div>
-            """, unsafe_allow_html=True)
+                st.markdown("""
+                <div style="text-align:center; margin-bottom: 20px;">
+                    <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per echte student</h2>
+                    <p style="color:#64748B;">Help anderen starten en gebruik je winst om zelf gratis <b>PRO</b> te worden.</p>
+                </div>
+                """, unsafe_allow_html=True)
 
-            fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120, key="feedback_text_input")
-            
-            if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True, key="feedback_submit_btn"):
-                if len(fb_text) > 20:
-                    with st.spinner("Bezig met verwerken..."):
-                        is_valid = ai_coach.validate_feedback(fb_text)
-                        
-                        if is_valid:
-                            status = db.claim_feedback_reward(user['email'], fb_text)
-                            
-                            if status == "SUCCESS":
-                                st.cache_data.clear() # ZEER BELANGRIJK: Maakt de cache leeg
-                                st.session_state.feedback_done = True
-                                st.balloons()
-                                st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur toegang.")
-                                time.sleep(2)
-                                st.rerun() # Herlaad de app met de nieuwe status
-                            else:
-                                st.error("Je hebt deze beloning al eens geclaimd.")
-                        else:
-                            st.warning("Je feedback is te kort of onduidelijk. Vertel ons echt wat je vindt!")
+            # 2. De Stats (Blijft hetzelfde, maar met strakkere labels)
+            stats = auth.get_affiliate_stats()
+            col_s1, col_s2, col_s3 = st.columns(3)
+            with col_s1:
+                st.metric("Kliks op link", stats[0] * 5)
+            with col_s2:
+                st.metric("Inschrijvingen", stats[1])
+            with col_s3:
+                st.metric("Commissie", f"€{stats[2]}", delta="Betaalbaar op aanvraag")
+
+            # 3. Conversie blok
+            with st.container(border=True):
+                if is_pro:
+                    st.markdown("#### 📈 Jouw Partner Business")
+                    st.write("Als PRO-lid heb je een streepje voor. Deel je ervaringen in de community en help anderen.")
                 else:
-                    st.warning("Vertel ons iets meer (minimaal 20 tekens) om de beloning te unlocken.")
+                    st.markdown("#### 🚀 Hoe word ik gratis PRO?")
+                    st.write("Eén enkele referral (Student levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
+
+            # --- DEEL ACTIES ---
+            current_ref = user.get('referral_code', 'TEMP')
+            share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
+            
+            st.markdown("### 🔗 Jouw Unieke Partner Link")
+            st.code(share_link, language="text")
+            
+            c_whatsapp, c_copy = st.columns(2)
+            with c_whatsapp:
+                share_text = f"Hee! Ik volg nu het RM Ecom traject. Als je ook een webshop wilt starten, gebruik mijn link voor een vliegende start: {share_link}"
+                wa_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
+                st.link_button("💚 Deel via WhatsApp", wa_url, use_container_width=True)
+            
+            with c_copy:
+                if st.button("📋 Link Kopiëren", use_container_width=True):
+                    st.toast("Link gekopieerd naar klembord!", icon="✅")
+                    if "share_xp_claimed" not in st.session_state:
+                        auth.mark_step_complete("share_bonus_action", 50)
+                        st.session_state.share_xp_claimed = True
+                        st.rerun()
+
+            # 4. Extra uitleg voor PRO
+            if is_pro:
+                with st.expander("ℹ️ Uitbetalingsinformatie"):
+                    st.write("""
+                    - Commissies worden 30 dagen na de inschrijving van de student goedgekeurd (ivm wettelijke bedenktijd).
+                    - Uitbetalingen vinden plaats op de 1e van de maand.
+                    - Stuur een bericht via de 'Hulp' tab om je eerste uitbetaling aan te vragen.
+                    """)
+                
+        with tab3:
+            with st.container(border=True):
+                st.markdown("#### Shopify koppeling")
+                sh_url = st.text_input("Shop URL", value=st.session_state.get("sh_url", ""), placeholder="mijnshop.myshopify.com")
+                sh_token = st.text_input("Private app token", type="password", value=st.session_state.get("sh_token", ""))
+                if st.button("Opslaan", use_container_width=True):
+                    st.session_state["sh_url"] = sh_url.strip()
+                    st.session_state["sh_token"] = sh_token.strip()
+                    st.success("Opgeslagen.")
+        
+        with tab4:
+            # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
+            st.markdown("### 🆘 Waar heb je hulp bij nodig?")
+            st.markdown("Kies de juiste weg voor het snelste antwoord.")
+
+            col_h1, col_h2 = st.columns(2)
+
+            with col_h1:
+                with st.container(border=True):
+                    st.markdown("""
+                    <div style="text-align:center;">
+                        <div style="font-size:40px; margin-bottom:10px;">💬</div>
+                        <h4 style="margin:0;">Vragen over E-com?</h4>
+                        <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
+                            "Hoe werkt Shopify?", "Is dit product goed?".<br>Vraag het aan 500+ andere studenten.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.link_button("Naar Discord Community", COMMUNITY_URL, type="primary", use_container_width=True)
+
+            with col_h2:
+                with st.container(border=True):
+                    st.markdown("""
+                    <div style="text-align:center;">
+                        <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
+                        <h4 style="margin:0;">Account Problemen?</h4>
+                        <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
+                            Inloggen lukt niet, wachtwoord vergeten of betalingsvragen.<br>Wij helpen je persoonlijk.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+                    st.link_button("Stuur Email", "mailto:support@rmecom.nl", use_container_width=True)
+            
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.expander("❓ Veelgestelde vragen"):
+                st.markdown("""
+                **Is de app gratis?**
+                Ja, de basis is gratis. Voor geavanceerde tools (Spy Tool, AI content) heb je de cursus nodig.
+                
+                **Hoe krijg ik meer XP?**
+                Voltooi stappen in de Roadmap of gebruik de tools in het dashboard.
+                
+                **Mijn vriendencode werkt niet?**
+                Neem even contact op via de mail, dan lossen we het op!
+                """)
+        
+        with tab5:
+            st.markdown("#### 💡 Jouw mening telt")
+            
+            # Check in de database of de gebruiker de beloning al eens heeft gehad
+            has_claimed_before = user.get('feedback_reward_claimed', False)
+
+            if has_claimed_before and not is_pro_license:
+                if is_temp_pro:
+                    st.success(f"✅ Je 24u PRO toegang is momenteel actief! (Nog {time_left_str})")
+                else:
+                    st.info("Je hebt je eenmalige 24u PRO beloning al gebruikt. Word PRO lid voor onbeperkte toegang.")
+                    st.link_button("Word PRO Lid", STRATEGY_CALL_URL, use_container_width=True)
+            
+            elif st.session_state.get("feedback_done", False):
+                st.success("Bedankt! Je feedback is verwerkt.")
+            
+            else:
+                st.markdown("""
+                <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
+                    <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
+                    <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
+                        Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+
+                fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120, key="feedback_text_input")
+                
+                if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True, key="feedback_submit_btn"):
+                    if len(fb_text) > 20:
+                        with st.spinner("Bezig met verwerken..."):
+                            is_valid = ai_coach.validate_feedback(fb_text)
+                            
+                            if is_valid:
+                                status = db.claim_feedback_reward(user['email'], fb_text)
+                                
+                                if status == "SUCCESS":
+                                    st.cache_data.clear() # ZEER BELANGRIJK: Maakt de cache leeg
+                                    st.session_state.feedback_done = True
+                                    st.balloons()
+                                    st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur toegang.")
+                                    time.sleep(2)
+                                    st.rerun() # Herlaad de app met de nieuwe status
+                                else:
+                                    st.error("Je hebt deze beloning al eens geclaimd.")
+                            else:
+                                st.warning("Je feedback is te kort of onduidelijk. Vertel ons echt wat je vindt!")
+                    else:
+                        st.warning("Vertel ons iets meer (minimaal 20 tekens) om de beloning te unlocken.")
+
+    # --- DE FOOTER (STAAT ONDERAAN ELKE PAGINA) ---
+    render_footer()
+
