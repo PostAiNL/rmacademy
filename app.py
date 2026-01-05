@@ -1713,13 +1713,13 @@ elif pg == "Instellingen":
             st.markdown("""
             <div style="text-align:center; margin-bottom: 20px;">
                 <h2 style="color:#1E40AF; margin-bottom:5px;">💼 RM Partner Programma</h2>
-                <p style="color:#64748B;">Je bent PRO-lid. Verdien <b>€250,-</b> per student en betaal je eigen abonnement terug.</p>
+                <p style="color:#64748B;">Je bent nu PRO-lid. Verdien <b>€250,-</b> per student die onze curcus via jouw gaat volgen</p>
             </div>
             """, unsafe_allow_html=True)
         else:
             st.markdown("""
             <div style="text-align:center; margin-bottom: 20px;">
-                <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per aanbeveling</h2>
+                <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per echte student</h2>
                 <p style="color:#64748B;">Help anderen starten en gebruik je winst om zelf gratis <b>PRO</b> te worden.</p>
             </div>
             """, unsafe_allow_html=True)
@@ -1741,7 +1741,7 @@ elif pg == "Instellingen":
                 st.write("Als PRO-lid heb je een streepje voor. Deel je ervaringen in de community en help anderen.")
             else:
                 st.markdown("#### 🚀 Hoe word ik gratis PRO?")
-                st.write("Eén enkele referral levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
+                st.write("Eén enkele referral (Student levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
 
         # --- DEEL ACTIES ---
         current_ref = user.get('referral_code', 'TEMP')
