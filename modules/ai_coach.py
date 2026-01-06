@@ -176,22 +176,37 @@ def generate_influencer_dm(product_name):
     return call_llm("Marketeer", f"Schrijf een korte, informele DM (NL) voor een influencer samenwerking voor: {product_name}.")
 
 def find_real_winning_products(niche, filter_type="Viral"):
-    """Zoekt viral productideeën met links naar onderzoek."""
-    tiktok_url = f"https://www.tiktok.com/search?q={niche.replace(' ', '+')}+must+have"
-    aliexpress_url = f"https://www.aliexpress.com/wholesale?SearchText={niche.replace(' ', '+')}"
+    """Zoekt viral productideeën met specifieke links per product."""
     
-    prompt = f"Geef 3 viral dropshipping producten voor de niche: {niche}. Output JSON: {{'suggestions': [{{'title': '...', 'hook': '...', 'price': '...'}}]}}"
-    res = call_llm("Product Researcher", prompt, json_mode=True)
+    prompt = f"""
+    Geef 3 viral dropshipping product suggesties voor de niche: {niche}. 
+    Focus op producten die goed scoren op TikTok/Reels in 2026.
     
-    results = []
+    Output MOET in dit JSON formaat:
+    {{
+        "suggestions": [
+            {{
+                "title": "Product Naam",
+                "hook": "De viral invalshoek",
+                "price": "Alleen het getal (bijv. 24.95)",
+                "why_works": "Korte uitleg"
+            }}
+        ]
+    }}
+    """
+    res = call_llm("Senior Product Researcher", prompt, json_mode=True)
+    
     try:
         data = json.loads(res).get('suggestions', [])
         for item in data:
-            item["search_links"] = {"tiktok": tiktok_url, "ali": aliexpress_url}
-            results.append(item)
+            # We maken hier de link specifiek voor de productnaam
+            search_query = item['title'].replace(' ', '+')
+            item["search_links"] = {
+                "tiktok": f"https://www.tiktok.com/search?q={search_query}+must+have"
+            }
+        return data
     except:
-        results = [{"title": f"{niche} Concept", "hook": "Check de links hieronder.", "price": "29.95", "search_links": {"tiktok": tiktok_url, "ali": aliexpress_url}}]
-    return results
+        return []
 
 def generate_viral_scripts(product, benefits, platform="TikTok"):
     """Maakt virale video scripts."""

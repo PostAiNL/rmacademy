@@ -145,16 +145,144 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     st.session_state[usage_key] = True
                 
                 elif step.get('content') == "TOOL_NICHE_FINDER":
-                    st.write("Gebruik AI om een gat in de markt te vinden.")
-                    st.text_input("Wat zijn je hobby's?", key=f"niche_in_{step['id']}")
-                    if st.button("Genereer Ideeën", key=f"nbtn_{step['id']}"):
-                        st.session_state[usage_key] = True
-                        st.success("1. Huisdier accessoires | 2. Smart home | 3. Duurzame mode")
+                    # 1. DE COACH TIP
+                    st.markdown("""
+                    <div style="background-color: #F0F9FF; border-left: 5px solid #0EA5E9; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                        <p style="margin: 0; font-weight: bold; color: #0369A1;">💡 Coach Tip voor Starters</p>
+                        <p style="margin: 5px 0 0 0; font-size: 0.9rem; color: #0C4A6E;">
+                            Een <b>niche</b> is simpelweg een specifieke groep mensen met een gezamenlijk probleem of passie. 
+                            Vul hieronder in wat je leuk vindt (bijv. 'honden', 'auto's' of 'koken'). De AI zoekt daar passende 'winners' bij.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    niche_input = st.text_input("Waar liggen je interesses?", placeholder="bijv. interieur, baby's, sport...", key=f"niche_in_{step['id']}")
+                    
+                    if st.button("🚀 Zoek mijn winnende niche", key=f"nbtn_{step['id']}", use_container_width=True):
+                        if niche_input:
+                            with st.spinner("Onze AI scant huidige trends..."):
+                                results = ai_coach.find_real_winning_products(niche_input)
+                                if results:
+                                    st.session_state[f"results_{step['id']}"] = results
+                                    st.session_state[usage_key] = True
+                                else:
+                                    st.error("Kon geen resultaten ophalen. Probeer een ander woord.")
+                        else:
+                            st.warning("Vul eerst een interesse in!")
+
+                    # Toon de resultaten als ze er zijn
+                    if f"results_{step['id']}" in st.session_state:
+                        st.markdown("### 💎 Jouw Potentiële Winners")
+                        for item in st.session_state[f"results_{step['id']}"]:
+                            with st.container(border=True):
+                                c1, c2 = st.columns([2, 1])
+                                c1.markdown(f"#### {item['title']}")
+                                c2.markdown(f"<div style='text-align:right; color:#16A34A; font-weight:bold;'>Schatting: €{item['price']}</div>", unsafe_allow_html=True)
+                                
+                                st.markdown(f"**🎥 Viral Hook:** *{item['hook']}*")
+                                
+                                # WAAROM DIT WERKT (Marketing Hoek)
+                                st.markdown(f"""
+                                <div style="background-color: #F0FDF4; padding: 10px; border-radius: 6px; border: 1px solid #BBF7D0; margin-top: 10px;">
+                                    <span style="font-size: 0.85rem; color: #166534;"><b>💪 Waarom dit werkt:</b> {item['why_works']}</span>
+                                </div>
+                                """, unsafe_allow_html=True)
+                                
+                                st.link_button(f"Bekijk {item['title']} op TikTok", item['search_links']['tiktok'], use_container_width=True)
+
+                        # 3. DE BESLISSING (Dwingt de starter tot actie)
+                        st.markdown("---")
+                        st.markdown("### 🏁 Maak je keuze")
+                        final_choice = st.text_input("Welke niche of welk product heb je gekozen?", placeholder="Typ hier je keuze...", key=f"final_choice_{step['id']}")
+                        
+                        if final_choice:
+                            st.success(f"Geweldig! **{final_choice}** wordt jouw focus. Klik nu op de knop hieronder om deze fase af te ronden.")
+                            # We slaan de keuze op in de session state zodat de knop onderaan geactiveerd wordt
+                            st.session_state[usage_key] = True
+                        else:
+                            st.info("Vul je definitieve keuze hierboven in om door te gaan naar de volgende stap.")
+                            st.session_state[usage_key] = False
 
                 elif step.get('content') == "TOOL_DOMAIN_CHECK":
-                    st.write("Check of je droom-domeinnaam nog beschikbaar is.")
-                    st.link_button("Check op TransIP", "https://www.transip.nl", use_container_width=True)
-                    if st.checkbox("Domein is geregistreerd", key=f"c_{step['id']}"): st.session_state[usage_key] = True
+                    # --- 1. PREMIUM HEADER ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #F8FAFC 0%, #F1F5F9 100%); border: 1px solid #E2E8F0; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                        <h3 style="margin-top: 0; color: #1E293B; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🏢</span> Jouw Unieke Adres (Vastgoed)
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #475569; line-height: 1.5;">
+                            Dit is hoe klanten je winkel onthouden. Een sterke naam volgt de <b>3-seconden regel</b>: 
+                            Binnen 3 seconden moet een klant je naam kunnen <b>begrijpen, spellen en onthouden</b> zonder na te denken.
+                        </p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #CBD5E1; color: #64748B;">✅ Geen streepjes</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #CBD5E1; color: #64748B;">✅ Max 3 woorden</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #CBD5E1; color: #64748B;">✅ .nl of .com</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # --- 2. AI GENERATOR (UITGELIJD) ---
+                    st.markdown("#### 💡 Hulp nodig bij het verzinnen van een domeinnaam?")
+                    
+                    # Haal de eerder gekozen niche op voor context
+                    niche_context = st.session_state.get("final_choice_step_niche", "Vul hier in waar je webshop over gaat...")
+                    
+                    # De FIX voor de gelijke hoogte: vertical_alignment="bottom"
+                    col_gen1, col_gen2 = st.columns([2.5, 1], vertical_alignment="bottom")
+                    
+                    brand_input = col_gen1.text_input(
+                        "Waar gaat je webshop over?", 
+                        value=niche_context,
+                        placeholder="bijv. yoga, honden, gadgets...", 
+                        key=f"domain_prompt_{step['id']}"
+                    )
+                    
+                    if col_gen2.button("Genereer Namen ✨", key=f"gbtn_{step['id']}", use_container_width=True, type="primary"):
+                        with st.spinner("AI bedenkt sterke merknamen..."):
+                            prompt = f"Bedenk 10 korte, krachtige en catchy domeinnamen (zonder streepjes) voor een webshop in de niche: {brand_input}. Geef alleen de namen gescheiden door komma's, geen nummers."
+                            suggestions_raw = ai_coach.call_llm("Brand Name Expert", prompt)
+                            if suggestions_raw:
+                                # We splitsen de tekst op komma's voor de visuele tags
+                                st.session_state[f"domain_list_{step['id']}"] = [s.strip() for s in suggestions_raw.split(',')]
+
+                    # --- 3. PREMIUM SUGGESTIES WEERGAVE ---
+                    if f"domain_list_{step['id']}" in st.session_state:
+                        st.markdown("<div style='margin-top: 15px;'></div>", unsafe_allow_html=True)
+                        cols = st.columns(2)
+                        for i, name in enumerate(st.session_state[f"domain_list_{step['id']}"]):
+                            with cols[i % 2]:
+                                st.markdown(f"""
+                                <div style="background: white; border: 1px solid #E2E8F0; padding: 10px 15px; border-radius: 10px; margin-bottom: 8px; font-weight: 600; color: #2563EB; text-align: center; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+                                    {name.lower()}
+                                </div>
+                                """, unsafe_allow_html=True)
+
+                    st.markdown("---")
+
+                    # --- 4. CHECK SECTIE ---
+                    st.markdown("#### 🔍 Check Beschikbaarheid")
+                    st.write("Controleer of je favoriete naam nog vrij is.")
+                    
+                    st.link_button("👉 Check beschikbaarheid op TransIP", "https://www.transip.nl", use_container_width=True)
+                    
+                    st.markdown("""
+                    <div style="background-color: #FFF7ED; border: 1px solid #FED7AA; padding: 12px; border-radius: 10px; margin-top: 15px;">
+                        <p style="margin: 0; color: #9A3412; font-size: 0.85rem; font-weight: 600;">
+                            ⚠️ Belangrijk: Koop alleen het domein. Geen e-mail of hosting pakketten; dat regelen we later goedkoper via Shopify.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # --- 5. BEVESTIGING ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    chosen_domain = st.text_input("Welke domeinnaam heb je vastgelegd?", placeholder="bijv. www.jouwshop.nl", key=f"final_domain_{step['id']}")
+                    
+                    if chosen_domain and "." in chosen_domain:
+                        st.success(f"🎉 **{chosen_domain}** is nu jouw eigendom!")
+                        st.session_state[usage_key] = True
+                    else:
+                        st.session_state[usage_key] = False
 
                 elif step.get('content') == "TOOL_SHOPIFY_GUIDE":
                     st.write("Gebruik de officiële link voor de €1 actie.")
