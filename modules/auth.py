@@ -175,48 +175,109 @@ def get_affiliate_stats():
 def send_welcome_email(email, first_name, password):
     try:
         smtp_config = st.secrets["smtp"]
-        
-        # Debug log
-        print(f"DEBUG: Poging om mail te sturen naar {email} via {smtp_config['server']}")
-
         secret_key = st.secrets["supabase"]["key"]
         login_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
-        
-        # Genereer de link
         magic_link = f"{APP_URL}/?autologin={login_token}&user={email}"
+        
+        # LOGO URL - Vervang dit door de directe link naar je logo afbeelding
+        logo_url = "https://www.rmacademy.nl/cdn/shop/files/Ontwerp_zonder_titel_255b5006-5ae5-4298-a452-e75045d79ae0.png?v=1754056357&width=600" # Zet hier je eigen logo link
 
         msg = MIMEMultipart()
-        # Strato is streng: de 'From' moet exact overeenkomen met de user
         msg['From'] = f"RM Ecom Academy <{smtp_config['user']}>"
         msg['To'] = email
-        msg['Subject'] = f"Welkom bij de Academy, {first_name}! 🚀"
+        msg['Subject'] = f"Welkom in onze academy, {first_name}! 🚀"
 
-        body = f"""
+        html_body = f"""
         <html>
-        <body style="font-family: sans-serif; color: #0F172A;">
-            <h2 style="color: #2563EB;">Welkom bij RM Ecom Academy, {first_name}!</h2>
-            <p>Je account is aangemaakt. Je kunt direct aan de slag met de roadmap.</p>
-            <div style="background: #F1F5F9; padding: 15px; border-radius: 8px; margin: 20px 0;">
-                <p style="margin: 0;"><strong>Inloggegevens:</strong></p>
-                <p style="margin: 5px 0;">Email: {email}</p>
-                <p style="margin: 5px 0;">Wachtwoord: {password}</p>
+        <head>
+            <style>
+                .button {{
+                    display: inline-block; padding: 14px 30px; background-color: #2563EB; color: #ffffff !important; 
+                    text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 16px; margin: 10px 0;
+                }}
+                .card {{
+                    background-color: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; margin: 20px 0;
+                }}
+                .step-circle {{
+                    display: inline-block; width: 24px; height: 24px; background-color: #FBBF24; color: #000; 
+                    border-radius: 50%; text-align: center; line-height: 24px; font-weight: bold; font-size: 14px; margin-right: 10px;
+                }}
+            </style>
+        </head>
+        <body style="font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; color: #0F172A; line-height: 1.6; padding: 0; margin: 0; background-color: #ffffff;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 40px 20px;">
+                
+                <!-- Logo Section -->
+                <div style="text-align: center; margin-bottom: 30px;">
+                    <img src="{logo_url}" alt="RM Ecom Academy" style="width: 150px; height: auto;">
+                </div>
+
+                <!-- Hero Section -->
+                <div style="text-align: center;">
+                    <h1 style="font-size: 26px; font-weight: 800; margin-bottom: 10px; color: #0F172A;">Level 1 Ontgrendeld. <br>Welkom bij de Academy, {first_name}!</h1>
+                    <p style="font-size: 16px; color: #64748B;">Je staat aan de start van je eigen e-commerce imperium. We gaan direct aan de slag om je eerste sales te realiseren.</p>
+                </div>
+
+                <!-- Action Section -->
+                <div style="text-align: center; margin: 30px 0;">
+                    <p style="font-weight: bold; margin-bottom: 5px;">STAP 1: START JE ROUTMAP</p>
+                    <a href="{magic_link}" class="button">Naar mijn Dashboard 🚀</a>
+                    <p style="font-size: 12px; color: #94A3B8; margin-top: 10px;">(Je wordt automatisch ingelogd via deze knop)</p>
+                </div>
+
+                <!-- Account Credentials Card -->
+                <div class="card">
+                    <p style="margin-top: 0; font-weight: bold; font-size: 14px; color: #64748B; letter-spacing: 1px; text-transform: uppercase;">Jouw Toegangspas</p>
+                    <table style="width: 100%;">
+                        <tr>
+                            <td style="padding: 5px 0; color: #0F172A;"><strong>Email:</strong></td>
+                            <td style="padding: 5px 0; color: #2563EB;">{email}</td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 5px 0; color: #0F172A;"><strong>Wachtwoord:</strong></td>
+                            <td style="padding: 5px 0; color: #0F172A;">{password}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <!-- What's Next Section -->
+                <div style="margin-top: 40px;">
+                    <h3 style="font-size: 18px; border-bottom: 2px solid #F1F5F9; padding-bottom: 10px;">Wat gaan we vandaag doen?</h3>
+                    
+                    <div style="margin-top: 20px; display: flex; align-items: flex-start;">
+                        <span class="step-circle">1</span>
+                        <div>
+                            <p style="margin: 0; font-weight: bold;">De Roadmap Starten</p>
+                            <p style="margin: 0; font-size: 14px; color: #64748B;">Open je dashboard en voltooi 'Fase 1: De Fundering'.</p>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 20px; display: flex; align-items: flex-start;">
+                        <span class="step-circle" style="background-color: #22C55E; color: white;">2</span>
+                        <div>
+                            <p style="margin: 0; font-weight: bold;">Gratis Mini-Training</p>
+                            <p style="margin: 0; font-size: 14px; color: #64748B;">Ga in het menu naar 'Academy' en bekijk de eerste 4 video's.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer -->
+                <div style="margin-top: 50px; padding-top: 20px; border-top: 1px solid #F1F5F9; text-align: center;">
+                    <p style="font-size: 14px; color: #94A3B8;">Vragen? We staan voor je klaar in de community.</p>
+                    <p style="font-size: 12px; color: #CBD5E1;">© 2026 RM Ecom Academy. Alle rechten voorbehouden.</p>
+                </div>
+
             </div>
-            <p>Klik op de knop hieronder om <strong>direct</strong> in te loggen op je dashboard:</p>
-            <a href="{magic_link}" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">Start Mijn Avontuur 🚀</a>
-            <br><br>
-            <p style="font-size: 0.8rem; color: #64748B;">Lukt de knop niet? Kopieer deze link: <br>{magic_link}</p>
         </body>
         </html>
         """
-        msg.attach(MIMEText(body, 'html'))
+        msg.attach(MIMEText(html_body, 'html'))
 
-        # Verbinding maken met Strato (Poort 465 met SSL)
         server = smtplib.SMTP_SSL(smtp_config['server'], 465)
         server.login(smtp_config['user'], smtp_config['password'])
         server.send_message(msg)
         server.quit()
         
-        print("DEBUG: Email succesvol verzonden via Strato!")
         return True
     except Exception as e:
         print(f"FOUT BIJ VERSTUREN EMAIL: {str(e)}")
