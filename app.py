@@ -241,7 +241,7 @@ st.markdown("""
         details {
             border-radius: 20px !important;
             overflow: hidden;
-            border: 1px solid #DBEAFE !important; /* De hoofdrand */
+            border: 1px solid #BAE6FD !important; /* De hoofdrand */
             margin-bottom: 15px;
             background-color: white !important;
         }
@@ -249,13 +249,13 @@ st.markdown("""
         details > summary {
             background-color: #EFF6FF !important;
             border: none !important;
-            padding: 12px 20px !important;
+            padding: 10px 20px !important;
             color: #0F172A !important;
             list-style: none;
         }
 
         details > summary:hover {
-            background-color: #DBEAFE !important;
+            background-color: #E0F2FE !important;
         }
 
         /* DE FIX: Verwijder de automatische streep van Streamlit tussen kop en inhoud */
@@ -1016,23 +1016,63 @@ else:
         st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
         st.progress(safe_progress / 100)
 
-        # --- 3. UITLEG EXPANDER (HERSTELD) ---
+# --- 3. UITLEG SECTIE IN KASSA STIJL ---
         st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
-            col_vid, col_txt = st.columns([1.2, 1], gap="medium")
+            # De hoofdcontainer in Kassa-stijl
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 10px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                    <span style="font-size: 1.5rem;">🚀</span> Welkom bij de Academy
+                </h3>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 20px;">
+                    Volg de Roadmap stap-voor-stap en gebruik onze AI-tools om jouw winstgevende webshop te bouwen. Hieronder zie je wat er bij jouw account hoort. Samen bouwen wij jouw webshop tot een succes! Groet, Roy en Michael (Team RM Ecom Academy)
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            col_vid, col_txt = st.columns([1.3, 1], gap="medium")
+            
             with col_vid:
+                # Video direct in de kolom
                 st.video(COACH_VIDEO_URL)
+            
             with col_txt:
                 st.markdown("#### Belangrijke info:")
-                st.markdown('<div style="font-size: 0.85rem; line-height: 1.4; color: #475569;">Volg de Roadmap en gebruik de AI tools om te groeien.</div>', unsafe_allow_html=True)
-                st.markdown(f"""
-    <div style="margin-top: 8px;">
-    <div style="margin-bottom: 5px;"><span style="background:#F1F5F9; color:#475569; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">DEMO</span> <span style="font-size:0.75rem; color:#64748B;">Roadmap + 3 AI credits</span></div>
-    <div style="margin-bottom: 5px;"><span style="background:#FEF3C7; color:#92400E; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">PRO Lid ⚡</span> <span style="font-size:0.75rem; color:#64748B;">Onbeperkt AI + Spy-tools + <b>Maandelijkse Giveaway 🎁</b></span></div>
-    <div style="margin-bottom: 5px;"><span style="background:#DBEAFE; color:#1E40AF; padding:1px 6px; border-radius:4px; font-weight:800; font-size:0.65rem;">STUDENT 🎓</span> <span style="font-size:0.75rem; color:#64748B;">Volledige cursus + 1op1 Coaching</span></div>
-    </div>""", unsafe_allow_html=True)
+                
+                # De badges/pills in de nieuwe stijl
+                st.markdown("""
+                <div style="margin-bottom: 12px;">
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #CBD5E1; color: #475569; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">DEMO</span> 
+                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Roadmap + 3 AI credits</span>
+                    </div>
+                    <div style="margin-bottom: 8px;">
+                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #FCD34D; color: #92400E; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">PRO Lid ⚡</span> 
+                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Onbeperkt AI + Spy-tools + Giveaway 🎁</span>
+                    </div>
+                    <div style="margin-bottom: 15px;">
+                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #2563EB; color: #1E40AF; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">STUDENT 🎓</span> 
+                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Volledige cursus + 1op1 Coaching</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+
                 if not is_pro:
-                    st.link_button("Upgrade naar PRO (€49,95)", STRATEGY_CALL_URL, use_container_width=True)
+                    # De GOUDEN PRO KNOP (matcht met de sidebar)
+                    st.markdown(f"""
+                    <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
+                        <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
+                                    padding: 14px; border-radius: 12px; text-align: center; 
+                                    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); 
+                                    border: 1px solid #FCD34D; transition: transform 0.2s;">
+                            <div style="font-weight: 800; color: #78350F; font-size: 1rem;">🚀 UPGRADE NAAR PRO</div>
+                            <div style="font-size: 0.7rem; color: #92400E; font-weight: 700; text-transform: uppercase;">Unlock alle tools (€49,95)</div>
+                        </div>
+                    </a>
+                    """, unsafe_allow_html=True)
+                else:
+                    st.success("✅ Je bent een PRO lid!")
 
         # --- 4. DAILY HABIT SECTIE ---
         daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
