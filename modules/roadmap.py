@@ -144,22 +144,84 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     else:
                         st.session_state[usage_key] = False
 
-                # --- BETALINGEN INSTELLEN ---
                 elif step.get('content') == "TOOL_PAYMENTS":
-                    st.write("Zorg dat je klanten veilig kunnen betalen via iDEAL, Bancontact en Creditcard.")
-                    st.info("⭐ **Onze aanbeveling: Mollie.** Veruit de beste ervaringen voor de Nederlandse en Belgische markt. Snelle uitbetalingen en top-tier support.")
-                    st.caption(disclaimer_text)
-                    p1, p2, p3 = st.columns(3)
-                    with p1:
-                        st.markdown("**1. Mollie (Aangeraden)**")
-                        st.link_button("Open Mollie", "https://www.mollie.com/nl", use_container_width=True)
-                    with p2:
-                        st.markdown("**2. Shopify Payments**")
-                        st.link_button("Activeer in Shopify", "https://www.shopify.com", use_container_width=True)
-                    with p3:
-                        st.markdown("**3. Stripe**")
-                        st.link_button("Open Stripe", "https://stripe.com/nl", use_container_width=True)
-                    if st.checkbox("Betaalmethodes gekoppeld", key=f"pay_{step['id']}"): st.session_state[usage_key] = True
+                    # --- 1. PREMIUM HEADER ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 100%); border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                        <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">💳</span> De Kassa Activeren
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #0C4A6E; line-height: 1.5;">
+                            Zonder betaalmethodes kun je geen sales draaien. In Nederland en België zijn <b>iDEAL</b> en <b>Bancontact</b> essentieel. Je koppelt hiervoor een 'Payment Provider' aan je Shopify shop.
+                        </p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1;">✅ iDEAL Geactiveerd</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1;">✅ Bancontact Klaar</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1;">✅ Creditcard Support</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # --- 2. DE VERGELIJKER ---
+                    st.markdown("#### 💡 Kies je betaalpartner")
+                    
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown("""
+                        <div style="background: white; border: 2px solid #0284C7; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0284C7;">🏆 Mollie (Aangeraden)</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Beste voor NL/BE</b>. Extreem makkelijk in te stellen, top-support en de meest vertrouwde checkout voor jouw klanten.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Open Mollie Account", "https://www.mollie.com/nl", use_container_width=True, type="primary")
+
+                    with c2:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Shopify Payments</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Alles-in-één</b>. Direct ingebouwd in Shopify. Handig voor creditcards, maar soms lastiger met iDEAL verificatie voor starters.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Bekijk in Shopify", "https://www.shopify.com", use_container_width=True)
+
+                    with c3:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Stripe</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Global Standard</b>. De grootste ter wereld. Vooral sterk als je internationaal gaat buiten de Benelux. Alleen aan te raden bij een groter bereik.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Check Stripe", "https://stripe.com/nl", use_container_width=True)
+
+                    # --- 3. CHECKLIST ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    with st.expander("📝 Wat heb je nodig voor een snelle goedkeuring?", expanded=False):
+                        st.markdown("""
+                        Betaalproviders zijn streng. Zorg dat dit op je website staat voordat je de aanvraag indient:
+                        1. **Contactgegevens:** Je e-mail en (zakelijk) adres moeten vindbaar zijn.
+                        2. **KvK-nummer:** Vermeld dit in de footer van je shop.
+                        3. **Voorwaarden:** Zorg dat je 'Algemene Voorwaarden' en 'Privacy Policy' pagina's live staan.
+                        4. **Zakelijke Rekening:** Gebruik de rekening die je in de vorige stap hebt geopend.
+                        """)
+
+                    st.markdown("---")
+                    
+                    # --- 4. DE BEVESTIGING ---
+                    st.markdown("#### ✅ Checkout Status")
+                    pay_status = st.radio("Zijn de betaalmethodes gekoppeld?", 
+                                         ["Nog niet begonnen", "Aanvraag ingediend", "✅ iDEAL & Bancontact zijn live!"],
+                                         horizontal=True,
+                                         key=f"pay_status_{step['id']}")
+                    
+                    if pay_status == "✅ iDEAL & Bancontact zijn live!":
+                        st.success("Gefeliciteerd! Je winkel is nu technisch klaar om geld te verdienen. 🔥")
+                        st.session_state[usage_key] = True
+                    else:
+                        st.session_state[usage_key] = False
 
                 elif step.get('content') == "TOOL_BANK_WIZARD":
                     # --- 1. PREMIUM HEADER ---
