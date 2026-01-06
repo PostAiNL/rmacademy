@@ -316,6 +316,25 @@ st.markdown("""
 # --- 2. COOKIE MANAGER ---
 cookie_manager = stx.CookieManager()
 
+# 1. Check op Magic Link (Autologin via email)
+if "autologin" in st.query_params and "user" in st.query_params:
+    token = st.query_params["autologin"]
+    email = st.query_params["user"]
+    
+    # Controleer of de token klopt
+    import hashlib
+    secret_key = st.secrets["supabase"]["key"]
+    expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
+    
+    if token == expected_token:
+        # Token is valide, log de gebruiker in
+        auth.login_or_register(email)
+        cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
+        
+        # Ruim de URL op
+        st.query_params.clear()
+        st.rerun()
+
 # --- INITIALISEER PAGINA STATUS ---
 if "view" not in st.session_state:
     st.session_state.view = "main"
@@ -419,6 +438,7 @@ if "user" not in st.session_state:
                         with st.spinner("Account aanmaken..."):
                             status = db.create_user(email, password, first_name)
                             if status == "SUCCESS":
+                                auth.send_welcome_email(email, first_name, password)
                                 auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
                                 cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
                                 st.rerun()
