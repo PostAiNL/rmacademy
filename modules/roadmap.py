@@ -68,26 +68,82 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
             usage_key = f"used_{step['id']}"
             with st.container():
                 
-               # --- LOGO & HUISSTIJL ---
                 if step.get('content') == "TOOL_THEME_GUIDE":
-                    st.write("Je logo en huisstijl bepalen de uitstraling van je merk. Gebruik onze ingebouwde AI of kies voor een externe tool.")
-                    st.info("⭐ **Onze aanbeveling: De RM AI Logo Maker.** Je vindt deze tool in het zijmenu onder **'Marketing & Design'**. Hiermee genereer je binnen 10 seconden een  professioneel logo dat direct klaar is voor gebruik. Dit is de snelste en meest kosteneffectieve optie voor onze cursisten.")
-                    st.caption(disclaimer_text)
-                    l1, l2, l3 = st.columns(3)
-                    with l1:
-                        st.markdown("**1. RM AI Logo Maker**")
-                        st.markdown("*(Aanbevolen: Zie menu)*")
-                        # DE FIX: Knop die de navigatie aanpast
-                        if st.button("👉 Ga naar 'Marketing & Design'", key="go_to_marketing_btn", use_container_width=True):
-                            st.session_state.nav_index = 3  # Index 3 is 'Marketing & Design'
+                    # --- 1. PREMIUM HEADER ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%); border: 1px solid #4338CA; padding: 25px; border-radius: 16px; margin-bottom: 25px; color: white;">
+                        <h3 style="margin-top: 0; color: #FFFFFF !important; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                            <span style="font-size: 1.5rem;">🎨</span> De Gezichten van je Merk
+                        </h3>
+                        <p style="font-size: 1rem; color: #E0E7FF !important; line-height: 1.5; margin-bottom: 15px;">
+                            Je logo en huisstijl zijn de "verpakking" van je webshop. Een professionele uitstraling zorgt voor direct vertrouwen bij je klant. <b>Onze regel:</b> Besteed hier maximaal 2 uur aan. Snelheid is belangrijker dan perfectie!
+                        </p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ Herkenbaarheid</span>
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ Vertrouwen opbouwen</span>
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ Merk-consistentie</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # --- 2. DE OPTIES ---
+                    st.markdown("#### 💡 Kies je ontwerp-route")
+                    
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown("""
+                        <div style="background: white; border: 2px solid #4F46E5; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #4F46E5;">🏆 RM AI Logo Maker</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Aanbevolen</b>. Maak binnen 10 seconden 3 professionele logo's. Gratis voor DEMO (3x) & PRO leden.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        if st.button("👉 Start AI Logo Maker", key="go_to_marketing_btn", use_container_width=True, type="primary"):
+                            st.session_state.nav_index = 3
                             st.rerun()
-                    with l2:
-                        st.markdown("**2. Canva (Huisstijl)**")
+
+                    with c2:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Canva</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Zelf ontwerpen</b>. Gebruik kant-en-klare templates voor logo's, banners en kleuren. Ideaal voor volledige controle.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
                         st.link_button("Start Canva", "https://www.canva.com", use_container_width=True)
-                    with l3:
-                        st.markdown("**3. Looka (AI Alternatief)**")
-                        st.link_button("Start Looka", "https://looka.com", use_container_width=True)
-                    if st.checkbox("Logo en huisstijl zijn klaar", key=f"theme_{step['id']}"): st.session_state[usage_key] = True
+
+                    with c3:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Looka / Fiverr</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Uitbesteden</b>. Laat AI of een freelancer een premium merkidentiteit bouwen als je budget hebt.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Check Looka", "https://looka.com", use_container_width=True)
+
+                    # --- 3. DESIGN TIPS VOOR STARTERS ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    with st.expander("🎨 3 Design regels voor een winnende shop", expanded=False):
+                        st.markdown("""
+                        1. **De 2-Kleuren Regel:** Kies één hoofdkleur (bijv. blauw) en één accentkleur (bijv. wit of grijs). Teveel kleuren maken je shop onoverzichtelijk.
+                        2. **Witruimte is je vriend:** Prop je website niet vol. Laat ruimte tussen tekst en afbeeldingen voor een luxe uitstraling.
+                        3. **Hoge Kwaliteit:** Gebruik nooit korrelige of uitgerekte logo's. Download je logo altijd als PNG met transparante achtergrond.
+                        """)
+
+                    st.markdown("---")
+                    
+                    # --- 4. DE BEVESTIGING ---
+                    st.markdown("#### ✅ Heb je je huisstijl klaar?")
+                    branding_status = st.checkbox("Mijn logo en kleuren zijn definitief gekozen", key=f"branding_check_{step['id']}")
+                    
+                    if branding_status:
+                        st.success("Mooi! Je merk heeft nu een gezicht. Op naar de volgende stap!")
+                        st.session_state[usage_key] = True
+                    else:
+                        st.session_state[usage_key] = False
+
                 # --- BETALINGEN INSTELLEN ---
                 elif step.get('content') == "TOOL_PAYMENTS":
                     st.write("Zorg dat je klanten veilig kunnen betalen via iDEAL, Bancontact en Creditcard.")
@@ -105,40 +161,161 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                         st.link_button("Open Stripe", "https://stripe.com/nl", use_container_width=True)
                     if st.checkbox("Betaalmethodes gekoppeld", key=f"pay_{step['id']}"): st.session_state[usage_key] = True
 
-                # --- ZAKELIJKE REKENING ---
                 elif step.get('content') == "TOOL_BANK_WIZARD":
-                    st.write("Houd zakelijk en privé strikt gescheiden vanaf dag één.")
-                    st.info("⭐ **Onze aanbeveling: Knab.** De favoriet onder e-commerce ondernemers. Het koppelt moeiteloos met je webshop en boekhouding.")
-                    st.caption(disclaimer_text)
-                    b1, b2, b3 = st.columns(3)
-                    with b1:
-                        st.markdown("**1. Knab (Aangeraden)**")
+                    # --- 1. PREMIUM HEADER ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #F0FDF4 0%, #DCFCE7 100%); border: 1px solid #BBF7D0; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                        <h3 style="margin-top: 0; color: #166534; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">🏦</span> De Financiële Fundering
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #14532D; line-height: 1.5;">
+                            Houd je privé-uitgaven en je webshop-omzet <b>altijd gescheiden</b>. Dit is niet alleen professioneel, maar bespaart je uren aan werk (en stress) bij je belastingaangifte.
+                        </p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #86EFAC; color: #166534;">✅ Belastingproof</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #86EFAC; color: #166534;">✅ KvK-nummer nodig</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #86EFAC; color: #166534;">✅ Koppeling met Boekhouding</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    # --- 2. DE VERGELIJKER ---
+                    st.markdown("#### 💡 Kies de bank die bij je past")
+                    
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown("""
+                        <div style="background: white; border: 2px solid #2563EB; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #2563EB;">🏆 Knab</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Beste voor starters</b>. Erg voordelig, goede app en koppelt perfect met vrijwel elk boekhoudpakket.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
                         st.link_button("Open Knab", "https://www.knab.nl/zakelijk", use_container_width=True)
-                    with b2:
-                        st.markdown("**2. Bunq**")
+
+                    with c2:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Bunq</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Snelheid & Tech</b>. Je hebt binnen 5 minuten een rekening. Iets duurder, maar zeer innovatief.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
                         st.link_button("Open Bunq", "https://www.bunq.com", use_container_width=True)
-                    with b3:
-                        st.markdown("**3. Revolut Business**")
-                        st.link_button("Open Revolut", "https://www.revolut.com", use_container_width=True)
-                    if st.checkbox("Bankrekening aangevraagd", key=f"bank_{step['id']}"): st.session_state[usage_key] = True
 
-                # --- CREDITCARD ---
+                    with c3:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Revolut</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Internationaal</b>. Ideaal als je veel met buitenlandse valuta werkt. Gebruiksvriendelijke interface.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Open Revolut", "https://www.revolut.com/en-NL/business/", use_container_width=True)
+
+                    # --- 3. CHECKLIST VOOR STARTERS ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    with st.expander("📋 Wat heb je nodig voor de aanvraag?", expanded=False):
+                        st.markdown("""
+                        Zorg dat je deze zaken bij de hand hebt voordat je op de knop drukt:
+                        1. **KvK-uittreksel:** Meestal niet ouder dan 30 dagen.
+                        2. **Geldig ID:** Paspoort of ID-kaart (rijbewijs wordt vaak niet geaccepteerd).
+                        3. **Zakelijk adres:** Het adres waarop je KvK staat ingeschreven.
+                        4. **Je telefoon:** De meeste banken vragen om een selfie-verificatie via hun app.
+                        """)
+
+                    st.markdown("---")
+                    
+                    # --- 4. DE BEVESTIGING ---
+                    st.markdown("#### ✅ Status van je aanvraag")
+                    bank_choice = st.selectbox("Bij welke bank heb je een rekening aangevraagd?", 
+                                              ["Nog geen keuze gemaakt", "Knab", "Bunq", "Revolut", "Andere bank..."],
+                                              key=f"bank_choice_{step['id']}")
+                    
+                    if bank_choice != "Nog geen keuze gemaakt":
+                        st.success(f"Top! Je hebt gekozen voor **{bank_choice}**. Zodra je rekening actief is, kun je deze koppelen aan je shop.")
+                        st.session_state[usage_key] = True
+                    else:
+                        st.session_state[usage_key] = False
+
                 elif step.get('content') == "TOOL_CREDITCARD_WIZARD":
-                    st.write("Noodzakelijk voor het betalen van je advertentiekosten en Shopify-abonnement.")
-                    st.info("⭐ **Onze aanbeveling: N26.** Onze studenten hebben hier de minste problemen; de kaart is vaak binnen enkele minuten al virtueel te gebruiken.")
-                    st.caption(disclaimer_text)
-                    cc1, cc2, cc3 = st.columns(3)
-                    with cc1:
-                        st.markdown("**1. N26 (Aangeraden)**")
-                        st.link_button("Vraag N26 aan", "https://n26.com", use_container_width=True)
-                    with cc2:
-                        st.markdown("**2. Revolut**")
-                        st.link_button("Vraag Revolut aan", "https://www.revolut.com", use_container_width=True)
-                    with cc3:
-                        st.markdown("**3. Bunq Card**")
-                        st.link_button("Vraag Bunq aan", "https://www.bunq.com", use_container_width=True)
-                    if st.checkbox("Creditcard aangevraagd", key=f"cc_{step['id']}"): st.session_state[usage_key] = True
+                    # --- 1. PREMIUM HEADER ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border: 1px solid #FED7AA; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                        <h3 style="margin-top: 0; color: #9A3412; font-size: 1.2rem; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1.5rem;">💳</span> De Motor van je Marketing
+                        </h3>
+                        <p style="font-size: 0.95rem; color: #7C2D12; line-height: 1.5;">
+                            Om straks te kunnen schalen op TikTok en Facebook heb je een kaart nodig die direct geaccepteerd wordt. We raden <b>Online Debit Cards</b> aan: geen schulden, geen BKR-toetsing en binnen 10 minuten actief.
+                        </p>
+                        <div style="display: flex; gap: 15px; margin-top: 15px; flex-wrap: wrap;">
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #FDBA74; color: #9A3412;">✅ Direct Virtueel Beschikbaar</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #FDBA74; color: #9A3412;">✅ Veilig voor Ads (Meta/TikTok)</span>
+                            <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #FDBA74; color: #9A3412;">✅ Geen jaarlijkse kosten</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
+                    # --- 2. DE VERGELIJKER ---
+                    st.markdown("#### ⚡ Kies je kaart en start direct")
+                    
+                    c1, c2, c3 = st.columns(3)
+                    
+                    with c1:
+                        st.markdown("""
+                        <div style="background: white; border: 2px solid #F59E0B; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #F59E0B;">🏆 N26 (Snelste)</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Favoriet</b>. Je krijgt direct een virtuele kaart die je in je Apple/Google Pay kunt zetten en koppelen aan Shopify.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Start met N26", "https://n26.com", use_container_width=True)
+
+                    with c2:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Revolut</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Multi-valuta</b>. Handig als je in dollars wilt inkopen. Zeer uitgebreide app met veel controle.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Start met Revolut", "https://www.revolut.com", use_container_width=True)
+
+                    with c3:
+                        st.markdown("""
+                        <div style="background: white; border: 1px solid #E2E8F0; padding: 15px; border-radius: 12px; height: 100%;">
+                            <p style="margin: 0; font-weight: 800; color: #0F172A;">Bunq Card</p>
+                            <p style="font-size: 0.8rem; color: #64748B; margin-top: 5px;"><b>Nederlands</b>. Als je al Bunq hebt voor je zakelijke rekening, kun je hier simpel een extra kaart aanmaken.</p>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        st.link_button("Start met Bunq", "https://www.bunq.com", use_container_width=True)
+
+                    # --- 3. EDUCATIEVE BIJSLUITER ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    with st.expander("❓ Waarom heb ik dit nu al nodig?", expanded=False):
+                        st.markdown("""
+                        Veel starters wachten hiermee, maar dat is een fout. 
+                        - **Shopify:** Je hebt een kaart nodig om je €1/maand proefperiode te activeren.
+                        - **Advertenties:** Facebook en TikTok accepteren geen iDEAL voor hun advertentie-accounts. Ze willen een kaart 'on file'.
+                        - **Geen Schulden:** Omdat het 'Debit' kaarten zijn, kun je alleen uitgeven wat je er zelf op zet. Je loopt dus geen enkel financieel risico.
+                        """)
+
+                    st.markdown("---")
+                    
+                    # --- 4. DE BEVESTIGING ---
+                    st.markdown("#### ✅ Status van je kaart")
+                    card_status = st.radio("Is je kaart aangevraagd of al actief?", 
+                                         ["Nog niet begonnen", "Aangevraagd", "Actief & Gekoppeld"],
+                                         horizontal=True,
+                                         key=f"card_status_{step['id']}")
+                    
+                    if card_status in ["Aangevraagd", "Actief & Gekoppeld"]:
+                        st.success("Lekker bezig! Je bent nu financieel klaar om je shop te lanceren.")
+                        st.session_state[usage_key] = True
+                    else:
+                        st.session_state[usage_key] = False
                 # --- STANDAARD CONTENT TYPES (TEXT, NICHE, ETC) ---
                 elif step.get('content') == "TEXT_ONLY":
                     st.info(step['text'])
@@ -285,10 +462,73 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                         st.session_state[usage_key] = False
 
                 elif step.get('content') == "TOOL_SHOPIFY_GUIDE":
-                    st.write("Gebruik de officiële link voor de €1 actie.")
-                    st.link_button("Claim Shopify €1 Deal", "https://www.shopify.com", use_container_width=True)
-                    if st.checkbox("Shopify geactiveerd", key=f"shop_{step['id']}"): st.session_state[usage_key] = True
+                    # --- 1. PREMIUM HEADER (NU MET WITTE TEKST VOOR LEESBAARHEID) ---
+                    st.markdown("""
+                    <div style="background: linear-gradient(135deg, #004C3F 0%, #008060 100%); border: 1px solid #002E25; padding: 25px; border-radius: 16px; margin-bottom: 25px; color: white;">
+                        <h3 style="margin-top: 0; color: #FFFFFF !important; font-size: 1.25rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                            <span style="font-size: 1.5rem;">🛍️</span> Je Winkelvloer Inrichten
+                        </h3>
+                        <p style="font-size: 1rem; color: #F0FDF4 !important; line-height: 1.5; margin-bottom: 15px;">
+                            Shopify is het brein van je webshop. Via deze link krijg je een exclusieve starters-deal: <b>de eerste 3 maanden voor slechts €1 per maand.</b>
+                        </p>
+                        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ Geen techniek nodig</span>
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ €1/maand deal</span>
+                            <span style="background: rgba(255,255,255,0.15); padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid rgba(255,255,255,0.3); color: white !important; font-weight: 600;">✅ Altijd opzegbaar</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
 
+                    # --- 2. STAPPENPLAN (BEGRIJPELIJK VOOR STARTERS) ---
+                    st.markdown("#### 📝 Hoe pak je de €1 deal?")
+                    st.markdown("""
+                    Volg exact deze stappen om fouten te voorkomen:
+                    1. **Klik op de knop** hieronder (opent in een nieuw venster).
+                    2. Vul je e-mailadres in en kies **'Gratis starten'**.
+                    3. Shopify stelt een paar vragen, je mag overal op **'Overslaan'** drukken.
+                    4. Zodra je in je dashboard bent, kies je het **'Basis' plan**. Geen zorgen: de eerste 3 maanden betaal je slechts €1.
+                    """)
+
+                    # --- 3. DE ACTIE KNOP ---
+                    st.markdown("<br>", unsafe_allow_html=True)
+                    st.link_button("🚀 Claim mijn €1 Shopify Deal", "https://www.shopify.com/nl/gratis-proef?term=shopify%20account%20aanmaken&adid=701863738970&campaignid=21369992074&branded_enterprise=1&BOID=brand&utm_medium=cpc&utm_source=google&gad_source=1&gad_campaignid=21369992074&gbraid=0AAAAAC3Mv89BeCV7AwsovoynLOajGIMt7&gclid=EAIaIQobChMI_97Byez3kQMVkpGDBx2sWymYEAAYASAAEgI0NPD_BwE", use_container_width=True, type="primary")
+                    
+                    # --- 4. BESPAARTIP (VISUEEL STERKER) ---
+                    st.markdown("""
+                    <div style="background-color: #F0FDF4; border: 1px solid #BBF7D0; padding: 15px; border-radius: 12px; margin-top: 20px;">
+                        <p style="margin: 0; color: #166534; font-size: 0.9rem; font-weight: 700;">
+                            💡 Bespaar-advies:
+                        </p>
+                        <p style="margin: 5px 0 0 0; color: #166534; font-size: 0.85rem;">
+                            Kies <u>niet</u> voor de duurdere 'Shopify' of 'Advanced' opties. Het <b>Basic plan</b> heeft alles wat je nodig hebt om je eerste €10.000 omzet te draaien.
+                        </p>
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                    st.markdown("---")
+                    
+                    # --- 5. BEVESTIGING ---
+                    st.markdown("#### ✅ Registreer je winkel")
+                    st.write("Om je voortgang bij te houden, hebben we je winkel-adres nodig.")
+                    
+                    shop_url = st.text_input("Wat is de naam van je shop?", placeholder="bijv. jouwshopnaam.myshopify.com", key=f"shop_url_input_{step['id']}")
+                    
+                    if shop_url:
+                        # Automatisch ".myshopify.com" toevoegen als de gebruiker het vergeet
+                        if ".myshopify.com" not in shop_url and "." not in shop_url:
+                            shop_url = f"{shop_url}.myshopify.com"
+                            st.info(f"We hebben je adres aangevuld naar: **{shop_url}**")
+
+                        if ".myshopify.com" in shop_url:
+                            st.success(f"Perfect! Je shop **{shop_url}** is succesvol gekoppeld aan de Academy.")
+                            st.session_state.shop_url = shop_url
+                            st.session_state[usage_key] = True
+                        else:
+                            st.error("Gebruik het adres dat eindigt op .myshopify.com")
+                            st.session_state[usage_key] = False
+                    else:
+                        st.session_state[usage_key] = False
+              
                 elif step.get('content') == "TOOL_SUPPLIER_HUB":
                     st.info("""**🏆 De RM Private Agent (Aanbevolen)**
                     Exclusief voor studenten. Verpletter de concurrentie met:
