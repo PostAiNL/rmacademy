@@ -11,7 +11,7 @@ from email.mime.multipart import MIMEMultipart
 from supabase import create_client
 
 # --- CONFIGURATIE ---
-APP_URL = "https://rmacademy.onrender.com" 
+APP_URL = "https://app.rmacademy.nl" 
 
 RANKS = {
     0: "🐣 Starter",
