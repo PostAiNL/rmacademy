@@ -3,6 +3,7 @@ import random
 import string
 import time
 import smtplib
+import hashlib
 import os  # NIEUW: Nodig voor Render environment variables
 from datetime import datetime, timezone, timedelta
 from email.mime.text import MIMEText
@@ -170,3 +171,53 @@ def get_affiliate_stats():
         pro = sum(1 for u in res.data if u['is_pro'])
         return total, pro, pro * 250
     except: return 0, 0, 0
+
+def send_welcome_email(email, first_name, password):
+    try:
+        smtp_config = st.secrets["smtp"]
+        
+        # Debug log
+        print(f"DEBUG: Poging om mail te sturen naar {email} via {smtp_config['server']}")
+
+        secret_key = st.secrets["supabase"]["key"]
+        login_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
+        
+        # Genereer de link
+        magic_link = f"{APP_URL}/?autologin={login_token}&user={email}"
+
+        msg = MIMEMultipart()
+        # Strato is streng: de 'From' moet exact overeenkomen met de user
+        msg['From'] = f"RM Ecom Academy <{smtp_config['user']}>"
+        msg['To'] = email
+        msg['Subject'] = f"Welkom bij de Academy, {first_name}! 🚀"
+
+        body = f"""
+        <html>
+        <body style="font-family: sans-serif; color: #0F172A;">
+            <h2 style="color: #2563EB;">Welkom bij RM Ecom Academy, {first_name}!</h2>
+            <p>Je account is aangemaakt. Je kunt direct aan de slag met de roadmap.</p>
+            <div style="background: #F1F5F9; padding: 15px; border-radius: 8px; margin: 20px 0;">
+                <p style="margin: 0;"><strong>Inloggegevens:</strong></p>
+                <p style="margin: 5px 0;">Email: {email}</p>
+                <p style="margin: 5px 0;">Wachtwoord: {password}</p>
+            </div>
+            <p>Klik op de knop hieronder om <strong>direct</strong> in te loggen op je dashboard:</p>
+            <a href="{magic_link}" style="display: inline-block; background-color: #2563EB; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">Start Mijn Avontuur 🚀</a>
+            <br><br>
+            <p style="font-size: 0.8rem; color: #64748B;">Lukt de knop niet? Kopieer deze link: <br>{magic_link}</p>
+        </body>
+        </html>
+        """
+        msg.attach(MIMEText(body, 'html'))
+
+        # Verbinding maken met Strato (Poort 465 met SSL)
+        server = smtplib.SMTP_SSL(smtp_config['server'], 465)
+        server.login(smtp_config['user'], smtp_config['password'])
+        server.send_message(msg)
+        server.quit()
+        
+        print("DEBUG: Email succesvol verzonden via Strato!")
+        return True
+    except Exception as e:
+        print(f"FOUT BIJ VERSTUREN EMAIL: {str(e)}")
+        return False
