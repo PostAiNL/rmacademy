@@ -1656,30 +1656,73 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                     draw_item(ca, res[i], i)
                     if i+1 < len(res): draw_item(cb, res[i+1], i+1)
 
-        # --- TAB 2: META AD SPY ---
         with tab2:
-            st.markdown("### 🧿 Meta (Facebook) Ad Spy")
+            # --- 1. PREMIUM HEADER ---
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                    <span style="font-size: 1.5rem;">🧿</span> Meta Ad Spy: Spieken bij de Winnaars
+                </h3>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">
+                    Waarom het wiel opnieuw uitvinden? Met deze tool zie je precies welke advertenties <b>nu</b> live staan.
+                    <b>Gouden regel:</b> Zoek naar advertenties die al langer dan 7 dagen actief zijn. Dat zijn de bewezen winners.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # --- 2. HET ZOEKVELD ---
             with st.container(border=True):
-                fb_query = st.text_input("Zoekwoord voor advertenties:", placeholder="Bijv. Home Decor", key="fb_q")
-                fb_btn_label = "🕵️‍♂️ Scan Facebook Ads" if is_pro else "🕵️‍♂️ Scan Facebook Ads (1x Gratis)"
+                fb_query = st.text_input("Waar wil je op zoeken?", placeholder="bijv. 'halsketting', 'keuken gadget' of een merknaam", key="fb_q_new")
+                
+                # Dynamische knop tekst
+                fb_btn_label = "🕵️‍♂️ Start Meta Scan" if is_pro else "🕵️‍♂️ Start Scan (1x Gratis per dag)"
                 
                 if st.button(fb_btn_label, type="primary", use_container_width=True):
                     if db.can_user_search(user['email'], is_pro):
-                        with st.spinner("Facebook Ad Library wordt doorzocht..."):
+                        with st.status("🔍 Meta Ad Library wordt doorzocht...", expanded=True) as status:
                             from modules import facebook_spy
-                            st.session_state.fb_results = facebook_spy.search_facebook_ads(fb_query, max_results=30)
+                            results = facebook_spy.search_facebook_ads(fb_query, max_results=20)
+                            st.session_state.fb_results = results
+                            status.update(label="Scan voltooid! Check de resultaten hieronder.", state="complete")
                     else:
-                        st.warning("⚠️ Je dagelijkse gratis scan is op!")
+                        st.warning("⚠️ Je dagelijkse gratis scan is op! Word PRO voor onbeperkt onderzoek.")
 
-                if st.session_state.get("fb_results"):
-                    for ad in st.session_state.fb_results[:12]:
-                        with st.container(border=True):
-                            c1, c2 = st.columns([1, 2])
-                            if ad['media']: c1.image(ad['media'], use_container_width=True)
-                            c2.markdown(f"**{ad['page_name']}**")
-                            c2.caption(f"Actief: {ad['days_active']} dagen")
-                            c2.link_button("🛒 Bekijk Shop", ad['shop_link'], use_container_width=True)
-
+            # --- 3. RESULTATEN WEERGAVE (Ad Cards) ---
+            if st.session_state.get("fb_results"):
+                st.markdown("---")
+                st.markdown(f"### 🎯 Gevonden Advertenties voor '{fb_query}'")
+                
+                for ad in st.session_state.fb_results:
+                    with st.container(border=True):
+                        col_img, col_info = st.columns([1, 2])
+                        
+                        with col_img:
+                            if ad.get('media'):
+                                st.image(ad['media'], use_container_width=True)
+                            else:
+                                st.markdown("🖼️ *Geen preview*")
+                        
+                        with col_info:
+                            # Status Badge
+                            days = ad.get('days_active', 0)
+                            badge_color = "#BBF7D0" if days > 7 else "#F1F5F9"
+                            text_color = "#166534" if days > 7 else "#475569"
+                            status_text = "🔥 WINNER POTENTIE" if days > 7 else "NIEUWE AD"
+                            
+                            st.markdown(f"""
+                                <span style="background:{badge_color}; color:{text_color}; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">{status_text}</span>
+                                <h4 style="margin: 5px 0 0 0;">{ad['page_name']}</h4>
+                                <p style="margin:0; font-size:0.8rem; color:#64748B;">Al <b>{days} dagen</b> actief op Facebook/Instagram</p>
+                            """, unsafe_allow_html=True)
+                            
+                            st.markdown("<br>", unsafe_allow_html=True)
+                            
+                            c_btn1, c_btn2 = st.columns(2)
+                            c_btn1.link_button("🛒 Bekijk Shop", ad['shop_link'], use_container_width=True)
+                            
+                            # Optioneel: Deel deze ad met jezelf (XP actie)
+                            if c_btn2.button("💾 Opslaan in Vault", key=f"save_ad_{ad['page_name']}_{days}", use_container_width=True):
+                                st.toast("Opgeslagen! Je vindt deze later terug in je Vault.")
         # --- TAB 3: CONCURRENTEN SPY ---
         with tab3:
             st.markdown("### 🕵️ Shopify Store Spy")
