@@ -8,7 +8,7 @@ APIFY_TOKEN = st.secrets["apify"]["token"]
 def scrape_shopify_store(url):
     """Bestaande functie voor Product Finder (ongewijzigd)."""
     clean_url = url.replace("https://", "").replace("http://", "").split("/")[0]
-    target_url = f"https://{clean_url}/products.json?limit=12" 
+    target_url = f"https://{clean_url}/products.json?limit=12&sort_by=best-selling" 
 
     headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"}
 
