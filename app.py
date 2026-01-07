@@ -1689,7 +1689,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 if url_in and st.button("🚀 Scan Producten", type="primary"):
                     from modules import competitor_spy
                     prods = competitor_spy.scrape_shopify_store(url_in)
-                if prods:
+                
                     # --- NIEUW: VERTAAL LOGICA ---
                     with st.spinner("🚀 Titels vertalen naar Nederlands..."):
                         # 1. Verzamel alle titels
