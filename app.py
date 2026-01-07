@@ -1255,36 +1255,66 @@ else:
         # --- TAB 1: GRATIS MINI TRAINING (Iedereen ziet dit) ---
         # =========================================================
         with tab_free:
+            # Info banner
             st.markdown("""
-            <div style="background: #EFF6FF; border: 1px solid #DBEAFE; border-radius: 8px; padding: 10px 15px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #1E3A8A; font-size: 0.9rem;">
-                <i class="bi bi-info-circle-fill"></i>
-                <span>Je hebt <b>Preview Toegang</b>: 4 van de 74 lessen zijn beschikbaar.</span>
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 15px; border-radius: 12px; display: flex; align-items: center; gap: 10px; margin-bottom: 20px; color: #0369A1;">
+                <span>ℹ️ Je hebt <b>Preview Toegang</b>: 4 van de 74 lessen zijn direct beschikbaar.</span>
             </div>
             """, unsafe_allow_html=True)
             
+            # Video Grid
             c1, c2 = st.columns(2)
-            with c1:
-                with st.container(border=True):
-                    st.markdown("**1. Van Chaos naar Actie 🚀**")
-                    st.video("https://www.youtube.com/embed/nYN7EyMb7uQ")
-                with st.container(border=True):
-                    st.markdown("**2. Jouw volgende stap 📈**")
-                    st.video("https://www.youtube.com/embed/yIJJbwIZL6k")
-            with c2:
-                with st.container(border=True):
-                    st.markdown("**3. Kies het juiste product 📦**")
-                    st.video("https://www.youtube.com/embed/CM5CtnXrvEU")
-                with st.container(border=True):
-                    st.markdown("**4. Je eerste advertentie 🔥**")
-                    st.video("https://www.youtube.com/embed/cA8Gvhfic-s")
+            
+            videos = [
+                {"t": "1. Van Chaos naar Actie 🚀", "id": "nYN7EyMb7uQ", "desc": "Zet je mindset aan voor succes en begrijp het RM systeem."},
+                {"t": "2. Jouw volgende stap 📈", "id": "yIJJbwIZL6k", "desc": "Hoe je de roadmap gebruikt om binnen 30 dagen live te zijn."},
+                {"t": "3. Kies het juiste product 📦", "id": "CM5CtnXrvEU", "desc": "De 'Winning Product' formule uitgelegd door experts."},
+                {"t": "4. Je eerste advertentie 🔥", "id": "cA8Gvhfic-s", "desc": "Stap-voor-stap je eerste campagne opzetten in Meta."}
+            ]
 
-            st.markdown("<br> 🔒 Wat je onder andere mist van de volledige cursus:", unsafe_allow_html=True)
-            locked_modules = ["Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup", "Module 9: Opschalen", "Module 11: Private Agents", "Module 12: Viral Content"]
-            lc1, lc2 = st.columns(2)
-            for i, mod in enumerate(locked_modules):
-                html = f'<div class="locked-module"><span><i class="bi bi-lock-fill"></i> {mod}</span></div>'
-                if i % 2 == 0: lc1.markdown(html, unsafe_allow_html=True)
-                else: lc2.markdown(html, unsafe_allow_html=True)
+            for i, vid in enumerate(videos):
+                col = c1 if i % 2 == 0 else c2
+                with col:
+                    with st.container(border=True):
+                        st.markdown(f"**{vid['t']}**")
+                        st.video(f"https://www.youtube.com/embed/{vid['id']}")
+                        st.caption(vid['desc'])
+                        # Optioneel: XP knop per video
+                        if st.button(f"Klaar (+5 XP)", key=f"vid_xp_{i}"):
+                            auth.mark_step_complete(f"academy_vid_{i}", 5)
+                            st.toast("Lekker bezig! +5 XP verdiend.")
+
+            # Locked Modules in Kassa-stijl
+            st.markdown("<br>#### 🔒 Jouw volgende modules (PRO/Student only):", unsafe_allow_html=True)
+            
+            locked_cols = st.columns(2)
+            locked_data = [
+                "Module 5: Shopify Masterclass", "Module 7: Facebook Ads Setup",
+                "Module 9: Opschalen naar 10K", "Module 11: Private Agents",
+                "Module 12: Viral Content Geheimen", "Module 14: Klantenservice Automatisatie"
+            ]
+            
+            for i, mod in enumerate(locked_data):
+                l_col = locked_cols[0] if i % 2 == 0 else locked_cols[1]
+                l_col.markdown(f"""
+                <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 12px; border-radius: 8px; margin-bottom: 8px; color: #64748B; font-size: 0.85rem;">
+                    <i class="bi bi-lock-fill"></i> {mod}
+                </div>
+                """, unsafe_allow_html=True)
+
+            # De "Eindstation" CTA
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown(f"""
+            <div style="text-align: center; background: white; padding: 30px; border-radius: 16px; border: 1px solid #E2E8F0;">
+                <h4>Wil je toegang tot alle 74 video's en tools?</h4>
+                <p style="color: #64748B;">Zet de volgende stap in je ondernemersreis.</p>
+                <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
+                    <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); padding: 15px 30px; border-radius: 12px; display: inline-block; font-weight: 800; color: #78350F;">
+                        🚀 UPGRADE NAAR PRO & UNLOCK ALLES
+                    </div>
+                </a>
+            </div>
+            """, unsafe_allow_html=True)
 
         # =========================================================
         # --- TAB 2: DE ECHTE CURSUS (DE HARDE LOCK) ---
