@@ -384,6 +384,12 @@ if "view" not in st.session_state:
 if "nav_index" not in st.session_state:
     st.session_state.nav_index = 0
 
+if "generated_logos" not in st.session_state:
+    st.session_state.generated_logos = []
+
+if "logo_generations" not in st.session_state:
+    st.session_state.logo_generations = 0
+
 def set_view(name):
     st.session_state.view = name
     st.rerun()
@@ -1880,7 +1886,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 b_color = c2.text_input("Voorkeurskleuren", placeholder="bijv. goud en zwart")
                 
                 if st.button("🚀 Genereer mijn logo's", type="primary", use_container_width=True):
-                        if not brand_name or not niche: 
+                        if not b_name or not b_niche: 
                             st.warning("Vul alles in.")
                         else:
                             st.session_state.logo_generations += 1
@@ -1889,7 +1895,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                                 
                                 new_logos = []
                                 for i in range(3):
-                                    img_url = ai_coach.generate_logo(brand_name, niche, style, color)
+                                    img_url = ai_coach.generate_logo(b_name, b_niche, b_style, b_color)
                                     if img_url and "placehold" not in img_url:
                                         try:
                                             resp = requests.get(img_url)
@@ -1897,7 +1903,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                                                 new_logos.append({
                                                     "url": img_url,
                                                     "data": resp.content,
-                                                    "name": f"logo_{brand_name}_{i+1}.png"
+                                                    "name": f"logo_{b_name}_{i+1}.png"
                                                 })
                                         except: pass
                                 
