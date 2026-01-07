@@ -607,7 +607,7 @@ if pro_expiry_dt:
 is_pro = is_pro_license or is_temp_pro
 
 def calculate_level_data(current_xp):
-    levels = [(0, "Starter"), (500, "Builder"), (1500, "E-com Boss"), (3000, "Legend"), (5000, "Master"), (10000, "Grandmaster")]
+    levels = [(0, "Starter"), (200, "Bouwer"), (500, "Expert"), (1000, "E-com Boss"), (3000, "Legend"), (5000, "Master"), (10000, "Grandmaster")]
     current_rank, next_goal, prev_goal, level_num = levels[0][1], levels[1][0], levels[0][0], 1
     for i, (threshold, title) in enumerate(levels):
         if current_xp >= threshold:
@@ -999,41 +999,36 @@ else:
             buttons_html = f"""<div style="margin-top: 15px;"><a href="#roadmap_start" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🚀 Start Opdracht</div></a></div>"""
 
         else:
-            # --- GOUDEN KAART LOGICA (FOMO & URGENTIE) ---
-            next_step_title = "Toegang Verleend tot de Top 1% 🏆"
+            # --- GOUDEN KAART LOGICA (NA VOLTOOIING) ---
+            next_step_title = "Toegang Verleend tot de Elite 🏆"
             
-            # De haakjes zorgen voor een schone string zonder verborgen spaties aan het begin
+            # DEZE REGELS ONTBREKEN WAARSCHIJNLIJK:
+            card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
+            card_icon = "bi-trophy-fill"  # <--- DIT IS DE FIX
+            
             next_step_desc = (
                 "<div style='line-height: 1.5; color: white !important;'>"
-                "Je hebt de barrière doorbroken waar 95% van de beginners stopt. "
-                "Maar let op: een shop die niet opschaalt, is een aflopende zaak. "
-                "Elke dag dat je nu wacht, pakt een concurrent jouw marktaandeel. <br><br>"
-                "<b>De 70-daagse Sprint:</b> We gaan nu jouw fundament ombouwen naar een "
-                "<b>€15.000+/maand</b> machine. <br><br>"
-                "🎁 <b>ELITE BONUS:</b> Word nú actief PRO-lid en loot direct mee voor een "
-                "<b>Volledig RM Traject t.w.v. duizenden euro's</b>. Deze kans sluit aan het eind van de maand!"
+                "Gefeliciteerd! Je hebt de volledige Roadmap voltooid. Je hoort nu bij de top 5% van starters die daadwerkelijk actie onderneemt. <br><br>"
+                "<b>De volgende stap:</b> Je fundament staat. Nu is het tijd om te schalen naar <b>€15.000+/maand</b>. Hiervoor heb je onze winnende advertentie-strategieën en Private Agents nodig."
                 "</div>"
             )
             
             next_step_phase_index = 6
-            card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
-            accent_color = "#FFFFFF"
-            card_icon = "bi-lightning-charge-fill"
             
-            buttons_html = (
-                f"<div style='display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 20px;'>"
-                f"<a href='{btn_student_url}' target='_blank' style='text-decoration:none;'>"
-                f"<div style='background: #1a1a1a; color: #FFD700; padding: 14px 28px; border-radius: 12px; "
-                f"font-weight: 900; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(0,0,0,0.3); "
-                f"border: 1px solid #FFD700;'>"
-                f"🚀 Word student (Gratis call)"
-                f"</div></a>"
-                f"<a href='{btn_pro_url}' target='_blank' style='text-decoration:none;'>"
-                f"<div style='background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 14px 28px; border-radius: 12px; "
-                f"font-weight: 800; font-size: 1rem; cursor: pointer; border: 2px solid #FFFFFF; backdrop-filter: blur(5px);'>"
-                f"⚡ Activeer PRO"
-                f"</div></a></div>"
-            )
+            buttons_html = f"""
+<div style='display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 20px;'>
+<a href='{btn_student_url}' target='_blank' style='text-decoration:none;'>
+<div style='background: #1a1a1a; color: #FFD700; padding: 12px 24px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #FFD700;'>
+🚀 Word student (Gratis call)
+</div>
+</a>
+<a href='{btn_pro_url}' target='_blank' style='text-decoration:none;'>
+<div style='background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; border: 2px solid #FFFFFF; backdrop-filter: blur(5px);'>
+⚡ Activeer PRO
+</div>
+</a>
+</div>
+""".replace("\n", "")
 
     # --- 2. HEADER & PROGRESS ---
         db_shop_name = user.get('shop_name')
