@@ -1661,68 +1661,85 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
             st.markdown("""
             <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
                 <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-                    <span style="font-size: 1.5rem;">🧿</span> Meta Ad Spy: Spieken bij de Winnaars
+                    <span style="font-size: 1.5rem;">🧿</span> Meta Ad Spy: Strategisch Onderzoek
                 </h3>
                 <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">
-                    Waarom het wiel opnieuw uitvinden? Met deze tool zie je precies welke advertenties <b>nu</b> live staan.
-                    <b>Gouden regel:</b> Zoek naar advertenties die al langer dan 7 dagen actief zijn. Dat zijn de bewezen winners.
+                    Met deze tool spiek je direct in de keuken van de concurrent. Je ziet precies welke advertenties nu live staan op Facebook.
                 </p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ 100% Betrouwbaar</span>
+                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ Live Data</span>
+                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ Gratis Toegang</span>
+                </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # --- 2. HET ZOEKVELD ---
+            # --- 2. DE ZOEKBOX ---
             with st.container(border=True):
-                fb_query = st.text_input("Waar wil je op zoeken?", placeholder="bijv. 'halsketting', 'keuken gadget' of een merknaam", key="fb_q_new")
+                st.markdown("#### 🔍 Wat wil je onderzoeken?")
+                fb_query = st.text_input("Vul een productnaam of merk in:", placeholder="bijv. 'orthopedische schoenen' of 'halsketting'", key="fb_q_final")
                 
-                # Dynamische knop tekst
-                fb_btn_label = "🕵️‍♂️ Start Meta Scan" if is_pro else "🕵️‍♂️ Start Scan (1x Gratis per dag)"
-                
-                if st.button(fb_btn_label, type="primary", use_container_width=True):
-                    if db.can_user_search(user['email'], is_pro):
-                        with st.status("🔍 Meta Ad Library wordt doorzocht...", expanded=True) as status:
-                            from modules import facebook_spy
-                            results = facebook_spy.search_facebook_ads(fb_query, max_results=20)
-                            st.session_state.fb_results = results
-                            status.update(label="Scan voltooid! Check de resultaten hieronder.", state="complete")
-                    else:
-                        st.warning("⚠️ Je dagelijkse gratis scan is op! Word PRO voor onbeperkt onderzoek.")
+                if fb_query:
+                    st.markdown("---")
+                    col_left, col_right = st.columns(2)
+                    
+                    with col_left:
+                        # --- DE MISSION BRIEFING KAART ---
+                        st.markdown(f"""
+                        <div style="background: white; border: 1px solid #BAE6FD; padding: 20px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05);">
+                            <h5 style="margin: 0 0 10px 0; color: #0369A1;">🚀 Mission Briefing: {fb_query}</h5>
+                            <p style="font-size: 0.85rem; color: #475569; line-height: 1.5;">
+                                Boss, je gaat nu de officiële database van Meta in. Volg deze stappen voor een succesvol onderzoek:
+                            </p>
+                            <div style="background: #F8FAFC; padding: 10px; border-radius: 8px; margin: 10px 0; border-left: 3px solid #2563EB;">
+                                <p style="font-size: 0.8rem; margin: 0; color: #1E293B;">
+                                    <b>1. De Focus:</b> Zoek naar ads die al <b>7+ dagen</b> draaien.<br>
+                                    <b>2. De Creatives:</b> Kijk of ze video of foto gebruiken.<br>
+                                    <b>3. De Hook:</b> Waarom zou jij stoppen met scrollen?
+                                </p>
+                            </div>
+                        </div>
+                        """, unsafe_allow_html=True)
+                        
+                        st.markdown("<div style='height: 10px;'></div>", unsafe_allow_html=True)
 
-            # --- 3. RESULTATEN WEERGAVE (Ad Cards) ---
+                        # De Knop met directe link
+                        encoded_q = urllib.parse.quote(fb_query)
+                        fb_url = f"https://www.facebook.com/ads/library/?active_status=all&ad_type=all&q={encoded_q}&country=NL&media_type=all"
+                        
+                        st.link_button("🔥 Start Onderzoek (Nieuw Tabblad)", fb_url, use_container_width=True, type="primary")
+                        
+                        st.caption("⚠️ Vergeet niet terug te komen naar de app na je onderzoek!")                        
+                       
+                    with col_right:
+                        st.markdown("##### 🤖 Methode 2: AI Robot Scan")
+                        st.caption("Laat onze robot de Ad Library scannen (PRO only).")
+                        
+                        # Knop voor de robot
+                        if st.button("🕵️‍♂️ Robot Scan Starten", use_container_width=True):
+                            if db.can_user_search(user['email'], is_pro):
+                                with st.status("🔍 Robot maakt verbinding met Meta...", expanded=True) as status:
+                                    from modules import facebook_spy
+                                    results = facebook_spy.search_facebook_ads(fb_query)
+                                    if results and results != "ERROR":
+                                        st.session_state.fb_results = results
+                                        status.update(label="Scan voltooid!", state="complete")
+                                    else:
+                                        status.update(label="Meta blokkeert de robot...", state="error")
+                                        st.warning("⚠️ Meta weigert momenteel automatische toegang. Gebruik Methode 1 voor direct resultaat.")
+                            else:
+                                st.warning("⚠️ Je dagelijkse gratis scan is op! Word PRO voor meer.")
+
+            # --- 3. RESULTATEN VAN DE ROBOT (ALS DIE WERKT) ---
             if st.session_state.get("fb_results"):
-                st.markdown("---")
-                st.markdown(f"### 🎯 Gevonden Advertenties voor '{fb_query}'")
-                
+                st.markdown("### 🎯 Gevonden via Robot:")
                 for ad in st.session_state.fb_results:
                     with st.container(border=True):
-                        col_img, col_info = st.columns([1, 2])
-                        
-                        with col_img:
-                            if ad.get('media'):
-                                st.image(ad['media'], use_container_width=True)
-                            else:
-                                st.markdown("🖼️ *Geen preview*")
-                        
-                        with col_info:
-                            # Status Badge
-                            days = ad.get('days_active', 0)
-                            badge_color = "#BBF7D0" if days > 7 else "#F1F5F9"
-                            text_color = "#166534" if days > 7 else "#475569"
-                            status_text = "🔥 WINNER POTENTIE" if days > 7 else "NIEUWE AD"
-                            
-                            st.markdown(f"""
-                                <span style="background:{badge_color}; color:{text_color}; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">{status_text}</span>
-                                <h4 style="margin: 5px 0 0 0;">{ad['page_name']}</h4>
-                                <p style="margin:0; font-size:0.8rem; color:#64748B;">Al <b>{days} dagen</b> actief op Facebook/Instagram</p>
-                            """, unsafe_allow_html=True)
-                            
-                            st.markdown("<br>", unsafe_allow_html=True)
-                            
-                            c_btn1, c_btn2 = st.columns(2)
-                            c_btn1.link_button("🛒 Bekijk Shop", ad['shop_link'], use_container_width=True)
-                            
-                            # Optioneel: Deel deze ad met jezelf (XP actie)
-                            if c_btn2.button("💾 Opslaan in Vault", key=f"save_ad_{ad['page_name']}_{days}", use_container_width=True):
-                                st.toast("Opgeslagen! Je vindt deze later terug in je Vault.")
+                        c1, c2 = st.columns([1, 2])
+                        if ad.get('media'): c1.image(ad['media'], use_container_width=True)
+                        c2.markdown(f"**{ad['page_name']}**")
+                        c2.link_button("🛒 Bekijk Winkel", ad['shop_link'], use_container_width=True)
+                          
         # --- TAB 3: CONCURRENTEN SPY ---
         with tab3:
             st.markdown("### 🕵️ Shopify Store Spy")
