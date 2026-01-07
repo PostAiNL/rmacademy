@@ -18,6 +18,7 @@ STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125684"
 COMMUNITY_URL = "https://discord.gg/fCWhU6MC"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=fDY0wbUEPDK" 
 
+
 # Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
 def get_base64_image(image_path):
     try:
@@ -1090,8 +1091,18 @@ else:
             col_vid, col_txt = st.columns([1.3, 1], gap="medium")
             
             with col_vid:
-                # Video direct in de kolom
-                st.video(COACH_VIDEO_URL)
+                st.markdown(
+                    """
+                    <iframe width="100%" height="315" 
+                        src="https://www.youtube.com/embed/fDY0wbUEPDK" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        style="border-radius: 12px;">
+                    </iframe>
+                    """, 
+                    unsafe_allow_html=True
+                )
             
             with col_txt:
                 st.markdown("#### Belangrijke info:")
@@ -1165,7 +1176,7 @@ else:
         """, unsafe_allow_html=True)
 
         # --- 2. DE XP BOOSTER (NU ONDER DE KAART + 2-STAP LOGICA) ---
-        if user['xp'] < 1000:
+        if is_finished and user['xp'] >= 930 and user['xp'] < 1000:
             st.markdown("### 🚀 Laatste stap naar Level 4")
             with st.container(border=True):
                 st.write(f"Je hebt nu **{user['xp']} XP**. Deel de RM Academy APP om de laatste XP te verdienen en de 'E-com Boss' status te claimen.")
