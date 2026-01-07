@@ -6,6 +6,7 @@ import pandas as pd
 import textwrap
 import base64 
 import os
+import io
 from PIL import Image
 from streamlit_option_menu import option_menu
 from datetime import datetime, timedelta, timezone
@@ -306,6 +307,17 @@ st.markdown("""
             padding: 20px !important;
             border-radius: 15px !important;
         }
+
+/* Maak specifieke knoppen rood (Danger Zone) */
+    div[data-testid="stPopover"] button {
+        background-color: #EF4444 !important; /* Rood */
+        border-color: #DC2626 !important;
+        color: white !important;
+    }
+    div[data-testid="stPopover"] button:hover {
+        background-color: #DC2626 !important;
+        border-color: #B91C1C !important;
+    }
 
         /* 4. Lettergrootte van de titel in de blauwe kaart iets verkleinen voor mobiel */
         div[style*="font-size: 1.8rem"] {
@@ -1959,39 +1971,90 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
         tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
         
         with tab1:
-            # --- PROFIEL PAGINA (PLAYER CARD STYLE) ---
-            with tab1:
-                st.markdown("### 👤 Jouw Profiel")
-            
-            # Sectie 1: Business Doelen (Zorgt voor focus)
+            # --- 1. PREMIUM HEADER (GEFIXT) ---
+            # We kijken of er een foto is, anders tonen we de letter
+            avatar_html = ""
+            if user.get('avatar_url'):
+                avatar_html = f'<img src="{user["avatar_url"]}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid #BFDBFE;">'
+            else:
+                initial = user.get('first_name', 'M')[0].upper()
+                avatar_html = f'<div style="width:70px; height:70px; background:#2563EB; color:white; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:30px; font-weight:800;">{initial}</div>'
+
+            st.markdown(f"""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <div style="display: flex; align-items: center; gap: 20px;">
+                    {avatar_html}
+                    <div>
+                        <h3 style="margin: 0; color: #0369A1;">{user.get('first_name', 'Ondernemer')}</h3>
+                        <p style="margin: 0; font-size: 0.9rem; color: #1E293B;"><b>Level {user['level']}</b> • {rank_title}</p>
+                    </div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # --- 2. PROFIELFOTO UPLOADEN ---
+            with st.container(border=True):
+                st.markdown("#### 📸 Profielfoto")
+                uploaded_file = st.file_uploader("Kies een foto...", type=['png', 'jpg', 'jpeg'])
+                
+                if uploaded_file:
+                    img = Image.open(uploaded_file)
+                    # Maak de foto vierkant en klein (150x150) voor snelheid
+                    img = img.resize((150, 150))
+                    buffered = io.BytesIO()
+                    img.save(buffered, format="PNG")
+                    img_str = base64.b64encode(buffered.getvalue()).decode()
+                    avatar_base64 = f"data:image/png;base64,{img_str}"
+                    
+                    if st.button("Foto Opslaan", use_container_width=True):
+                        # Update database
+                        auth.supabase.table('users').update({"avatar_url": avatar_base64}).eq('email', user['email']).execute()
+                        st.session_state.user['avatar_url'] = avatar_base64
+                        st.success("Foto bijgewerkt!")
+                        time.sleep(1)
+                        st.rerun()
+
+            # --- 2. BUSINESS FOCUS ---
             with st.container(border=True):
                 st.markdown("#### 🎯 Business Focus")
                 c1, c2 = st.columns(2)
-                new_shop_name = c1.text_input("Webshop Naam", value=user.get('shop_name', 'Mijn Webshop'))
-                new_goal = c2.selectbox("Maandelijks Doel", ["€5.000", "€10.000", "€15.000+"], index=1)
-                if st.button("Doelen Bijwerken", use_container_width=True):
+                new_shop_name = c1.text_input("Naam van je shop", value=user.get('shop_name', 'Mijn Webshop'))
+                new_goal = c2.selectbox("Eerste Maandelijkse Doel", ["€5.000 (Sidehustle)", "€10.000 (Serieus)", "€15.000+ (Fulltime)"])
+                
+                # Psychologische trigger (Nieuw!)
+                goal_reward = st.text_input("Wat is je eerste 'Reward' als je dit haalt?", placeholder="bijv. Een Rolex, nieuwe MacBook, vakantie naar Bali...")
+                
+                if st.button("Doelen & Focus Opslaan", use_container_width=True, type="primary"):
                     db.update_onboarding_data(user['email'], new_shop_name, new_goal)
-                    st.success("Focus bijgewerkt! 🚀")
+                    st.balloons()
+                    st.success("Focus staat scherp! Ga ervoor. 🚀")
 
-            # Sectie 2: Beveiliging (Wachtwoord)
+            # --- 3. BEVEILIGING ---
             with st.container(border=True):
                 st.markdown("#### 🔒 Beveiliging")
-                new_pass = st.text_input("Nieuw Wachtwoord", type="password", placeholder="Laat leeg om niet te wijzigen")
-                confirm_pass = st.text_input("Bevestig Wachtwoord", type="password")
-                
-                if st.button("Wachtwoord Opslaan", use_container_width=True):
-                    if new_pass and new_pass == confirm_pass:
-                        # Voeg een functie 'update_password' toe in db.py
+                new_pass = st.text_input("Nieuw Wachtwoord", type="password", placeholder="Wachtwoord wijzigen...")
+                if st.button("Wachtwoord Bijwerken", use_container_width=True):
+                    if len(new_pass) > 5:
                         db.update_password(user['email'], new_pass)
-                        st.success("Wachtwoord succesvol gewijzigd!")
+                        st.success("Wachtwoord veilig opgeslagen!")
                     else:
-                        st.error("Wachtwoorden komen niet overeen.")
+                        st.error("Wachtwoord moet minimaal 6 tekens zijn.")
 
+            # --- 4. DATA & UITLOGGEN ---
             st.markdown("<br>", unsafe_allow_html=True)
-            if st.button("🚪 Uitloggen", use_container_width=True, type="secondary"):
-                cookie_manager.delete("rmecom_user_email")
-                st.session_state.clear()
-                st.rerun()
+            col_l1, col_l2 = st.columns([2, 1])
+            with col_l1:
+                if st.button("🚪 Uitloggen", use_container_width=True):
+                    cookie_manager.delete("rmecom_user_email")
+                    st.session_state.clear()
+                    st.rerun()
+            with col_l2:
+                # Danger Zone (Vertrouwen bouwen)
+                with st.popover("🗑️ Account"):
+                    st.write("Weet je het zeker? Al je XP en voortgang gaat verloren.")
+                    if st.button("⚠️ Verwijder mijn data", type="primary", use_container_width=True):
+                        # Hier zou je een delete functie uit db.py kunnen aanroepen
+                        st.error("Neem contact op met support voor verwijdering.")
 
         with tab2:
             st.markdown("""
