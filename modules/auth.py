@@ -59,6 +59,7 @@ def get_rank_info(xp):
     return current_title, next_xp
 
 # --- DATA OPHALEN VOOR LEADERBOARD ---
+@st.cache_data(ttl=600)
 def get_leaderboard_data():
     if not supabase: return []
     try:
@@ -101,6 +102,7 @@ def login_or_register(email, license_input=None, ref_code_input=None, name_input
     st.session_state.is_pro = user.get('is_pro', False)
     st.toast("Succesvol ingelogd!", icon="🚀")
 
+@st.cache_data(ttl=60, show_spinner=False)
 def get_progress():
     if "user" not in st.session_state or not supabase: return []
     try:

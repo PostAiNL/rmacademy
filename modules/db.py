@@ -68,6 +68,7 @@ def update_onboarding_data(email, shop_name, income_goal):
         print(f"Update error: {e}")
     return False
 
+@st.cache_data(ttl=300)
 def get_user_data(email):
     if not supabase: return {}
     try:
@@ -77,6 +78,7 @@ def get_user_data(email):
     return {}
 
 # --- PRO STATUS & REWARDS ---
+@st.cache_data(ttl=300)
 def check_pro_status_db(email):
     if not supabase: return False
     try:
