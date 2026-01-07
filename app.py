@@ -1689,10 +1689,22 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 if url_in and st.button("🚀 Scan Producten", type="primary"):
                     from modules import competitor_spy
                     prods = competitor_spy.scrape_shopify_store(url_in)
-                    if prods:
-                        st.success(f"✅ {len(prods)} producten gevonden op {url_in}")
+                if prods:
+                    # --- NIEUW: VERTAAL LOGICA ---
+                    with st.spinner("🚀 Titels vertalen naar Nederlands..."):
+                        # 1. Verzamel alle titels
+                        original_titles = [p['title'] for p in prods]
+                        # 2. Vertaal via AI (zorg dat je dit in ai_coach.py hebt gezet!)
+                        translated_titles = ai_coach.translate_titles_batch(original_titles)
+                        # 3. Update de lijst
+                        for i, p in enumerate(prods):
+                            if i < len(translated_titles):
+                                p['title'] = translated_titles[i]
+
+                    st.success(f"✅ {len(prods)} producten gevonden en vertaald naar NL!")
                     st.markdown("---")
                     
+                    # Hier start de lus voor de kaartjes weer
                     for p in prods:
                         with st.container(border=True):
                             c1, c2 = st.columns([1, 2.5])
