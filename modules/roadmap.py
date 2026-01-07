@@ -316,7 +316,7 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     </div>
                     """, unsafe_allow_html=True)
 
-                    niche_context = st.session_state.get("final_choice_step_niche", "mijn webshop")
+                    niche_context = st.session_state.get("final_choice_step_niche", "Vul hier in waar je webshop over gaat...")
                     col_gen1, col_gen2 = st.columns([2.5, 1], vertical_alignment="bottom")
                     brand_input = col_gen1.text_input("Waar gaat je webshop over?", value=niche_context, key=f"domain_prompt_{step['id']}")
                     
