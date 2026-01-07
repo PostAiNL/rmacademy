@@ -1613,8 +1613,8 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
         tab1, tab2, tab3 = st.tabs(["🔥 Viral TikTok Hunter", "🧿 Meta Ad Spy", "🕵️ Concurrenten Spy"]) 
         
         # --- TAB 1: TIKTOK HUNTER ---
-        # --- 1. PREMIUM HEADER ---
         with tab1:
+            # 1. HEADER (Deze heb je al, maar ik zet hem erbij voor de context)
             st.markdown("""
             <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
                 <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
@@ -1623,63 +1623,58 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">
                     Vind producten die <b>nu</b> de wereld veroveren. De AI scant miljoenen video's op zoek naar patronen van winnende advertenties.
                 </p>
-                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ Real-time Trends</span>
-                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ Viraliteits-check</span>
-                    <span style="background: white; padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; border: 1px solid #7DD3FC; color: #0369A1; font-weight: 600;">✅ Direct Inkoop-link</span>
-                </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # (Houd de zoek-instellingen containers zoals ze zijn...)
+            # 2. DE ZOEK-INSTELLINGEN (DIT ONTBAK ER NOG)
+            with st.container(border=True):
+                st.markdown("#### 🎯 Instellingen")
+                col_a, col_b = st.columns(2)
+                
+                tk_query = col_a.text_input("Product of Niche", placeholder="bijv. keuken gadgets of beauty", key="tk_search_q")
+                tk_sort = col_b.selectbox("Sorteer op", ["Meeste Views", "Recent Geplaatst", "Meest Relevant"])
+                
+                if st.button("🚀 Start Viral Hunter", type="primary", use_container_width=True):
+                    if tk_query:
+                        with st.status("🕵️‍♂️ AI scant TikTok Ad Library...", expanded=True) as status:
+                            # We roepen de scraper aan (zorg dat deze in je modules staat)
+                            from modules import tiktok_spy
+                            results = tiktok_spy.search_tiktok_trends(tk_query, tk_sort)
+                            
+                            if results and results != "ERROR":
+                                st.session_state.tiktok_results = results
+                                status.update(label="✅ Scannen voltooid! Winners gevonden.", state="complete")
+                            else:
+                                status.update(label="Oeps, TikTok blokkeert de scan. Probeer het over een minuutje weer.", state="error")
+                    else:
+                        st.warning("Vul eerst een zoekterm in!")
 
-            # --- 2. DE VERBETERDE RESULTATEN WEERGAVE ---
+            # 3. DE RESULTATEN WEERGAVE (Houd dit zoals het was)
             if st.session_state.get("tiktok_results"):
                 res = st.session_state.tiktok_results
                 st.markdown(f"### 🚀 {len(res)} Winners gevonden voor jou")
                 
-                # Grid van 2 kolommen voor een app-gevoel
+                # Grid van 2 kolommen
                 for i in range(0, len(res), 2):
                     ca, cb = st.columns(2)
                     
                     def draw_premium_item(col, item, k):
                         with col:
                             with st.container(border=True):
-                                # 1. De Video Cover met badge
+                                if item.get('cover'): st.image(item['cover'], use_container_width=True)
                                 views_k = item['views'] // 1000
-                                badge_text = "🔥 MEGA VIRAAL" if views_k > 500 else "📈 TRENDING"
-                                badge_color = "#DC2626" if views_k > 500 else "#2563EB"
+                                st.markdown(f"**{item['desc'][:45]}...**")
+                                st.caption(f"👁️ {views_k}K Views")
                                 
-                                if item.get('cover'):
-                                    st.image(item['cover'], use_container_width=True)
-                                
-                                # 2. Info & Stats
-                                st.markdown(f"""
-                                    <div style="margin-top: 10px;">
-                                        <span style="background:{badge_color}; color:white; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800;">{badge_text}</span>
-                                        <h4 style="margin: 8px 0 4px 0; font-size: 1rem;">{item['desc'][:45]}...</h4>
-                                        <p style="color:#64748B; font-size:0.85rem; font-weight:bold;">👁️ {views_k}K Views</p>
-                                    </div>
-                                """, unsafe_allow_html=True)
-
-                                # 3. Elite Knoppen
                                 c1, c2 = st.columns(2)
                                 c1.link_button("🎥 Video", item['url'], use_container_width=True)
-                                
-                                # Sourcing Link (AI voorspelt zoekterm op basis van beschrijving)
                                 search_q = urllib.parse.quote(item['desc'][:30])
-                                ali_url = f"https://www.aliexpress.com/wholesale?SearchText={search_q}"
-                                c2.link_button("📦 Inkoop", ali_url, use_container_width=True)
-
-                                # Script Knop (Maakt de cirkel rond)
-                                if st.button("✍️ Schrijf Video Script", key=f"tk_scr_p_{k}", use_container_width=True, type="primary"):
-                                    st.session_state.workflow_product = item['desc']
-                                    st.session_state.nav_index = 3 # Navigeer naar Marketing & Design
-                                    st.rerun()
+                                c2.link_button("📦 Inkoop", f"https://www.aliexpress.com/wholesale?SearchText={search_q}", use_container_width=True)
 
                     draw_premium_item(ca, res[i], i)
                     if i+1 < len(res):
                         draw_premium_item(cb, res[i+1], i+1)
+
         with tab2:
             # --- 1. PREMIUM HEADER ---
             st.markdown("""
