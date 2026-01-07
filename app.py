@@ -380,6 +380,9 @@ if "autologin" in st.query_params and "user" in st.query_params:
 if "view" not in st.session_state:
     st.session_state.view = "main"
 
+if "nav_index" not in st.session_state:
+    st.session_state.nav_index = 0
+
 def set_view(name):
     st.session_state.view = name
     st.rerun()
@@ -661,33 +664,46 @@ def get_image_base64(path):
         return f"data:image/png;base64,{encoded}"
     except: return None
 
-# --- SIDEBAR ---
+# --- 5. SIDEBAR (MET PROFIELFOTO & XP) ---
 with st.sidebar:
-    # WORKFLOW STATE HANDLER: Check if we need to switch tabs
-    if "nav_index" not in st.session_state: st.session_state.nav_index = 0
-    
-    display_name = user.get('first_name') or user['email'].split('@')[0].capitalize()
-    st.markdown(f"""<div style="margin-bottom: 2px; padding-left: 5px;"><h3 style="margin:0; font-size:1.0rem; color:#0F172A;"><i class="bi bi-person-circle"></i> {display_name}</h3><p style="margin:0; font-size: 0.75rem; color: #64748B;"><span style="background:#EFF6FF; padding:2px 6px; border-radius:4px; border:1px solid #DBEAFE; color:#2563EB; font-weight:600;">Lvl {user['level']}</span> {rank_title}</p></div>""", unsafe_allow_html=True)
+    # 1. Profielfoto logica
+    side_avatar = ""
+    if user.get('avatar_url'):
+        # Als er een foto is geüpload
+        side_avatar = f'<img src="{user["avatar_url"]}" style="width:45px; height:45px; border-radius:50%; object-fit:cover; margin-right:12px; border:2px solid #2563EB;">'
+    else:
+        # Fallback naar de eerste letter
+        initial = user.get('first_name', 'M')[0].upper()
+        side_avatar = f'<div style="width:45px; height:45px; background:#2563EB; color:white; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; font-weight:800; margin-right:12px; font-size:18px;">{initial}</div>'
+
+    # 2. Naam en Level weergave
+    st.markdown(f"""
+        <div style="display: flex; align-items: center; margin-bottom: 10px; padding-left: 5px;">
+            {side_avatar}
+            <div style="line-height: 1.1;">
+                <h3 style="margin:0; font-size:1.05rem; color:#0F172A; font-weight:700;">{user.get('first_name', 'Boss')}</h3>
+                <p style="margin:0; font-size: 0.75rem; color: #64748B;">Level {user['level']} • {rank_title}</p>
+            </div>
+        </div>
+    """, unsafe_allow_html=True)
+
+    # 3. De Voortgangsbalk (XP)
     range_span = next_xp_goal_sidebar - prev_threshold
     if range_span <= 0: range_span = 1
     xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0) * 100
-    st.markdown(f"""<div style="background: transparent; border-radius: 4px; height: 6px; width: 100%; margin-top: 8px; margin-bottom: 4px; border: 1px solid #F1F5F9;"><div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 4px; transition: width 0.5s;"></div></div><div style="text-align:right; font-size:0.7rem; color:#94A3B8; margin-bottom:15px;">{user['xp']} / {next_xp_goal_sidebar} XP</div>""", unsafe_allow_html=True)
     
-# --- PAS DIT STUK AAN IN DE SIDEBAR ---
-    if is_temp_pro and not is_pro_license and time_left_str:
-        st.markdown(f"""
-        <div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; display: flex; align-items: center; justify-content: space-between;">
-            <div style="display:flex; align-items:center; gap:8px;">
-                <span style="font-size: 1.2rem;">⏳</span>
-                <div style="line-height:1.1;">
-                    <div style="font-size: 0.7rem; color: #166534; font-weight: 700; text-transform: uppercase;">PRO TIJD OVER</div>
-                    <div style="font-size: 0.95rem; color: #14532D; font-weight: 800;">{time_left_str}</div>
-                </div>
-            </div>
+    st.markdown(f"""
+        <div style="background: #F1F5F9; border-radius: 10px; height: 6px; width: 100%; margin-top: 5px; margin-bottom: 5px;">
+            <div style="background: #2563EB; height: 100%; width: {xp_pct}%; border-radius: 10px; transition: width 0.5s;"></div>
         </div>
-        """, unsafe_allow_html=True)
+        <div style="text-align:right; font-size:0.65rem; color:#94A3B8; margin-bottom:20px;">{user['xp']} / {next_xp_goal_sidebar} XP</div>
+    """, unsafe_allow_html=True)
+
+    # 4. Pro Status / Credits weergave
+    if is_temp_pro and not is_pro_license and time_left_str:
+        st.markdown(f"""<div style="margin-bottom:15px; background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%); padding: 10px; border-radius: 8px; border: 1px solid #86EFAC; text-align:center;"><div style="font-size: 0.65rem; color: #166534; font-weight: 700;">PRO TIJD OVER</div><div style="font-size: 0.9rem; color: #14532D; font-weight: 800;">⏳ {time_left_str}</div></div>""", unsafe_allow_html=True)
     elif not is_pro:
-        st.markdown(f"""<div style="margin-bottom:10px; font-size:0.8rem; color:#64748B; background:#F1F5F9; padding:6px; border-radius:6px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 dagelijkse AI credits</div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="margin-bottom:15px; font-size:0.75rem; color:#64748B; background:#F1F5F9; padding:8px; border-radius:8px; text-align:center;">⚡ <b>{st.session_state.ai_credits}</b>/3 AI credits over</div>""", unsafe_allow_html=True)
     
 # --- VERVANG VANAF HIER ---
     options = ["Dashboard", "Academy", "Producten Zoeken", "Marketing & Design", "Financiën", "Instellingen"]
@@ -1968,7 +1984,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
 
     elif pg == "Instellingen":
         st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Profiel", "Partner", "Koppelingen", "Hulp", "Feedback"])
+        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Mijn Profiel", "Geld verdienen", "Koppeling Shopify", "Hulp nodig?", "Feedback"])
         
         with tab1:
             # --- 1. PREMIUM HEADER (GEFIXT) ---
@@ -2161,54 +2177,65 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 """)
         
         with tab5:
-            st.markdown("#### 💡 Jouw mening telt")
-            
-            # Check in de database of de gebruiker de beloning al eens heeft gehad
+            # --- 1. PREMIUM HEADER ---
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                    <span style="font-size: 1.5rem;">💡</span> Help ons de #1 te blijven
+                </h3>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 10px;">
+                    Loop je ergens tegenaan? Mis je een specifieke tool? Of heb je een tip voor Roy en Michael? Laat het ons weten. Wij bouwen deze app speciaal voor jouw succes.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
+
+            # Check of de beloning al geclaimd is
             has_claimed_before = user.get('feedback_reward_claimed', False)
 
             if has_claimed_before and not is_pro_license:
                 if is_temp_pro:
-                    st.success(f"✅ Je 24u PRO toegang is momenteel actief! (Nog {time_left_str})")
+                    st.success(f"✅ Lekker bezig! Je 24u PRO toegang is momenteel actief! (Nog {time_left_str} over)")
                 else:
-                    st.info("Je hebt je eenmalige 24u PRO beloning al gebruikt. Word PRO lid voor onbeperkte toegang.")
-                    st.link_button("Word PRO Lid", STRATEGY_CALL_URL, use_container_width=True)
+                    st.info("Je hebt je eenmalige 24u PRO beloning al gebruikt. Word PRO lid voor onbeperkte toegang tot alle tools.")
+                    st.link_button("🚀 Word PRO Lid (€49,95)", STRATEGY_CALL_URL, use_container_width=True)
             
             elif st.session_state.get("feedback_done", False):
-                st.success("Bedankt! Je feedback is verwerkt.")
+                st.balloons()
+                st.success("Bedankt voor je waardevolle feedback! Je 24u PRO toegang is nu actief. 🔥")
             
             else:
+                # --- 2. DE BELONING (GOUD/GEEL) ---
                 st.markdown("""
-                <div style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border: 1px solid #FCD34D; padding: 15px; border-radius: 12px; margin-bottom: 20px;">
-                    <h4 style="margin: 0; color: #92400E; font-size: 1rem;">🎁 Cadeau: 24u PRO Toegang</h4>
-                    <p style="margin: 2px 0 0 0; font-size: 0.85rem; color: #B45309;">
-                        Geef ons eerlijke feedback en unlock direct alle PRO tools voor 24 uur.
+                <div style="background: #FFFBEB; border: 1px solid #FCD34D; padding: 20px; border-radius: 12px; margin-bottom: 25px;">
+                    <h4 style="margin: 0; color: #92400E; font-size: 1.1rem; font-weight: 800;">🎁 Cadeau: 24u Gratis PRO Toegang</h4>
+                    <p style="margin: 5px 0 0 0; font-size: 0.95rem; color: #B45309;">
+                        Geef ons eerlijke feedback (minimaal 20 tekens) en unlock <b>direct</b> alle PRO functies zoals de Product Hunter en Spy Tools voor 24 uur.
                     </p>
                 </div>
                 """, unsafe_allow_html=True)
 
-                fb_text = st.text_area("Wat vind je van de app tot nu toe?", placeholder="Wat mis je nog? Wat kan beter?", height=120, key="feedback_text_input")
+                # --- 3. INPUT AREA ---
+                fb_text = st.text_area("Jouw ervaring:", placeholder="Wat vind je van de Roadmap? Wat kunnen we verbeteren voor starters?", height=150, key="feedback_text_input")
                 
-                if st.button("Verstuur & Claim 24u PRO 🚀", use_container_width=True, key="feedback_submit_btn"):
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                if st.button("Verstuur & Claim Beloning 🚀", use_container_width=True, type="primary", key="feedback_submit_btn"):
                     if len(fb_text) > 20:
-                        with st.spinner("Bezig met verwerken..."):
+                        with st.spinner("Je beloning wordt geactiveerd..."):
                             is_valid = ai_coach.validate_feedback(fb_text)
                             
                             if is_valid:
                                 status = db.claim_feedback_reward(user['email'], fb_text)
-                                
                                 if status == "SUCCESS":
-                                    st.cache_data.clear() # ZEER BELANGRIJK: Maakt de cache leeg
+                                    st.cache_data.clear() 
                                     st.session_state.feedback_done = True
-                                    st.balloons()
-                                    st.success("🎉 PRO Geactiveerd! Je hebt nu 24 uur toegang.")
-                                    time.sleep(2)
-                                    st.rerun() # Herlaad de app met de nieuwe status
+                                    st.rerun() 
                                 else:
-                                    st.error("Je hebt deze beloning al eens geclaimd.")
+                                    st.error("Er is iets misgegaan bij het opslaan. Probeer het later opnieuw.")
                             else:
-                                st.warning("Je feedback is te kort of onduidelijk. Vertel ons echt wat je vindt!")
+                                st.warning("Je feedback is te kort of onduidelijk. Vertel ons iets meer om de beloning te unlocken!")
                     else:
-                        st.warning("Vertel ons iets meer (minimaal 20 tekens) om de beloning te unlocken.")
+                        st.warning("Vertel ons iets meer (minimaal 20 tekens) om je 24u PRO toegang te claimen.")
 
     # --- DE FOOTER (STAAT ONDERAAN ELKE PAGINA) ---
     render_footer()
