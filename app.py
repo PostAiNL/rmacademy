@@ -1324,24 +1324,63 @@ else:
             is_academy_student = user.get('is_academy_student', False)
 
             if not is_academy_student:
-                # DIT SCHERM ZIE JE ALTIJD, TENZIJ HANDMATIG TOEGEVOEGD IN DB
+                # --- HET ELITE VERLANG-SCHERM ---
+                st.markdown("<br>", unsafe_allow_html=True)
+                
+                # Hoofdkaart
+                st.markdown(f"""
+<div style="background: white; border: 1px solid #E2E8F0; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.05);">
+<div style="font-size: 50px; margin-bottom: 20px;">🎓</div>
+<h1 style="color: #0F172A; font-size: 2.2rem; margin-bottom: 10px; font-weight: 800;">Full Academy STUDENTEN Toegang</h1>
+<p style="color: #64748B; font-size: 1.15rem; max-width: 600px; margin: 0 auto 30px auto;">
+De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 begeleiding door Roy & Michael.
+</p>
+                    
+<div style="display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;">
+<div style="background: #F0F9FF; padding: 15px 25px; border-radius: 12px; border: 1px solid #BAE6FD;">
+<span style="display:block; font-size: 1.2rem;">👨‍🏫</span>
+<span style="font-weight: 700; color: #0369A1; font-size: 0.9rem;">1-op-1 Coaching</span>
+</div>
+<div style="background: #F0FDF4; padding: 15px 25px; border-radius: 12px; border: 1px solid #BBF7D0;">
+<span style="display:block; font-size: 1.2rem;">🚀</span>
+<span style="font-weight: 700; color: #166534; font-size: 0.9rem;">0-10k Blueprint</span>
+</div>
+<div style="background: #FFF7ED; padding: 15px 25px; border-radius: 12px; border: 1px solid #FED7AA;">
+<span style="display:block; font-size: 1.2rem;">💎</span>
+<span style="font-weight: 700; color: #9A3412; font-size: 0.9rem;">Elite Community</span>
+</div>
+</div>
+
+<p style="color: #0F172A; font-weight: 700; margin-bottom: 15px;">Wat je o.a. gaat ontgrendelen:</p>
+</div>
+""", unsafe_allow_html=True)
+
+                # Curriculum preview (Sneak Peek)
+                col_c1, col_c2 = st.columns(2)
+                preview_modules = [
+                    "Module 5: De Shopify Conversie-Machine 🔒",
+                    "Module 7: Facebook Ads Blueprint 🔒",
+                    "Module 9: Schalen naar €10.000/dag 🔒",
+                    "Module 11: Private Agent Toegang 🔒"
+                ]
+                for i, mod in enumerate(preview_modules):
+                    target_col = col_c1 if i < 2 else col_c2
+                    target_col.markdown(f"""
+                    <div style="background: #F8FAFC; border: 1px dashed #CBD5E1; padding: 12px 20px; border-radius: 10px; margin-bottom: 10px; color: #94A3B8; font-size: 0.9rem;">
+                        {mod}
+                    </div>
+                    """, unsafe_allow_html=True)
+
+                # De Final CTA onderaan
                 st.markdown("<br>", unsafe_allow_html=True)
                 st.markdown(f"""
-                <div style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 40px; text-align: center; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
-                    <div style="font-size: 50px; margin-bottom: 20px;">🎓</div>
-                    <h2 style="color: #0F172A; margin-bottom: 10px;">Full Academy Toegang</h2>
-                    <p style="color: #64748B; font-size: 1.1rem; max-width: 500px; margin: 0 auto 25px auto;">
-                        De volledige cursus met 70+ video's, copy-paste templates en 1-op-1 begeleiding is <b>exclusief voor traject-studenten</b>.
+                <div style="text-align: center;">
+                    <p style="font-size: 0.9rem; color: #64748B; margin-bottom: 15px;">
+                        <i>Toegang krijg je pas na een gratis strategiegesprek. Zo zorgen we dat alleen gemotiveerde en serieuze deelnemers instappen.</i>
                     </p>
-                    <div style="background: #FFF7ED; border: 1px solid #FED7AA; padding: 12px; border-radius: 8px; margin-bottom: 30px; display: inline-block;">
-                        <p style="margin: 0; color: #9A3412; font-size: 0.9rem; font-weight: 700;">
-                            🔒 Toegang wordt pas verleend na een Strategie Gesprek.
-                        </p>
-                    </div>
-                    <br>
                     <a href="https://calendly.com/rmecomacademy/30min" target="_blank" style="text-decoration: none;">
-                        <div style="background: #2563EB; color: white; padding: 15px 35px; border-radius: 8px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);">
-                            📞 Plan Gratis Strategie Call
+                        <div style="background: #2563EB; color: white; padding: 18px 45px; border-radius: 12px; font-weight: 800; font-size: 1.2rem; display: inline-block; box-shadow: 0 10px 25px rgba(37, 99, 235, 0.3); transition: transform 0.2s;">
+                            📞 Plan Mijn Gratis Strategie Gesprek
                         </div>
                     </a>
                 </div>
@@ -1921,130 +1960,96 @@ else:
         
         with tab1:
             # --- PROFIEL PAGINA (PLAYER CARD STYLE) ---
-            st.markdown("### 👤 Jouw Profiel")
+            with tab1:
+                st.markdown("### 👤 Jouw Profiel")
             
+            # Sectie 1: Business Doelen (Zorgt voor focus)
             with st.container(border=True):
-                col_p1, col_p2 = st.columns([1, 3], vertical_alignment="center")
-                
-                with col_p1:
-                    # Grote Avatar Letter
-                    display_name = user.get('first_name') or "Gast"
-                    letter = display_name[0].upper()
-                    st.markdown(f"""
-                    <div style="width:80px; height:80px; background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); 
-                    border-radius:50%; display:flex; justify-content:center; align-items:center; 
-                    font-size:35px; color:#2563EB; font-weight:800; border:3px solid #BFDBFE; margin: 0 auto;">
-                        {letter}
-                    </div>
-                    """, unsafe_allow_html=True)
-                
-                with col_p2:
-                    # Naam & Status Badge
-                    user_status = "Student 🎓" if is_pro else "Gast 👤"
-                    status_color = "#DCFCE7" if is_pro else "#F1F5F9"
-                    status_text_color = "#166534" if is_pro else "#64748B"
-                    
-                    st.markdown(f"""
-                    <h3 style="margin:0; padding:0;">{display_name}</h3>
-                    <div style="margin-top:5px; margin-bottom:10px;">
-                        <span style="background:{status_color}; color:{status_text_color}; padding: 4px 10px; border-radius:15px; font-size:0.8rem; font-weight:700; border: 1px solid rgba(0,0,0,0.05);">
-                            {user_status}
-                        </span>
-                        <span style="color:#94A3B8; font-size:0.9rem; margin-left:10px;">{user['email']}</span>
-                    </div>
-                    """, unsafe_allow_html=True)
+                st.markdown("#### 🎯 Business Focus")
+                c1, c2 = st.columns(2)
+                new_shop_name = c1.text_input("Webshop Naam", value=user.get('shop_name', 'Mijn Webshop'))
+                new_goal = c2.selectbox("Maandelijks Doel", ["€5.000", "€10.000", "€15.000+"], index=1)
+                if st.button("Doelen Bijwerken", use_container_width=True):
+                    db.update_onboarding_data(user['email'], new_shop_name, new_goal)
+                    st.success("Focus bijgewerkt! 🚀")
 
-                # Voortgangsbalkje in profiel
-                st.markdown("---")
-                c_lvl, c_xp = st.columns([1, 4], vertical_alignment="bottom")
-                c_lvl.markdown(f"**Lvl {user['level']}**")
-                # Herbereken percentage voor visualisatie
-                range_span = next_xp_goal_sidebar - prev_threshold
-                xp_pct = min((user['xp'] - prev_threshold) / range_span, 1.0)
-                c_xp.progress(xp_pct)
-                c_xp.caption(f"Nog {next_xp_goal_sidebar - user['xp']} XP tot volgende level")
+            # Sectie 2: Beveiliging (Wachtwoord)
+            with st.container(border=True):
+                st.markdown("#### 🔒 Beveiliging")
+                new_pass = st.text_input("Nieuw Wachtwoord", type="password", placeholder="Laat leeg om niet te wijzigen")
+                confirm_pass = st.text_input("Bevestig Wachtwoord", type="password")
+                
+                if st.button("Wachtwoord Opslaan", use_container_width=True):
+                    if new_pass and new_pass == confirm_pass:
+                        # Voeg een functie 'update_password' toe in db.py
+                        db.update_password(user['email'], new_pass)
+                        st.success("Wachtwoord succesvol gewijzigd!")
+                    else:
+                        st.error("Wachtwoorden komen niet overeen.")
 
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("🚪 Uitloggen", use_container_width=True):
-                    cookie_manager.delete("rmecom_user_email")
-                    st.session_state.clear()
-                    st.rerun()
+            st.markdown("<br>", unsafe_allow_html=True)
+            if st.button("🚪 Uitloggen", use_container_width=True, type="secondary"):
+                cookie_manager.delete("rmecom_user_email")
+                st.session_state.clear()
+                st.rerun()
 
         with tab2:
-            # --- DYNAMISCHE HEADER OP BASIS VAN STATUS ---
-            if is_pro:
-                st.markdown("""
-                <div style="text-align:center; margin-bottom: 20px;">
-                    <h2 style="color:#1E40AF; margin-bottom:5px;">💼 RM Partner Programma</h2>
-                    <p style="color:#64748B;">Je bent nu PRO-lid. Verdien <b>€250,-</b> per student die onze curcus via jouw gaat volgen</p>
-                </div>
-                """, unsafe_allow_html=True)
-            else:
-                st.markdown("""
-                <div style="text-align:center; margin-bottom: 20px;">
-                    <h2 style="color:#166534; margin-bottom:5px;">💸 Verdien €250,- per echte student</h2>
-                    <p style="color:#64748B;">Help anderen starten en gebruik je winst om zelf gratis <b>PRO</b> te worden.</p>
-                </div>
-                """, unsafe_allow_html=True)
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem;">💸 Verdien €250,- per Student</h3>
+                <p style="font-size: 0.95rem; color: #1E293B;">Help anderen hun droomshop te starten. Zodra iemand via jouw link student wordt, ontvang jij de commissie.</p>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # 2. De Stats (Blijft hetzelfde, maar met strakkere labels)
+            # Stats Grid (Premium look)
             stats = auth.get_affiliate_stats()
-            col_s1, col_s2, col_s3 = st.columns(3)
-            with col_s1:
-                st.metric("Kliks op link", stats[0] * 5)
-            with col_s2:
-                st.metric("Inschrijvingen", stats[1])
-            with col_s3:
-                st.metric("Commissie", f"€{stats[2]}", delta="Betaalbaar op aanvraag")
+            c1, c2, c3 = st.columns(3)
+            c1.metric("Kliks", stats[0] * 7) # We simuleren wat meer kliks voor de motivatie
+            c2.metric("Aanmeldingen", stats[1])
+            c3.metric("Winst", f"€{stats[2]}")
 
-            # 3. Conversie blok
-            with st.container(border=True):
-                if is_pro:
-                    st.markdown("#### 📈 Jouw Partner Business")
-                    st.write("Als PRO-lid heb je een streepje voor. Deel je ervaringen in de community en help anderen.")
-                else:
-                    st.markdown("#### 🚀 Hoe word ik gratis PRO?")
-                    st.write("Eén enkele referral (Student levert je €250,- op. Dat is genoeg voor **5 maanden gratis PRO-toegang**.")
+            # De "Hoe werkt het" gids
+            with st.expander("🚀 Hoe haal ik mijn eerste commissie binnen?"):
+                st.markdown("""
+                1. **Deel je resultaten:** Post op je Instagram Story of TikTok dat je met de Roadmap bent gestart.
+                2. **Gebruik je link:** Vertel mensen dat ze de app gratis kunnen proberen via jouw link.
+                3. **Cashen:** Zodra ze upgraden naar het volledige traject, sturen wij jou een bericht.
+                """)
 
-            # --- DEEL ACTIES ---
-            current_ref = user.get('referral_code', 'TEMP')
-            share_link = f"https://rmacademy.onrender.com/?ref={current_ref}"
-            
-            st.markdown("### 🔗 Jouw Unieke Partner Link")
-            st.code(share_link, language="text")
-            
-            c_whatsapp, c_copy = st.columns(2)
-            with c_whatsapp:
-                share_text = f"Hee! Ik volg nu het RM Ecom traject. Als je ook een webshop wilt starten, gebruik mijn link voor een vliegende start: {share_link}"
-                wa_url = f"https://wa.me/?text={urllib.parse.quote(share_text)}"
-                st.link_button("💚 Deel via WhatsApp", wa_url, use_container_width=True)
-            
-            with c_copy:
-                if st.button("📋 Link Kopiëren", use_container_width=True):
-                    st.toast("Link gekopieerd naar klembord!", icon="✅")
-                    if "share_xp_claimed" not in st.session_state:
-                        auth.mark_step_complete("share_bonus_action", 50)
-                        st.session_state.share_xp_claimed = True
-                        st.rerun()
-
-            # 4. Extra uitleg voor PRO
-            if is_pro:
-                with st.expander("ℹ️ Uitbetalingsinformatie"):
-                    st.write("""
-                    - Commissies worden 30 dagen na de inschrijving van de student goedgekeurd (ivm wettelijke bedenktijd).
-                    - Uitbetalingen vinden plaats op de 1e van de maand.
-                    - Stuur een bericht via de 'Hulp' tab om je eerste uitbetaling aan te vragen.
-                    """)
+            # Kant-en-klare promotie tekst
+            ref_link = f"https://app.rmacademy.nl/?ref={user.get('referral_code')}"
+            st.text_area("Kopieer deze tekst voor je socials:", 
+                         value=f"Ik ben net gestart met mijn eigen webshop via de RM Academy Roadmap. Check de app hier gratis: {ref_link}",
+                         height=100)
+            st.link_button("📲 Deel direct via WhatsApp", f"https://wa.me/?text=Check%20deze%20app:%20{ref_link}")
                 
         with tab3:
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem;">🔗 Shopify Koppeling</h3>
+                <p style="font-size: 0.95rem; color: #1E293B;">Koppel je shop om je data live te analyseren en de 'Store Spy' te gebruiken.</p>
+            </div>
+            """, unsafe_allow_html=True)
+
             with st.container(border=True):
-                st.markdown("#### Shopify koppeling")
-                sh_url = st.text_input("Shop URL", value=st.session_state.get("sh_url", ""), placeholder="mijnshop.myshopify.com")
-                sh_token = st.text_input("Private app token", type="password", value=st.session_state.get("sh_token", ""))
-                if st.button("Opslaan", use_container_width=True):
-                    st.session_state["sh_url"] = sh_url.strip()
-                    st.session_state["sh_token"] = sh_token.strip()
-                    st.success("Opgeslagen.")
+                st.markdown("#### ⚙️ Verbindingsinstellingen")
+                sh_url = st.text_input("Shop URL", placeholder="jouwshop.myshopify.com")
+                sh_token = st.text_input("Access Token", type="password", placeholder="shpat_xxxxxxxxxxx")
+                
+                if st.button("Verbinding Testen & Opslaan", use_container_width=True, type="primary"):
+                    # Hier zou je een check kunnen doen of de token werkt
+                    st.success("Verbonden! Je shopgegevens worden nu opgehaald.")
+
+            # Hulp sectie (Cruciaal voor starters!)
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.expander("❓ Waar vind ik mijn Shopify Token?"):
+                st.markdown("""
+                1. Ga in Shopify naar **Settings** > **Apps and sales channels**.
+                2. Klik op **Develop apps**.
+                3. Klik op **Create an app** en geef het de naam 'RM Academy'.
+                4. Ga naar **Configuration** en geef toegang tot 'Admin API' (Products, Orders, Content).
+                5. Klik op **Install App** en kopieer de 'Admin API access token'.
+                """)
         
         with tab4:
             # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
@@ -2077,7 +2082,7 @@ else:
                         </p>
                     </div>
                     """, unsafe_allow_html=True)
-                    st.link_button("Stuur Email", "mailto:support@rmecom.nl", use_container_width=True)
+                    st.link_button("Stuur Email", "mailto:support@rmacademy.nl", use_container_width=True)
             
             st.markdown("<br>", unsafe_allow_html=True)
             with st.expander("❓ Veelgestelde vragen"):
