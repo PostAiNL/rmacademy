@@ -1076,73 +1076,54 @@ else:
         st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
         st.progress(safe_progress / 100)
 
-# --- 3. UITLEG SECTIE IN KASSA STIJL ---
-        st.markdown("<div style='height:10px;'></div>", unsafe_allow_html=True)
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
-            # De hoofdcontainer in Kassa-stijl
-            st.markdown("""
-            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 10px;">
-                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-                    <span style="font-size: 1.5rem;">🚀</span> Welkom bij de Academy
-                </h3>
-                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 10px;">
-    Volg de Roadmap stap-voor-stap en gebruik onze AI-tools om jouw winstgevende webshop te bouwen.
-</p>
-<p style="font-size: 0.85rem; color: #64748B; margin-bottom: 0;">
-    <i>Samen bouwen wij jouw succes! - Team RM Ecom</i>
-</p>
-            </div>
-            """, unsafe_allow_html=True)
+            # We maken een strakke, 2-koloms layout zonder dubbele kaders
+            col_vid, col_info = st.columns([1.2, 1], gap="large")
 
-            col_vid, col_txt = st.columns([1.3, 1], gap="medium")
-            
             with col_vid:
-                st.markdown(
-                    """
-                    <iframe width="100%" height="315" 
-                        src="https://www.youtube.com/embed/fDY0wbUEPDK" 
-                        frameborder="0" 
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                        allowfullscreen 
-                        style="border-radius: 12px;">
+                # Video: Iframe methode voor Shorts (omzeilt "niet beschikbaar" fout)
+                video_id = "fDY0wbUEPDK"
+                st.markdown(f"""
+                    <iframe width="100%" height="320" 
+                        src="https://www.youtube.com/embed/{video_id}?rel=0" 
+                        frameborder="0" allowfullscreen 
+                        style="border-radius: 12px; border: 1px solid #E2E8F0;">
                     </iframe>
-                    """, 
-                    unsafe_allow_html=True
-                )
-            
-            with col_txt:
-                st.markdown("#### Belangrijke info:")
-                
-                # De badges/pills in de nieuwe stijl
+                """, unsafe_allow_html=True)
+
+            with col_info:
                 st.markdown("""
-                <div style="margin-bottom: 12px;">
-                    <div style="margin-bottom: 8px;">
-                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #CBD5E1; color: #475569; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">DEMO</span> 
-                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Roadmap + 3 AI credits</span>
+                    <h3 style="margin-top:0; font-size:1.4rem; font-weight:800; color:#0F172A;">Welkom bij de Academy</h3>
+                    <p style="font-size:0.9rem; color:#64748B; margin-bottom:15px; line-height:1.4;">
+                        Bouw stap-voor-stap aan jouw winstgevende webshop met onze roadmap en handige AI tools.
+                    </p>
+                    <div style="margin-bottom: 20px;">
+                        <div style="display:flex; align-items:center; margin-bottom:8px;">
+                            <span style="background:#F1F5F9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">DEMO</span>
+                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Roadmap + 3 AI credits</span>
+                        </div>
+                        <div style="display:flex; align-items:center; margin-bottom:8px;">
+                            <span style="background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">PRO ⚡</span>
+                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Onbeperkt AI + Spy-tools</span>
+                        </div>
+                        <div style="display:flex; align-items:center;">
+                            <span style="background:#DBEAFE; color:#1E40AF; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">STUDENT</span>
+                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Volledige cursus + 1-op-1 coaching</span>
+                        </div>
                     </div>
-                    <div style="margin-bottom: 8px;">
-                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #FCD34D; color: #92400E; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">PRO Lid ⚡</span> 
-                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Onbeperkt AI + Spy-tools + Giveaway 🎁</span>
-                    </div>
-                    <div style="margin-bottom: 15px;">
-                        <span style="background: white; padding: 3px 10px; border-radius: 6px; border: 1px solid #2563EB; color: #1E40AF; font-weight: 800; font-size: 0.7rem; text-transform: uppercase;">STUDENT 🎓</span> 
-                        <span style="font-size: 0.9rem; color: #1E293B; margin-left: 5px;">Volledige cursus + 1op1 Coaching</span>
-                    </div>
-                </div>
                 """, unsafe_allow_html=True)
 
                 if not is_pro:
-                    # De GOUDEN PRO KNOP (matcht met de sidebar)
                     st.markdown(f"""
-                    <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
-                        <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
-                                    padding: 14px; border-radius: 12px; text-align: center; 
-                                    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); 
-                                    border: 1px solid #FCD34D; transition: transform 0.2s;">
-                            <div style="font-weight: 800; color: #78350F; font-size: 1rem;">🚀 UPGRADE NAAR PRO</div>
-                            <div style="font-size: 0.7rem; color: #92400E; font-weight: 700; text-transform: uppercase;">Unlock alle tools (€49,95)</div>
-                        </div>
-                    </a>
+                        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
+                            <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
+                                        padding: 12px; border-radius: 10px; text-align: center; 
+                                        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); 
+                                        border: 1px solid #FCD34D;">
+                                <div style="font-weight: 800; color: #78350F; font-size: 0.95rem;">🚀UPGRADE NAAR PRO</div>
+                                <div style="font-size: 0.65rem; color: #92400E; font-weight: 700; text-transform: uppercase;">Unlock alle tools (€49,95)</div>
+                            </div>
+                        </a>
                     """, unsafe_allow_html=True)
                 else:
                     st.success("✅ Je bent een PRO lid!")
