@@ -2131,49 +2131,59 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 """)
         
         with tab4:
-            # --- HULP PAGINA (DUIDELIJKE KEUZE) ---
-            st.markdown("### 🆘 Waar heb je hulp bij nodig?")
-            st.markdown("Kies de juiste weg voor het snelste antwoord.")
+            # --- 1. PREMIUM HEADER ---
+            st.markdown("""
+            <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                    <span style="font-size: 1.5rem;">🆘</span> Je staat er nooit alleen voor
+                </h3>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 10px;">
+                    Of je nu een technische vraag hebt over Shopify of vastloopt bij het zoeken van producten: wij zijn er om je te helpen. Kies de juiste route voor het snelste antwoord.
+                </p>
+            </div>
+            """, unsafe_allow_html=True)
 
+            # --- 2. CONTACT KAARTEN ---
             col_h1, col_h2 = st.columns(2)
 
             with col_h1:
-                with st.container(border=True):
-                    st.markdown("""
-                    <div style="text-align:center;">
-                        <div style="font-size:40px; margin-bottom:10px;">💬</div>
-                        <h4 style="margin:0;">Vragen over E-com?</h4>
-                        <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
-                            "Hoe werkt Shopify?", "Is dit product goed?".<br>Vraag het aan 500+ andere studenten.
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    st.link_button("Naar Discord Community", COMMUNITY_URL, type="primary", use_container_width=True)
+                st.markdown("""
+                <div style="background: white; border: 1px solid #E2E8F0; padding: 25px; border-radius: 16px; min-height: 220px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div style="font-size: 40px; margin-bottom: 15px;">💬</div>
+                    <h4 style="margin: 0; color: #0F172A;">Vragen over E-com?</h4>
+                    <p style="font-size: 0.9rem; color: #64748B; margin-top: 10px; min-height: 60px;">
+                        "Is dit product goed?", "Hoe werkt deze app?".<br>Stel je vraag aan 500+ andere studenten in de Discord.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("<div style='margin-top: -15px;'></div>", unsafe_allow_html=True) # Kleine correctie voor de knop
+                st.link_button("Naar Discord Community", COMMUNITY_URL, type="primary", use_container_width=True)
 
             with col_h2:
-                with st.container(border=True):
-                    st.markdown("""
-                    <div style="text-align:center;">
-                        <div style="font-size:40px; margin-bottom:10px;">⚙️</div>
-                        <h4 style="margin:0;">Account Problemen?</h4>
-                        <p style="font-size:0.85rem; color:#64748B; min-height:40px;">
-                            Inloggen lukt niet, wachtwoord vergeten of betalingsvragen.<br>Wij helpen je persoonlijk.
-                        </p>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    st.link_button("Stuur Email", "mailto:support@rmacademy.nl", use_container_width=True)
-            
-            st.markdown("<br>", unsafe_allow_html=True)
-            with st.expander("❓ Veelgestelde vragen"):
                 st.markdown("""
-                **Is de app gratis?**
-                Ja, de basis is gratis. Voor geavanceerde tools (Spy Tool, AI content) heb je de cursus nodig.
+                <div style="background: white; border: 1px solid #E2E8F0; padding: 25px; border-radius: 16px; min-height: 220px; text-align: center; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+                    <div style="font-size: 40px; margin-bottom: 15px;">⚙️</div>
+                    <h4 style="margin: 0; color: #0F172A;">Account & Techniek</h4>
+                    <p style="font-size: 0.9rem; color: #64748B; margin-top: 10px; min-height: 60px;">
+                        Inlogproblemen, betalingsvragen of technische fouten in de app.<br>Ons support-team helpt je persoonlijk.
+                    </p>
+                </div>
+                """, unsafe_allow_html=True)
+                st.markdown("<div style='margin-top: -15px;'></div>", unsafe_allow_html=True)
+                st.link_button("Stuur Email naar Support", "mailto:support@rmacademy.nl", use_container_width=True)
+            
+            # --- 3. VEELGESTELDE VRAGEN ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.expander("❓ Veelgestelde vragen (FAQ)"):
+                st.markdown("""
+                **Is de app echt gratis?**
+                Ja, de Roadmap en de basis-tools zijn gratis voor iedereen. Voor geavanceerde functies (zoals de Viral Hunter en Ad-Spy) heb je een PRO-abonnement of traject-toegang nodig.
                 
-                **Hoe krijg ik meer XP?**
-                Voltooi stappen in de Roadmap of gebruik de tools in het dashboard.
+                **Hoe krijg ik meer AI Credits?**
+                Je credits worden elke nacht om 00:00 uur automatisch ververst naar 3. PRO-leden hebben onbeperkte credits.
                 
-                **Mijn vriendencode werkt niet?**
-                Neem even contact op via de mail, dan lossen we het op!
+                **Werkt mijn vriendencode ook voor de Academy?**
+                Nee, vriendencodes geven je direct toegang tot de app. Voor het volledige coaching-traject moet je een strategiegesprek inplannen.
                 """)
         
         with tab5:
@@ -2181,7 +2191,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
             st.markdown("""
             <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
                 <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
-                    <span style="font-size: 1.5rem;">💡</span> Help ons de #1 te blijven
+                    <span style="font-size: 1.5rem;">💡</span> Help ons om de app te verbeteren en samen te groeien!
                 </h3>
                 <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 10px;">
                     Loop je ergens tegenaan? Mis je een specifieke tool? Of heb je een tip voor Roy en Michael? Laat het ons weten. Wij bouwen deze app speciaal voor jouw succes.
