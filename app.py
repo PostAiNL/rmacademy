@@ -1777,26 +1777,36 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                             
                             with c2:
                                 st.markdown(f"### {p['title']}")
-                                st.markdown(f"💰 **Prijs:** €{p['price']}")
-                                if p['published_at']:
-                                    st.caption(f"📅 Toegevoegd op: {p['published_at']}")
+                                st.markdown(f"💰 **Prijs bij concurrent:** €{p['price']}")
                                 
-                                # DE PRO TOOLS (DIT MAAKT HET WAARDEVOL)
+                                # --- NIEUW: AUTOMATISCHE WINST ANALYSE ---
+                                with st.expander("📊 Bekijk Winst-Analyse (PRO Tool)", expanded=True):
+                                    # De AI doet de berekening
+                                    analysis = ai_coach.analyze_profit_potential(p['title'], p['price'])
+                                    
+                                    if analysis:
+                                        col_a, col_b, col_c = st.columns(3)
+                                        col_a.metric("Inkoop (est.)", f"€{analysis['inkoop']}")
+                                        col_b.metric("Ads (est.)", f"€{analysis['ads']}")
+                                        
+                                        # Kleur van de winst bepalen
+                                        winst_kleur = "#16A34A" if analysis['status'] == "GROEN" else "#EA580C" if analysis['status'] == "ORANJE" else "#DC2626"
+                                        col_c.markdown(f"<div style='text-align:center;'><p style='margin:0; font-size:0.8rem; color:#64748B;'>Netto Winst</p><h3 style='color:{winst_kleur}; margin:0;'>€{analysis['winst']}</h3></div>", unsafe_allow_html=True)
+                                        
+                                        # Het stoplicht advies
+                                        st.markdown(f"""
+                                        <div style="background: {winst_kleur}20; border-left: 4px solid {winst_kleur}; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                                            <p style="margin:0; font-size:0.85rem; color:{winst_kleur}; font-weight:700;">📢 Coach Advies: {analysis['advies']}</p>
+                                        </div>
+                                        """, unsafe_allow_html=True)
+
+                                st.markdown("<br>", unsafe_allow_html=True)
                                 col_btn1, col_btn2, col_btn3 = st.columns(3)
-                                
-                                # 1. Directe link naar shop
                                 col_btn1.link_button("🛒 Bekijk Shop", p['url'], use_container_width=True)
                                 
-                                # 2. TikTok Ad Finder (PRO)
                                 q = urllib.parse.quote(p['title'])
-                                tk_url = f"https://www.tiktok.com/search?q={q}"
-                                col_btn2.link_button("🕵️ Zoek Ads", tk_url, use_container_width=True, help="Vind video's van dit product op TikTok")
-                                
-                                # 3. AliExpress Sourcing (PRO)
-                                ali_url = f"https://www.aliexpress.com/wholesale?SearchText={q}"
-                                col_btn3.link_button("📦 Vind Inkoop", ali_url, use_container_width=True, help="Zoek dit product op AliExpress")
-                else:
-                    st.error("Kon geen producten vinden. Is dit wel een Shopify store?")
+                                col_btn2.link_button("🕵️ Zoek Ads", f"https://www.tiktok.com/search?q={q}", use_container_width=True)
+                                col_btn3.link_button("📦 Vind Inkoop", f"https://www.aliexpress.com/wholesale?SearchText={q}", use_container_width=True)
 
     elif pg == "Marketing & Design": 
         st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
