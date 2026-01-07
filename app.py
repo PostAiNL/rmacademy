@@ -1690,11 +1690,41 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                     from modules import competitor_spy
                     prods = competitor_spy.scrape_shopify_store(url_in)
                     if prods:
-                        for p in prods:
-                            st.write(f"📦 **{p['title']}** - {p['price']}")
-            else:
-                render_pro_lock("Store Spy 🔒", "Scan elke Shopify store voor hun bestsellers.", "Exclusief voor studenten.")
-
+                        st.success(f"✅ {len(prods)} producten gevonden op {url_in}")
+                    st.markdown("---")
+                    
+                    for p in prods:
+                        with st.container(border=True):
+                            c1, c2 = st.columns([1, 2.5])
+                            
+                            with c1:
+                                if p['image_url']:
+                                    st.image(p['image_url'], use_container_width=True)
+                                else:
+                                    st.markdown("🖼️ *Geen foto*")
+                            
+                            with c2:
+                                st.markdown(f"### {p['title']}")
+                                st.markdown(f"💰 **Prijs:** €{p['price']}")
+                                if p['published_at']:
+                                    st.caption(f"📅 Toegevoegd op: {p['published_at']}")
+                                
+                                # DE PRO TOOLS (DIT MAAKT HET WAARDEVOL)
+                                col_btn1, col_btn2, col_btn3 = st.columns(3)
+                                
+                                # 1. Directe link naar shop
+                                col_btn1.link_button("🛒 Bekijk Shop", p['url'], use_container_width=True)
+                                
+                                # 2. TikTok Ad Finder (PRO)
+                                q = urllib.parse.quote(p['title'])
+                                tk_url = f"https://www.tiktok.com/search?q={q}"
+                                col_btn2.link_button("🕵️ Zoek Ads", tk_url, use_container_width=True, help="Vind video's van dit product op TikTok")
+                                
+                                # 3. AliExpress Sourcing (PRO)
+                                ali_url = f"https://www.aliexpress.com/wholesale?SearchText={q}"
+                                col_btn3.link_button("📦 Vind Inkoop", ali_url, use_container_width=True, help="Zoek dit product op AliExpress")
+                else:
+                    st.error("Kon geen producten vinden. Is dit wel een Shopify store?")
 
     elif pg == "Marketing & Design": 
         st.markdown("<h1><i class='bi bi-palette-fill'></i> Marketing & Design</h1>", unsafe_allow_html=True)
