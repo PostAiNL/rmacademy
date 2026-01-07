@@ -285,10 +285,39 @@ st.markdown("""
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #0F172A; line-height: 1.2; }
         .stat-sub { font-size: 0.7rem; color: #94A3B8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
-        @media (max-width: 600px) {
-            .stat-grid { gap: 8px; } .stat-value { font-size: 1.1rem; } .stat-icon { font-size: 0.65rem; } .stat-sub { font-size: 0.6rem; }
-            .block-container { padding-top: 1.5rem !important; }
+/* Verbeterde Mobiele Optimalisatie */
+    @media (max-width: 600px) {
+        /* 1. Meer ruimte onderin de uitklap-vakken (Fases & Uitleg) */
+        div[data-testid="stExpanderDetails"] {
+            padding-bottom: 30px !important; /* Dit zorgt voor witruimte onder de knop */
+            padding-left: 15px !important;
+            padding-right: 15px !important;
         }
+
+        /* 2. De Gouden Knop extra ruimte geven */
+        div[style*="background: linear-gradient(135deg, #FFD700"] {
+            margin-top: 20px !important;
+            margin-bottom: 10px !important; /* Ruimte tussen knop en de rand van het witte vlak */
+            padding: 16px !important;
+        }
+
+        /* 3. De blauwe aanbevelingskaart ("Wat ga je verkopen?") */
+        div[style*="background: linear-gradient(135deg, #2563EB"] {
+            padding: 20px !important;
+            border-radius: 15px !important;
+        }
+
+        /* 4. Lettergrootte van de titel in de blauwe kaart iets verkleinen voor mobiel */
+        div[style*="font-size: 1.8rem"] {
+            font-size: 1.4rem !important;
+            line-height: 1.2 !important;
+        }
+
+        /* 5. De tekst in de 'Daily Habit' (groene balk) */
+        .stAlert div {
+            font-size: 0.85rem !important;
+        }
+    }
 
         /* LEVEL UP OVERLAY */
         @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
@@ -1025,9 +1054,12 @@ else:
                 <h3 style="margin-top: 0; color: #0369A1; font-size: 1.3rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
                     <span style="font-size: 1.5rem;">🚀</span> Welkom bij de Academy
                 </h3>
-                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 20px;">
-                    Volg de Roadmap stap-voor-stap en gebruik onze AI-tools om jouw winstgevende webshop te bouwen. Hieronder zie je wat er bij jouw account hoort. Samen bouwen wij jouw webshop tot een succes! Groet, Roy en Michael (Team RM Ecom Academy)
-                </p>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6; margin-bottom: 10px;">
+    Volg de Roadmap stap-voor-stap en gebruik onze AI-tools om jouw winstgevende webshop te bouwen.
+</p>
+<p style="font-size: 0.85rem; color: #64748B; margin-bottom: 0;">
+    <i>Samen bouwen wij jouw succes! - Team RM Ecom</i>
+</p>
             </div>
             """, unsafe_allow_html=True)
 
