@@ -13,8 +13,8 @@ import extra_streamlit_components as stx
 from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap, db
 
 # --- 0. CONFIGURATIE ---
-STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125673"
-COMMUNITY_URL = "https://discord.com"
+STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125684"
+COMMUNITY_URL = "https://discord.gg/fCWhU6MC"
 COACH_VIDEO_URL = "https://www.youtube.com/watch?v=dQw4w9WgXcQ" 
 
 # Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
@@ -957,6 +957,7 @@ else:
     </style>
     """, unsafe_allow_html=True)
 
+
         if "force_completed" not in st.session_state: st.session_state.force_completed = []
         @st.cache_data(ttl=60, show_spinner=False)
         def get_cached_progress_db(uid): return auth.get_progress()
@@ -1117,23 +1118,56 @@ else:
             else:
                 st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
 
-        # --- 3. RENDERING VAN DE KAART ---
+# --- 1. RENDERING VAN DE ORANJE KAART (Zorg dat dit blok boven de nieuwe code staat) ---
         st.markdown(f"""
-    <div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-    <div style="color: white !important; font-family: sans-serif;">
-    <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; -webkit-text-fill-color: white !important; opacity: 0.9;">
-    <i class="bi {card_icon}"></i> { '🏆 ELITE STATUS BEREIKBAAR' if is_finished else 'AANBEVOLEN FOCUS' }
-    </div>
-    <h2 style="margin: 0; font-size: 1.8rem; color: white !important; -webkit-text-fill-color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0; text-shadow: 0 2px 4px rgba(0,0,0,0.2);">
-    {next_step_title}
-    </h2>
-    <p style="margin: 0 0 15px 0; font-size: 1.1rem; line-height: 1.4; color: white !important; -webkit-text-fill-color: white !important; max-width: 650px; font-weight: 500; opacity: 1 !important; text-shadow: 0 1px 2px rgba(0,0,0,0.3);">
-    {next_step_desc}
-    </p>
-    {buttons_html}
-    </div>
-    </div>
+        <div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+            <div style="color: white !important; font-family: sans-serif;">
+                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; opacity: 0.9;">
+                    <i class="bi {card_icon}"></i> ELITE STATUS BEREIKBAAR
+                </div>
+                <h2 style="margin: 0; font-size: 1.8rem; color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0;">
+                    {next_step_title}
+                </h2>
+                <p style="margin: 0; font-size: 1.1rem; line-height: 1.4; color: white !important; max-width: 650px; font-weight: 500;">
+                    {next_step_desc}
+                </p>
+                {buttons_html}
+            </div>
+        </div>
         """, unsafe_allow_html=True)
+
+        # --- 2. DE XP BOOSTER (NU ONDER DE KAART + 2-STAP LOGICA) ---
+        if user['xp'] < 1000:
+            st.markdown("### 🚀 Laatste stap naar Level 4")
+            with st.container(border=True):
+                st.write(f"Je hebt nu **{user['xp']} XP**. Deel de RM Academy APP om de laatste XP te verdienen en de 'E-com Boss' status te claimen.")
+                
+                col_1, col_2 = st.columns(2)
+                
+                with col_1:
+                    # WhatsApp Bericht met FOMO en Urgentie
+                    whatsapp_tekst = """STOP met wat je doet! Ik heb net de 'gouden' app van RM Academy ontdekt. Je krijgt nu GRATIS toegang tot hun WinningHunter (viral producten), Concurrenten-Spy en AI LogoMaker. Dit is letterlijk de toolkit waarmee zij €10k+ maanden draaien. Ik heb geen idee hoelang dit nog gratis blijft: https://app.rmacademy.nl"""
+                    
+                    # De tekst veilig omzetten voor een URL
+                    share_msg = urllib.parse.quote(whatsapp_tekst)
+                    wa_url = f"https://wa.me/?text={share_msg}"
+                    
+                    st.link_button("📲 1. Deel via WhatsApp", wa_url, use_container_width=True)
+                
+                with col_2:
+                    # De 'Vrijgave' check
+                    has_shared = st.checkbox("Ik heb de link gedeeld ✅", key="booster_check")
+                    
+                    if has_shared:
+                        if st.button("✅ 2. Claim +100 XP Boost", type="primary", use_container_width=True):
+                            auth.mark_step_complete("final_share_boost_milestone", 100)
+                            st.balloons()
+                            st.success("Boom! Je bent nu een E-com Boss! 🏆")
+                            time.sleep(2)
+                            st.rerun()
+                    else:
+                        # Grijze knop als er nog niet gevinkt is
+                        st.button("Claim XP (Deel eerst)", disabled=True, use_container_width=True)
 
         # --- 7. STATS GRID ---
         needed = next_xp_goal_sidebar - user['xp']
