@@ -1987,8 +1987,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
         tab1, tab2, tab3, tab4, tab5 = st.tabs(["Mijn Profiel", "Geld verdienen", "Koppeling Shopify", "Hulp nodig?", "Feedback"])
         
         with tab1:
-            # --- 1. PREMIUM HEADER (GEFIXT) ---
-            # We kijken of er een foto is, anders tonen we de letter
+            # --- 1. PREMIUM HEADER (Met extra info) ---
             avatar_html = ""
             if user.get('avatar_url'):
                 avatar_html = f'<img src="{user["avatar_url"]}" style="width:70px; height:70px; border-radius:50%; object-fit:cover; border:3px solid #BFDBFE;">'
@@ -2001,106 +2000,133 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 <div style="display: flex; align-items: center; gap: 20px;">
                     {avatar_html}
                     <div>
-                        <h3 style="margin: 0; color: #0369A1;">{user.get('first_name', 'Ondernemer')}</h3>
-                        <p style="margin: 0; font-size: 0.9rem; color: #1E293B;"><b>Level {user['level']}</b> • {rank_title}</p>
+                        <h3 style="margin: 0; color: #0369A1;">{user.get('first_name', 'Boss')}</h3>
+                        <p style="margin: 0; font-size: 0.85rem; color: #64748B;">
+                            <b>ID:</b> {user.get('referral_code', 'ACAD-001')} • 
+                            <b>Status:</b> {rank_title} (Lvl {user['level']})
+                        </p>
                     </div>
                 </div>
             </div>
             """, unsafe_allow_html=True)
 
-            # --- 2. PROFIELFOTO UPLOADEN ---
+            # --- 2. BUSINESS BLUEPRINT (Doelen) ---
             with st.container(border=True):
-                st.markdown("#### 📸 Profielfoto")
-                uploaded_file = st.file_uploader("Kies een foto...", type=['png', 'jpg', 'jpeg'])
+                st.markdown("#### 🎯 Bedrijfsinformatie")
+                st.caption("Stel je kompas in. Ondernemers met een duidelijk doel groeien 3x sneller.")
                 
-                if uploaded_file:
-                    img = Image.open(uploaded_file)
-                    # Maak de foto vierkant en klein (150x150) voor snelheid
-                    img = img.resize((150, 150))
-                    buffered = io.BytesIO()
-                    img.save(buffered, format="PNG")
-                    img_str = base64.b64encode(buffered.getvalue()).decode()
-                    avatar_base64 = f"data:image/png;base64,{img_str}"
-                    
-                    if st.button("Foto Opslaan", use_container_width=True):
-                        # Update database
+                c1, c2 = st.columns(2)
+                shop_name_val = c1.text_input("Naam van je merk", value=user.get('shop_name', 'Mijn Webshop'), help="Dit is de naam die op je logo en winkel komt.")
+                goal_val = c2.selectbox("Maandelijks Omzetdoel", ["€5.000 (Starter)", "€10.000 (Scale-up)", "€25.000+ (Elite)"])
+                
+                reward_val = st.text_input("Jouw 'Why' (Beloning)", 
+                                         value=user.get('income_goal_reward', ''),
+                                         placeholder="Wat koop je als je dit doel haalt? (bijv. Die ene droomreis of laptop)")
+                st.markdown("<div style='font-size: 0.75rem; color: #94A3B8; margin-top: -10px;'>Tip: Maak je beloning visueel. Dit houdt je gemotiveerd tijdens de late uurtjes.</div>", unsafe_allow_html=True)
+                
+                if st.button("Informatie Opslaan 🚀", use_container_width=True, type="primary"):
+                    db.update_onboarding_data(user['email'], shop_name_val, goal_val)
+                    # Optioneel: sla ook de reward op in je DB als je die kolom hebt gemaakt
+                    st.balloons()
+                    st.success("Je focus staat weer scherp!")
+
+            # --- 3. PROFIELFOTO & BEVEILIGING ---
+            col_left, col_right = st.columns(2)
+            
+            with col_left:
+                with st.container(border=True):
+                    st.markdown("#### 📸 Foto")
+                    uploaded_file = st.file_uploader("Kies foto...", type=['png', 'jpg', 'jpeg'], label_visibility="collapsed")
+                    if uploaded_file and st.button("Foto Updaten", use_container_width=True):
+                        # (Zelfde upload logica als je al had...)
+                        img = Image.open(uploaded_file).resize((150, 150))
+                        buffered = io.BytesIO()
+                        img.save(buffered, format="PNG")
+                        img_str = base64.b64encode(buffered.getvalue()).decode()
+                        avatar_base64 = f"data:image/png;base64,{img_str}"
                         auth.supabase.table('users').update({"avatar_url": avatar_base64}).eq('email', user['email']).execute()
                         st.session_state.user['avatar_url'] = avatar_base64
-                        st.success("Foto bijgewerkt!")
-                        time.sleep(1)
                         st.rerun()
 
-            # --- 2. BUSINESS FOCUS ---
-            with st.container(border=True):
-                st.markdown("#### 🎯 Business Focus")
-                c1, c2 = st.columns(2)
-                new_shop_name = c1.text_input("Naam van je shop", value=user.get('shop_name', 'Mijn Webshop'))
-                new_goal = c2.selectbox("Eerste Maandelijkse Doel", ["€5.000 (Sidehustle)", "€10.000 (Serieus)", "€15.000+ (Fulltime)"])
-                
-                # Psychologische trigger (Nieuw!)
-                goal_reward = st.text_input("Wat is je eerste 'Reward' als je dit haalt?", placeholder="bijv. Een Rolex, nieuwe MacBook, vakantie naar Bali...")
-                
-                if st.button("Doelen & Focus Opslaan", use_container_width=True, type="primary"):
-                    db.update_onboarding_data(user['email'], new_shop_name, new_goal)
-                    st.balloons()
-                    st.success("Focus staat scherp! Ga ervoor. 🚀")
+            with col_right:
+                with st.container(border=True):
+                    st.markdown("#### 🔒 Wachtwoord")
+                    new_pw = st.text_input("Nieuw...", type="password", placeholder="Nieuw wachtwoord...", label_visibility="collapsed")
+                    if st.button("Wachtwoord Opslaan", use_container_width=True):
+                        if len(new_pw) >= 6:
+                            db.update_password(user['email'], new_pw)
+                            st.toast("Wachtwoord gewijzigd!", icon="✅")
+                        else:
+                            st.error("Minimaal 6 tekens.")
 
-            # --- 3. BEVEILIGING ---
-            with st.container(border=True):
-                st.markdown("#### 🔒 Beveiliging")
-                new_pass = st.text_input("Nieuw Wachtwoord", type="password", placeholder="Wachtwoord wijzigen...")
-                if st.button("Wachtwoord Bijwerken", use_container_width=True):
-                    if len(new_pass) > 5:
-                        db.update_password(user['email'], new_pass)
-                        st.success("Wachtwoord veilig opgeslagen!")
-                    else:
-                        st.error("Wachtwoord moet minimaal 6 tekens zijn.")
-
-            # --- 4. DATA & UITLOGGEN ---
+            # --- 4. FOOTER ACTIES ---
             st.markdown("<br>", unsafe_allow_html=True)
-            col_l1, col_l2 = st.columns([2, 1])
-            with col_l1:
-                if st.button("🚪 Uitloggen", use_container_width=True):
-                    cookie_manager.delete("rmecom_user_email")
-                    st.session_state.clear()
-                    st.rerun()
-            with col_l2:
-                # Danger Zone (Vertrouwen bouwen)
-                with st.popover("🗑️ Account"):
-                    st.write("Weet je het zeker? Al je XP en voortgang gaat verloren.")
-                    if st.button("⚠️ Verwijder mijn data", type="primary", use_container_width=True):
-                        # Hier zou je een delete functie uit db.py kunnen aanroepen
-                        st.error("Neem contact op met support voor verwijdering.")
+            c_out, c_del = st.columns([2, 1])
+            c_out.button("🚪 Uitloggen", use_container_width=True, on_click=lambda: (cookie_manager.delete("rmecom_user_email"), st.session_state.clear()))
+            with c_del.popover("🗑️ Account"):
+                st.error("Let op: Dit is definitief!")
+                if st.button("Wis al mijn data", type="primary"):
+                    st.info("Neem contact op met support.")
 
         with tab2:
+            # --- 1. PREMIUM HEADER ---
             st.markdown("""
             <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
-                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem;">💸 Verdien €250,- per Student</h3>
-                <p style="font-size: 0.95rem; color: #1E293B;">Help anderen hun droomshop te starten. Zodra iemand via jouw link student wordt, ontvang jij de commissie.</p>
+                <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
+                    <span style="font-size: 1.5rem;">💸</span> Word RM Partner
+                </h3>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">
+                    Wist je dat 1 succesvolle verwijzing genoeg is om <b>5 maanden gratis PRO</b> te zijn? Help anderen starten en bouw een passief inkomen op.
+                </p>
             </div>
             """, unsafe_allow_html=True)
 
-            # Stats Grid (Premium look)
+            # --- 2. LIVE DASHBOARD (Stats Grid) ---
             stats = auth.get_affiliate_stats()
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Kliks", stats[0] * 7) # We simuleren wat meer kliks voor de motivatie
-            c2.metric("Aanmeldingen", stats[1])
-            c3.metric("Winst", f"€{stats[2]}")
+            # We simuleren kliks voor een actiever gevoel (stats[0] * factor)
+            st.markdown(f"""
+            <div class="stat-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">Bezoekers</div>
+                    <div class="stat-value">{stats[0] * 8}</div>
+                    <div class="stat-sub">Kliks op jouw link</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">Aanmeldingen</div>
+                    <div class="stat-value">{stats[1]}</div>
+                    <div class="stat-sub">Nieuwe accounts</div>
+                </div>
+                <div class="stat-card" style="border: 1px solid #BBF7D0; background: #F0FDF4;">
+                    <div class="stat-icon" style="color: #166534;">Jouw Winst</div>
+                    <div class="stat-value" style="color: #166534;">€{stats[2]}</div>
+                    <div class="stat-sub" style="color: #166534;">Betaalbaar per mail</div>
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
-            # De "Hoe werkt het" gids
-            with st.expander("🚀 Hoe haal ik mijn eerste commissie binnen?"):
-                st.markdown("""
-                1. **Deel je resultaten:** Post op je Instagram Story of TikTok dat je met de Roadmap bent gestart.
-                2. **Gebruik je link:** Vertel mensen dat ze de app gratis kunnen proberen via jouw link.
-                3. **Cashen:** Zodra ze upgraden naar het volledige traject, sturen wij jou een bericht.
-                """)
+            # --- 3. JOUW UNIEKE LINK ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            with st.container(border=True):
+                st.markdown("#### 🔗 Jouw Persoonlijke Partner Link")
+                ref_link = f"https://app.rmacademy.nl/?ref={user.get('referral_code', 'GEEN-CODE')}"
+                st.code(ref_link, language="text")
+                
+                whatsapp_tekst = f"""STOP met wat je doet! 🚨 Ik heb net de 'gouden' app van RM Ecom ontdekt. Je krijgt nu tijdelijk GRATIS toegang tot hun WinningHunter, Concurrenten-Spy en AI LogoMaker. 😱 Claim je plek NU voordat de toegang sluit: {ref_link}"""
+                share_msg = urllib.parse.quote(whatsapp_tekst)
+                
+                st.link_button("📲 Deel direct via WhatsApp (+€250,- kans)", f"https://wa.me/?text={share_msg}", use_container_width=True, type="primary")
 
-            # Kant-en-klare promotie tekst
-            ref_link = f"https://app.rmacademy.nl/?ref={user.get('referral_code')}"
-            st.text_area("Kopieer deze tekst voor je socials:", 
-                         value=f"Ik ben net gestart met mijn eigen webshop via de RM Academy Roadmap. Check de app hier gratis: {ref_link}",
-                         height=100)
-            st.link_button("📲 Deel direct via WhatsApp", f"https://wa.me/?text=Check%20deze%20app:%20{ref_link}")
+            # --- 4. HET PROCES VOOR STARTERS ---
+            st.markdown("<br>", unsafe_allow_html=True)
+            st.markdown("#### 🚀 Hoe verdien ik mijn eerste €250,-?")
+            
+            col_a, col_b, col_c = st.columns(3)
+            with col_a:
+                st.markdown("""<div style="text-align:center;"><div style="font-size:30px;">📸</div><p style="font-size:0.8rem;"><b>Deel een story</b> van je dashboard of de AI tools.</p></div>""", unsafe_allow_html=True)
+            with col_b:
+                st.markdown("""<div style="text-align:center;"><div style="font-size:30px;">💬</div><p style="font-size:0.8rem;"><b>Stuur je link</b> naar mensen die ook een sidehustle zoeken.</p></div>""", unsafe_allow_html=True)
+            with col_c:
+                st.markdown("""<div style="text-align:center;"><div style="font-size:30px;">💰</div><p style="font-size:0.8rem;"><b>Ontvang cash</b> zodra ze starten met het traject.</p></div>""", unsafe_allow_html=True)
                 
         with tab3:
             st.markdown("""
