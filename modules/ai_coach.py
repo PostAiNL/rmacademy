@@ -240,3 +240,26 @@ def analyze_store_audit(store_data):
     Houd het kort, krachtig en direct. Gebruik emojis.
     """
     return call_llm("Senior E-com Audit Specialist", prompt) or "AI Audit mislukt."
+
+def translate_titles_batch(titles):
+    """Vertaalt een lijst met producttitels naar verkopend Nederlands via AI."""
+    if not titles: return titles
+    
+    # We maken een genummerde lijst voor de AI
+    titles_string = "\n".join([f"{i+1}. {t}" for i, t in enumerate(titles)])
+    
+    system_prompt = "Je bent een E-commerce expert. Vertaal de volgende producttitels naar natuurlijk, pakkend en verkopend Nederlands. Behoud merknamen en symbolen zoals ™ of ®. Geef alleen de vertaalde titels terug, één per regel."
+    
+    res = call_llm(system_prompt, titles_string)
+    
+    if res:
+        # Splits de regels en haal de nummers weg
+        translated = []
+        lines = res.strip().split('\n')
+        for line in lines:
+            # Verwijder "1. " etc. aan het begin
+            clean_line = line.split('. ', 1)[-1] if '. ' in line else line
+            translated.append(clean_line)
+        return translated
+    
+    return titles # Fallback naar origineel bij error
