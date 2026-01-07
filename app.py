@@ -16,7 +16,7 @@ from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap,
 # --- 0. CONFIGURATIE ---
 STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125684"
 COMMUNITY_URL = "https://discord.gg/fCWhU6MC"
-COACH_VIDEO_URL = "https://youtube.com/shorts/fDY0wbUEPDk?feature=share" 
+COACH_VIDEO_URL = "https://www.youtube.com/watch?v=fDY0wbUEPDK" 
 
 # Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
 def get_base64_image(image_path):
