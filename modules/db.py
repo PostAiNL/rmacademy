@@ -212,3 +212,11 @@ def can_user_search(email, is_pro):
         return True
     except:
         return False # Bij error voor de zekerheid blokkeren
+
+def update_password(email, new_password):
+    if not supabase: return False
+    try:
+        supabase.table('users').update({"password": new_password}).eq('email', email).execute()
+        return True
+    except:
+        return False

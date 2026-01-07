@@ -428,5 +428,22 @@ def render_step_card(step, is_completed, is_pro, expanded=False):
                     sample_ordered = st.checkbox("Ik heb het product besteld en ga content maken", key=f"sample_check_{step['id']}")
                     if sample_ordered: st.session_state[usage_key] = True
 
+                # Ruimte boven de knop
+                st.markdown("<div style='height: 20px;'></div>", unsafe_allow_html=True)
+                
+                # Check of de taak al gedaan is. Zo niet, toon de knop.
+                if not is_completed:
+                    if st.session_state.get(usage_key, False):
+                        # Als de tool gebruikt is (usage_key is True), toon de blauwe knop
+                        if st.button(f"✅ Taak Voltooien (+{step['xp_reward']} XP)", key=f"finish_{step['id']}", type="primary", use_container_width=True):
+                            return step['id'], step['xp_reward']
+                    else:
+                        # Als de tool nog niet gebruikt is, toon een grijze knop
+                        st.button("Voer eerst de opdracht hierboven uit", disabled=True, use_container_width=True, key=f"dis_{step['id']}")
+                else:
+                    st.success("Deze opdracht heb je al voltooid! ✅")
+        
+        st.markdown("<div style='margin-bottom: 10px;'></div>", unsafe_allow_html=True)
+
     # Dit is cruciaal: stuur altijd (None, 0) terug als er niet op een knop is gedrukt
     return None, 0
