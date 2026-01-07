@@ -1,143 +1,47 @@
-from apify_client import ApifyClient
 import streamlit as st
+from apify_client import ApifyClient
 import urllib.parse
-from datetime import datetime
-import re
 
-APIFY_TOKEN = st.secrets["apify"]["token"]
-
-def clean_html(raw_html):
-    """Verwijderd HTML tags uit tekst."""
-    if not raw_html: return ""
-    clean = re.sub('<[^<]+?>', '', str(raw_html))
-    return clean.strip()
-
-def parse_days_active(item_data, snapshot):
+def search_facebook_ads(query, max_results=20):
     """
-    Zoekt agressief naar een startdatum in de data en berekent dagen actief.
+    Gebruikt de officiele apify/facebook-ads-scraper.
+    Kosten: ca. $0.20 per succesvolle scan.
     """
-    potential_dates = [
-        item_data.get('startDate'),
-        item_data.get('creationTime'),
-        item_data.get('publishDate'),
-        snapshot.get('creation_time'),
-        snapshot.get('start_date')
-    ]
+    client = ApifyClient(st.secrets["apify"]["token"])
 
-    found_date = None
+    # We bouwen de zoek-URL die de robot nodig heeft
+    # We zoeken standaard in Nederland ('NL') en op alle actieve ads
+    encoded_query = urllib.parse.quote(query)
+    start_url = f"https://www.facebook.com/ads/library/?active_status=all&ad_type=all&q={encoded_query}&country=NL&media_type=all"
 
-    for date_val in potential_dates:
-        if date_val:
-            try:
-                # Optie A: Timestamp
-                if isinstance(date_val, (int, float)):
-                    if date_val > 2000000000: date_val /= 1000
-                    found_date = datetime.fromtimestamp(date_val)
-                    break
-                # Optie B: Tekst
-                elif isinstance(date_val, str):
-                    date_str = date_val.split('T')[0]
-                    found_date = datetime.strptime(date_str, "%Y-%m-%d")
-                    break
-            except:
-                continue
-    
-    if found_date:
-        found_date = found_date.replace(tzinfo=None)
-        now = datetime.now().replace(tzinfo=None)
-        diff = (now - found_date).days
-        return max(1, diff) # Minimaal 1 dag
-    
-    return 1
-
-@st.cache_data(ttl=7200, show_spinner=False)
-def search_facebook_ads(keyword, country="NL", max_results=30): # <--- AANGEPAST NAAR 30
-    if "PLAK_HIER" in APIFY_TOKEN: return []
+    run_input = {
+        "startUrls": [{"url": start_url}],
+        "maxAds": max_results, # We zetten hem op 20 om kosten te besparen
+        "activeStatus": "active",
+        "viewAllAds": True,
+        "proxyConfiguration": {
+            "useApifyProxy": True,
+            "apifyProxyGroups": ["RESIDENTIAL"] # CRUCIAAL voor Facebook
+        }
+    }
 
     try:
-        client = ApifyClient(APIFY_TOKEN)
+        # Start de robot
+        run = client.actor("apify/facebook-ads-scraper").call(run_input=run_input)
 
-        base_url = "https://www.facebook.com/ads/library/?"
-        country_code = country if country != "ALL" else "ALL"
-        
-        params = {
-            "active_status": "active",
-            "ad_type": "all",
-            "country": country_code,
-            "media_type": "video",
-            "q": keyword,
-            "search_type": "keyword_unordered"
-        }
-        target_url = base_url + urllib.parse.urlencode(params)
-
-        run_input = {
-            "urls": [{"url": target_url}], 
-            "maxItems": max_results,
-            "pageLimit": 1 # 1 pagina is genoeg voor 30 items
-        }
-
-        run = client.actor("curious_coder/facebook-ads-library-scraper").call(run_input=run_input)
-
-        if not run: return []
-
-        dataset_items = client.dataset(run["defaultDatasetId"]).list_items().items
-        
+        # Haal de resultaten op
         results = []
-        for item in dataset_items:
-            snapshot = item.get('snapshot', {})
-            
-            # Media logic
-            media_url, is_video = None, False
-            videos = snapshot.get('videos', [])
-            images = snapshot.get('images', [])
-            cards = snapshot.get('cards', [])
-
-            if videos:
-                media_url = videos[0].get('video_preview_image_url') or videos[0].get('video_hd_url')
-                is_video = True
-            elif cards:
-                 if cards[0].get('video_preview_image_url'):
-                     media_url = cards[0].get('video_preview_image_url')
-                     is_video = True
-                 else:
-                     media_url = cards[0].get('original_image_url')
-            elif images:
-                media_url = images[0].get('original_image_url')
-
-            # Tekst logic
-            raw_text = (
-                snapshot.get('body', {}).get('markup', {}).get('__html') or 
-                snapshot.get('body', {}).get('text') or 
-                item.get('adBody') or
-                snapshot.get('title') or 
-                "Geen tekst beschikbaar."
-            )
-            if (not raw_text or "Geen tekst" in raw_text) and cards:
-                 raw_text = cards[0].get('body') or cards[0].get('title')
-
-            caption = clean_html(raw_text)
-
-            # Data logic
-            days_active = parse_days_active(item, snapshot)
-            shop_link = snapshot.get('link_url') or snapshot.get('cta_link')
-            ad_id = item.get('id', '0')
-            
-            if not shop_link: shop_link = f"https://www.facebook.com/ads/library/?id={ad_id}"
-
-            if media_url:
-                results.append({
-                    "page_name": snapshot.get('page_name', 'Onbekend'),
-                    "page_profile_picture_url": snapshot.get('page_profile_picture_url', ''),
-                    "caption": caption,
-                    "media": media_url,
-                    "is_video": is_video,
-                    "days_active": days_active,
-                    "shop_link": shop_link,
-                    "ad_id": ad_id
-                })
-            
+        for item in client.dataset(run["defaultDatasetId"]).iterate_items():
+            # We pakken alleen de info die we echt nodig hebben
+            results.append({
+                "page_name": item.get("pageName", "Onbekend"),
+                "media": item.get("adSnapshotUrl"), # Screenshot van de ad
+                "days_active": 1, # De officiele scraper geeft vaak geen exacte begindatum, we zetten hem op 1
+                "shop_link": item.get("ctaLink", "#") # De link naar de webshop
+            })
+        
         return results
 
     except Exception as e:
-        print(f"Scrape Fout: {e}")
-        return []
+        print(f"Apify Error: {e}")
+        return "ERROR"
