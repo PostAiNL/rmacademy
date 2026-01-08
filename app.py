@@ -1072,10 +1072,37 @@ else:
 
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
             # We maken een strakke, 2-koloms layout zonder dubbele kaders
-            col_vid, col_info = st.columns([0.5, 1], gap="large")
+            col_vid, col_info = st.columns([0.30, 1], gap="medium")
 
             with col_vid:
-                            st.video(COACH_VIDEO_PATH)
+                import os
+                # 1. Check of het bestand echt bestaat
+                if os.path.exists(COACH_VIDEO_PATH):
+                    try:
+                        # We laden de video in
+                        with open(COACH_VIDEO_PATH, "rb") as f:
+                            video_bytes = f.read()
+                        video_base64 = base64.b64encode(video_bytes).decode()
+                        
+                        # HTML Player: 
+                        # - 'controls' toegevoegd (nodig voor geluid)
+                        # - 'autoplay' verwijderd (browser blokkeert autoplay met geluid)
+                        # - 'loop' verwijderd
+                        # - 'muted' verwijderd
+                        video_html = f'''
+                            <div style="text-align: center;">
+                                <video controls playsinline 
+                                    style="width: 100%; max-width: 160px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                                    <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+                                </video>
+                            </div>
+                        '''
+                        st.markdown(video_html, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error(f"Fout bij laden: {e}")
+                else:
+                    st.error("Bestand 'Ecom.mp4' niet gevonden in assets map.")
+
 
             with col_info:
                 st.markdown("""
