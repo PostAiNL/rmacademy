@@ -355,41 +355,50 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. COOKIE MANAGER & MICHAEL SYNC ---
+# --- 2. LIVE-GEOPTIMALISEERDE COOKIE & SYNC ENGINE ---
 cookie_manager = stx.CookieManager()
 
-# 1. INITIALISEER BASIS STATUS
+# 1. INITIALISEER BASIS STATUS (Altijd eerst)
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen na refresh)
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen)
 if "user" not in st.session_state:
-    # We geven de browser even de tijd (belangrijk voor CookieManager stabiliteit)
-    with st.spinner("Je profiel wordt beveiligd geladen..."):
-        time.sleep(1.1) 
+    # Op een live server hebben we meer tijd nodig voor de cookie-handshake
+    # We tonen een korte melding zodat de gebruiker weet dat we hem zoeken
+    with st.status("Bezig met beveiligd inloggen...", expanded=False) as status:
+        time.sleep(1.2) # Iets langer voor Live stabiliteit
         all_cookies = cookie_manager.get_all()
         
         if all_cookies and "rmecom_user_email" in all_cookies:
             cookie_email = all_cookies["rmecom_user_email"]
             if cookie_email and len(cookie_email) > 3:
-                # Roep auth aan om Michael's data (XP, Level) uit Supabase te trekken
+                # Michael gevonden! Haal data uit Supabase
                 auth.login_or_register(cookie_email)
+                status.update(label="Welkom terug, Michael!", state="complete")
                 st.rerun()
+        else:
+            status.update(label="Geen actieve sessie gevonden.", state="complete")
 
-# 3. ANTI-GAST SLOT: Als er na de cookie-check nog steeds geen Michael is...
-if "user" not in st.session_state:
-    pass 
-else:
-    # 4. LIVE XP SYNC (Als Michael is ingelogd, haal ALTIJD de nieuwste stand uit de database)
+# 3. DATA SYNC (Als Michael is ingelogd, trek ALTIJD de XP uit de cloud)
+if "user" in st.session_state:
     user = st.session_state.user
     if user.get('id') != 'temp' and auth.supabase:
         try:
-            res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
-            if res.data:
-                st.session_state.user.update(res.data[0])
+            # We forceren een sync met Supabase voor de XP (1030 XP fix)
+            sync_res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+            if sync_res.data:
+                st.session_state.user.update(sync_res.data[0])
                 user = st.session_state.user
         except:
             pass
+
+# 4. DE 'ENTRY GATE': Alleen als er echt geen Michael is, tonen we het inlogscherm
+# De rest van de app (Dashboard etc.) staat nu achter deze 'if user' muur.
+if "user" not in st.session_state:
+    # HIER KOMT JOUW BESTAANDE LOGIN-UI CODE (Account maken / Inloggen)
+    # Zorg dat de rest van je login blok hieronder staat.
+    pass
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
