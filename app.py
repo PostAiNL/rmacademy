@@ -355,51 +355,48 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. COOKIE MANAGER ---
-cookie_manager = stx.CookieManager()
+# --- 2. MOBILE-STABLE LOGIN ENGINE ---
+cookie_manager = stx.CookieManager(key="rmecom_persistent_v8")
 
-# 1. Check op Magic Link (Autologin via email)
-if "autologin" in st.query_params and "user" in st.query_params:
-    token = st.query_params["autologin"]
-    email = st.query_params["user"]
-    
-    import hashlib
-    secret_key = st.secrets["supabase"]["key"]
-    expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
-    
-    if token == expected_token:
-        # Michael inloggen
-        auth.login_or_register(email)
-        # HIER WORDT DE COOKIE GEZET VOOR PERSISTENTIE (MET PATH!)
-        cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
-        
-        st.query_params.clear()
-        st.rerun()
+# 1. INITIALISEER BASIS STATUS
+if "view" not in st.session_state: st.session_state.view = "main"
+if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# --- INITIALISEER PAGINA STATUS ---
-if "view" not in st.session_state:
-    st.session_state.view = "main"
-
-if "nav_index" not in st.session_state:
-    st.session_state.nav_index = 0
-
-def set_view(name):
-    st.session_state.view = name
-    st.rerun()
-
-# Check of we de gebruiker moeten inloggen
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen via Polling)
 if "user" not in st.session_state:
-    # Belangrijk: Geef de browser tijd om cookies te verzenden (Render fix)
-    time.sleep(0.6) 
-    all_cookies = cookie_manager.get_all()
+    found_email = None
     
-    # Debug (optioneel): st.write(all_cookies)
+    # Mobiele browsers zijn traag. We proberen 4 keer met tussenpozen de cookie te lezen.
+    with st.spinner("Bezig met beveiligd inloggen op mobiel..."):
+        for i in range(4):
+            time.sleep(0.6) # Wacht 0.6 seconden per poging
+            all_cookies = cookie_manager.get_all()
+            if all_cookies and "rmecom_user_email" in all_cookies:
+                found_email = all_cookies["rmecom_user_email"]
+                break
     
-    if all_cookies and "rmecom_user_email" in all_cookies:
-        cookie_email = all_cookies["rmecom_user_email"]
-        if cookie_email and len(cookie_email) > 3: # Check of het een echt emailadres is
-            auth.login_or_register(cookie_email)
+    if found_email and len(found_email) > 3:
+        # Michael is gevonden! Trek data uit Supabase
+        user_found = auth.login_or_register(found_email)
+        if user_found:
             st.rerun()
+
+# 3. LIVE DATA SYNC (XP stand 1030 altijd actueel)
+if "user" in st.session_state:
+    user = st.session_state.user
+    if user.get('id') != 'temp' and auth.supabase:
+        try:
+            sync_res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+            if sync_res.data:
+                st.session_state.user.update(sync_res.data[0])
+                user = st.session_state.user 
+        except:
+            pass
+
+# 4. ENTRY GATE: Als Michael niet is gevonden, toont hij het inlogscherm
+if "user" not in st.session_state:
+    # Hier komt je bestaande inlog-UI (Account maken / Inloggen)
+    pass
 
 
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
@@ -2458,4 +2455,3 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
 
     # --- DE FOOTER (STAAT ONDERAAN ELKE PAGINA) ---
     render_footer()
-
