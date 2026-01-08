@@ -358,50 +358,31 @@ st.markdown("""
 # --- 2. COOKIE MANAGER & LOGIN SYNC ---
 cookie_manager = stx.CookieManager()
 
-# 1. Check op Magic Link (Autologin via email link)
-if "autologin" in st.query_params and "user" in st.query_params:
-    token = st.query_params["autologin"]
-    email = st.query_params["user"]
-    import hashlib
-    secret_key = st.secrets["supabase"]["key"]
-    expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
-    if token == expected_token:
-        auth.login_or_register(email)
-        cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
-        st.query_params.clear()
-        st.rerun()
-
-# 2. INITIALISEER PAGINA STATUS
-if "view" not in st.session_state: st.session_state.view = "main"
-if "nav_index" not in st.session_state: st.session_state.nav_index = 0
-if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
-if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
-
-def set_view(name):
-    st.session_state.view = name
-    st.rerun()
-
-# 3. Check of we de gebruiker moeten inloggen via cookies (voor refresh fix)
+# 1. Herstel sessie via cookies (Fix voor Gast-login na refresh)
 if "user" not in st.session_state:
-    time.sleep(0.7) # Geef CookieManager tijd om te laden
+    time.sleep(0.7) # Cruciaal: geef de browser tijd om cookies te sturen
     all_cookies = cookie_manager.get_all()
     if all_cookies and "rmecom_user_email" in all_cookies:
         cookie_email = all_cookies["rmecom_user_email"]
         if cookie_email and len(cookie_email) > 3:
+            # Forceer inlog met database data
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# 4. DATA SYNC: Haal ALTIJD de laatste XP uit de DB (Fix voor 'Gast' & Progress probleem)
+# 2. INITIALISEER BASIS STATUS
+if "view" not in st.session_state: st.session_state.view = "main"
+if "nav_index" not in st.session_state: st.session_state.nav_index = 0
+if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
+
+# 3. DATA SYNC: Haal ALTIJD de laatste XP uit Supabase
 if "user" in st.session_state:
     user = st.session_state.user
     if user.get('id') != 'temp' and auth.supabase:
         try:
-            # Trek de allernieuwste data uit Supabase
             refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
             if refresh_data.data:
-                # Update de sessie met de echte database waarden (XP, Level, Shopnaam)
                 st.session_state.user.update(refresh_data.data[0])
-                user = st.session_state.user 
+                user = st.session_state.user # Sync lokale variabele
         except:
             pass
 
