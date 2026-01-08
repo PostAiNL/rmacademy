@@ -355,43 +355,31 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LIVE-GEOPTIMALISEERDE COOKIE & SYNC ENGINE ---
+# --- 2. LIVE-GEOPTIMALISEERDE COOKIE ENGINE (MEERDERE POGINGEN) ---
 cookie_manager = stx.CookieManager()
 
-# 1. INITIALISEER BASIS STATUS (Altijd eerst)
+# 1. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen)
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen via Polling)
 if "user" not in st.session_state:
-    # Op een live server hebben we meer tijd nodig voor de cookie-handshake
-    # We tonen een korte melding zodat de gebruiker weet dat we hem zoeken
-    with st.status("Bezig met beveiligd inloggen...", expanded=False) as status:
-        time.sleep(1.2) # Iets langer voor Live stabiliteit
-        all_cookies = cookie_manager.get_all()
-        
-        if all_cookies and "rmecom_user_email" in all_cookies:
-            cookie_email = all_cookies["rmecom_user_email"]
-            if cookie_email and len(cookie_email) > 3:
-                # Michael gevonden! Haal data uit Supabase
-                auth.login_or_register(cookie_email)
-                status.update(label="Welkom terug, Michael!", state="complete")
-                st.rerun()
-        else:
-            status.update(label="Geen actieve sessie gevonden.", state="complete")
-
-# 3. DATA SYNC (Als Michael is ingelogd, trek ALTIJD de XP uit de cloud)
-if "user" in st.session_state:
-    user = st.session_state.user
-    if user.get('id') != 'temp' and auth.supabase:
-        try:
-            # We forceren een sync met Supabase voor de XP (1030 XP fix)
-            sync_res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
-            if sync_res.data:
-                st.session_state.user.update(sync_res.data[0])
-                user = st.session_state.user
-        except:
-            pass
+    found_cookie_email = None
+    
+    # We proberen maximaal 5 keer met korte tussenpozen de cookies te lezen
+    # Dit is veel betrouwbaarder op live servers
+    with st.spinner("Beveiligde verbinding herstellen..."):
+        for i in range(8):  # Probeer het max 4 seconden lang
+            time.sleep(0.5)
+            all_cookies = cookie_manager.get_all()
+            if all_cookies and "rmecom_user_email" in all_cookies:
+                found_cookie_email = all_cookies["rmecom_user_email"]
+                break
+    
+    if found_cookie_email and len(found_cookie_email) > 3:
+        # Michael gevonden! Sync met Supabase
+        auth.login_or_register(found_cookie_email)
+        st.rerun()
 
 # 4. DE 'ENTRY GATE': Alleen als er echt geen Michael is, tonen we het inlogscherm
 # De rest van de app (Dashboard etc.) staat nu achter deze 'if user' muur.
