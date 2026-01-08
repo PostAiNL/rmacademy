@@ -377,12 +377,31 @@ if "autologin" in st.query_params and "user" in st.query_params:
         st.query_params.clear()
         st.rerun()
 
-# 4. DE 'ENTRY GATE': Alleen als er echt geen Michael is, tonen we het inlogscherm
-# De rest van de app (Dashboard etc.) staat nu achter deze 'if user' muur.
+# --- INITIALISEER PAGINA STATUS ---
+if "view" not in st.session_state:
+    st.session_state.view = "main"
+
+if "nav_index" not in st.session_state:
+    st.session_state.nav_index = 0
+
+def set_view(name):
+    st.session_state.view = name
+    st.rerun()
+
+# Check of we de gebruiker moeten inloggen
 if "user" not in st.session_state:
-    # HIER KOMT JOUW BESTAANDE LOGIN-UI CODE (Account maken / Inloggen)
-    # Zorg dat de rest van je login blok hieronder staat.
-    pass
+    # Belangrijk: Geef de browser tijd om cookies te verzenden (Render fix)
+    time.sleep(0.6) 
+    all_cookies = cookie_manager.get_all()
+    
+    # Debug (optioneel): st.write(all_cookies)
+    
+    if all_cookies and "rmecom_user_email" in all_cookies:
+        cookie_email = all_cookies["rmecom_user_email"]
+        if cookie_email and len(cookie_email) > 3: # Check of het een echt emailadres is
+            auth.login_or_register(cookie_email)
+            st.rerun()
+
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
