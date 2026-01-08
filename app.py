@@ -1073,19 +1073,14 @@ else:
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform** ❓", expanded=False):
             col_vid, col_info = st.columns([0.38, 1], gap="large")
 
+            col_vid, col_info = st.columns([0.38, 1], gap="large")
+
             with col_vid:
+                # Toon de lokale video uit de assets map (Ecom.mp4)
                 if os.path.exists(COACH_VIDEO_PATH):
-                    with open(COACH_VIDEO_PATH, "rb") as f:
-                        video_bytes = f.read()
-                    video_base64 = base64.b64encode(video_bytes).decode()
-                    st.markdown(f'''
-                        <div style="text-align: center;">
-                            <video controls playsinline 
-                                style="width: 100%; max-width: 180px; border-radius: 16px; border: 2px solid #EFF6FF; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
-                                <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
-                            </video>
-                        </div>
-                    ''', unsafe_allow_html=True)
+                    st.video(COACH_VIDEO_PATH)
+                else:
+                    st.error("Bestand 'assets/Ecom.mp4' niet gevonden.")
 
             with col_info:
                 st.markdown("""
