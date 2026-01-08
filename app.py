@@ -355,31 +355,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LIVE-GEOPTIMALISEERDE COOKIE ENGINE (MEERDERE POGINGEN) ---
+# --- 2. LIVE-GEOPTIMALISEERDE COOKIE ENGINE (STABIEL) ---
 cookie_manager = stx.CookieManager()
 
 # 1. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen via Polling)
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen)
 if "user" not in st.session_state:
-    found_cookie_email = None
-    
-    # We proberen maximaal 5 keer met korte tussenpozen de cookies te lezen
-    # Dit is veel betrouwbaarder op live servers
+    # We gebruiken 1x een iets langere pauze om Duplicate Key errors te voorkomen
+    # Dit geeft de live server genoeg tijd om de cookies van je browser te ontvangen
     with st.spinner("Beveiligde verbinding herstellen..."):
-        for i in range(8):  # Probeer het max 4 seconden lang
-            time.sleep(0.5)
-            all_cookies = cookie_manager.get_all()
-            if all_cookies and "rmecom_user_email" in all_cookies:
-                found_cookie_email = all_cookies["rmecom_user_email"]
-                break
-    
-    if found_cookie_email and len(found_cookie_email) > 3:
-        # Michael gevonden! Sync met Supabase
-        auth.login_or_register(found_cookie_email)
-        st.rerun()
+        time.sleep(1.5) 
+        all_cookies = cookie_manager.get_all() 
+        
+        if all_cookies and "rmecom_user_email" in all_cookies:
+            cookie_email = all_cookies["rmecom_user_email"]
+            if cookie_email and len(cookie_email) > 3:
+                # Michael gevonden! Sync met Supabase
+                auth.login_or_register(cookie_email)
+                st.rerun()
 
 # 4. DE 'ENTRY GATE': Alleen als er echt geen Michael is, tonen we het inlogscherm
 # De rest van de app (Dashboard etc.) staat nu achter deze 'if user' muur.
