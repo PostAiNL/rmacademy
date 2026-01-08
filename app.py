@@ -1070,7 +1070,7 @@ else:
         st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
         st.progress(safe_progress / 100)
 
-        with st.expander("ℹ️ **UITLEG: Hoe werkt de RM Academy?** ❓", expanded=False):
+        with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform** ❓", expanded=False):
             col_vid, col_info = st.columns([0.38, 1], gap="large")
 
             with col_vid:
@@ -1098,15 +1098,15 @@ Welkom bij de Elite. Volg de roadmap, gebruik onze AI-modellen en bouw een merk 
 <div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
 <div style="display:flex; align-items:center; gap:12px;">
 <div style="background:#F1F5F9; color:#475569; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">BASIC</div>
-<span style="font-size:0.85rem; color:#1E293B;">🔑 Roadmap toegang + AI Credits</span>
+<span style="font-size:0.85rem; color:#1E293B;">Roadmap toegang + AI Credits</span>
 </div>
 <div style="display:flex; align-items:center; gap:12px;">
 <div style="background:#FEF3C7; color:#92400E; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">PRO ⚡️</div>
-<span style="font-size:0.85rem; color:#1E293B;">🤖 <b>Onbeperkt AI</b> + Spy-tools + WinningHunter</span>
+<span style="font-size:0.85rem; color:#1E293B;"><b>Onbeperkt AI</b> + Spy-tools + WinningHunter</span>
 </div>
 <div style="display:flex; align-items:center; gap:12px;">
 <div style="background:#DBEAFE; color:#1E40AF; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">STUDENT</div>
-<span style="font-size:0.85rem; color:#1E293B;">👨‍🏫 1-op-1 Coaching + Private Community</span>
+<span style="font-size:0.85rem; color:#1E293B;">1-op-1 Coaching + Private Community</span>
 </div>
 </div>
 </div>
