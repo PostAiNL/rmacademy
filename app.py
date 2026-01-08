@@ -355,27 +355,27 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. LIVE-GEOPTIMALISEERDE COOKIE ENGINE (STABIEL) ---
+# --- 2. COOKIE MANAGER ---
 cookie_manager = stx.CookieManager()
 
-# 1. INITIALISEER BASIS STATUS
-if "view" not in st.session_state: st.session_state.view = "main"
-if "nav_index" not in st.session_state: st.session_state.nav_index = 0
-
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen)
-if "user" not in st.session_state:
-    # We gebruiken 1x een iets langere pauze om Duplicate Key errors te voorkomen
-    # Dit geeft de live server genoeg tijd om de cookies van je browser te ontvangen
-    with st.spinner("Beveiligde verbinding herstellen..."):
-        time.sleep(1.5) 
-        all_cookies = cookie_manager.get_all() 
+# 1. Check op Magic Link (Autologin via email)
+if "autologin" in st.query_params and "user" in st.query_params:
+    token = st.query_params["autologin"]
+    email = st.query_params["user"]
+    
+    # Controleer of de token klopt
+    import hashlib
+    secret_key = st.secrets["supabase"]["key"]
+    expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
+    
+    if token == expected_token:
+        # Token is valide, log de gebruiker in
+        auth.login_or_register(email)
+        cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
         
-        if all_cookies and "rmecom_user_email" in all_cookies:
-            cookie_email = all_cookies["rmecom_user_email"]
-            if cookie_email and len(cookie_email) > 3:
-                # Michael gevonden! Sync met Supabase
-                auth.login_or_register(cookie_email)
-                st.rerun()
+        # Ruim de URL op
+        st.query_params.clear()
+        st.rerun()
 
 # 4. DE 'ENTRY GATE': Alleen als er echt geen Michael is, tonen we het inlogscherm
 # De rest van de app (Dashboard etc.) staat nu achter deze 'if user' muur.
