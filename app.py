@@ -355,36 +355,41 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. COOKIE MANAGER & AUTHENTICATIE ---
+# --- 2. COOKIE MANAGER & MICHAEL SYNC ---
 cookie_manager = stx.CookieManager()
 
 # 1. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN CHECK (Michael automatisch inloggen)
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen na refresh)
 if "user" not in st.session_state:
-    time.sleep(0.8) # Geef de browser tijd om Michael's e-mail te sturen
-    all_cookies = cookie_manager.get_all()
-    
-    if all_cookies and "rmecom_user_email" in all_cookies:
-        cookie_email = all_cookies["rmecom_user_email"]
-        if cookie_email and len(cookie_email) > 3:
-            auth.login_or_register(cookie_email)
-            st.rerun()
+    # We geven de browser even de tijd (belangrijk voor CookieManager stabiliteit)
+    with st.spinner("Je profiel wordt beveiligd geladen..."):
+        time.sleep(1.1) 
+        all_cookies = cookie_manager.get_all()
+        
+        if all_cookies and "rmecom_user_email" in all_cookies:
+            cookie_email = all_cookies["rmecom_user_email"]
+            if cookie_email and len(cookie_email) > 3:
+                # Roep auth aan om Michael's data (XP, Level) uit Supabase te trekken
+                auth.login_or_register(cookie_email)
+                st.rerun()
 
-# 3. DATA SYNC (Alleen als Michael echt is ingelogd)
-if "user" in st.session_state:
+# 3. ANTI-GAST SLOT: Als er na de cookie-check nog steeds geen Michael is...
+if "user" not in st.session_state:
+    pass 
+else:
+    # 4. LIVE XP SYNC (Als Michael is ingelogd, haal ALTIJD de nieuwste stand uit de database)
     user = st.session_state.user
     if user.get('id') != 'temp' and auth.supabase:
         try:
-            refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
-            if refresh_data.data:
-                st.session_state.user.update(refresh_data.data[0])
+            res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+            if res.data:
+                st.session_state.user.update(res.data[0])
                 user = st.session_state.user
         except:
             pass
-
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
