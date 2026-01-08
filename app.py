@@ -355,31 +355,28 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. MOBILE-STABLE LOGIN ENGINE ---
-cookie_manager = stx.CookieManager(key="rmecom_persistent_v8")
+# --- 2. LIVE-GEOPTIMALISEERDE LOGIN ENGINE (STABIEL) ---
+cookie_manager = stx.CookieManager(key="rmecom_auth_final")
 
 # 1. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen via Polling)
+# 2. PERSISTENT LOGIN (Michael's identiteit herstellen)
 if "user" not in st.session_state:
-    found_email = None
-    
-    # Mobiele browsers zijn traag. We proberen 4 keer met tussenpozen de cookie te lezen.
-    with st.spinner("Bezig met beveiligd inloggen op mobiel..."):
-        for i in range(4):
-            time.sleep(0.6) # Wacht 0.6 seconden per poging
-            all_cookies = cookie_manager.get_all()
-            if all_cookies and "rmecom_user_email" in all_cookies:
-                found_email = all_cookies["rmecom_user_email"]
-                break
-    
-    if found_email and len(found_email) > 3:
-        # Michael is gevonden! Trek data uit Supabase
-        user_found = auth.login_or_register(found_email)
-        if user_found:
-            st.rerun()
+    # We wachten 1x lang genoeg om Duplicate Key errors te voorkomen.
+    # Dit geeft de mobiele browser genoeg tijd voor de cookie-handshake.
+    with st.spinner("Beveiligde verbinding herstellen..."):
+        time.sleep(1.5) 
+        all_cookies = cookie_manager.get_all() 
+        
+        if all_cookies and "rmecom_user_email" in all_cookies:
+            cookie_email = all_cookies["rmecom_user_email"]
+            if cookie_email and len(cookie_email) > 3:
+                # Michael gevonden! Sync met Supabase
+                user_found = auth.login_or_register(cookie_email)
+                if user_found:
+                    st.rerun()
 
 # 3. LIVE DATA SYNC (XP stand 1030 altijd actueel)
 if "user" in st.session_state:
