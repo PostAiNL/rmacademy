@@ -1072,7 +1072,7 @@ else:
 
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
             # We maken een strakke, 2-koloms layout zonder dubbele kaders
-            col_vid, col_info = st.columns([1.2, 1], gap="large")
+            col_vid, col_info = st.columns([0.5, 1], gap="large")
 
             with col_vid:
                             st.video(COACH_VIDEO_PATH)
