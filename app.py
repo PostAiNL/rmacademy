@@ -664,7 +664,10 @@ def check_credits():
     return False
 
 def get_greeting():
-    hour = datetime.now().hour
+    # Servers staan op UTC. We voegen 1 uur toe voor de Nederlandse wintertijd.
+    # (In de zomertijd moet dit hours=2 zijn).
+    now_nl = datetime.now() + timedelta(hours=1)
+    hour = now_nl.hour
     return "Goedemorgen" if hour < 12 else "Goedemiddag" if hour < 18 else "Goedenavond"
 
 def get_image_base64(path):
@@ -1074,7 +1077,8 @@ else:
         us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn Webshop"
         ug = db_goal if db_goal and str(db_goal) != "None" else "€15k/maand"
         
-        st.markdown(f"<h1>Goedemorgen, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
+        begroeting = get_greeting()
+        st.markdown(f"<h1>{begroeting}, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
         st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
         st.progress(safe_progress / 100)
 
