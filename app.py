@@ -355,41 +355,52 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. MOBILE-STABLE LOGIN ENGINE ---
-cookie_manager = stx.CookieManager(key="rmecom_persistent_v8")
+# --- 2. COOKIE MANAGER & AUTHENTICATIE ---
+cookie_manager = stx.CookieManager()
 
-# 1. INITIALISEER BASIS STATUS
+# 1. Check op Magic Link (Autologin via email link)
+if "autologin" in st.query_params and "user" in st.query_params:
+    token = st.query_params["autologin"]
+    email = st.query_params["user"]
+    import hashlib
+    secret_key = st.secrets["supabase"]["key"]
+    expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
+    if token == expected_token:
+        auth.login_or_register(email)
+        # Zorg dat de cookie direct gezet wordt met pad /
+        cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
+        st.query_params.clear()
+        st.rerun()
+
+# 2. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
 
-# 2. PERSISTENT LOGIN (Michael's identiteit herstellen via Polling)
+def set_view(name):
+    st.session_state.view = name
+    st.rerun()
+
+# 3. PERSISTENT LOGIN (Michael's identiteit herstellen na F5)
 if "user" not in st.session_state:
-    found_email = None
-    
-    # Mobiele browsers zijn traag. We proberen 4 keer met tussenpozen de cookie te lezen.
-    with st.spinner("Bezig met beveiligd inloggen op mobiel..."):
-        for i in range(4):
-            time.sleep(0.6) # Wacht 0.6 seconden per poging
-            all_cookies = cookie_manager.get_all()
-            if all_cookies and "rmecom_user_email" in all_cookies:
-                found_email = all_cookies["rmecom_user_email"]
-                break
-    
-    if found_email and len(found_email) > 3:
-        # Michael is gevonden! Trek data uit Supabase
-        user_found = auth.login_or_register(found_email)
-        if user_found:
+    # We geven de browser tijd (0.8s is de sweetspot voor mobiel/live)
+    time.sleep(0.8) 
+    all_cookies = cookie_manager.get_all()
+    if all_cookies and "rmecom_user_email" in all_cookies:
+        cookie_email = all_cookies["rmecom_user_email"]
+        if cookie_email and len(cookie_email) > 3:
+            auth.login_or_register(cookie_email)
             st.rerun()
 
-# 3. LIVE DATA SYNC (XP stand 1030 altijd actueel)
+# 4. DATA SYNC: Trek de echte 1030 XP stand uit Supabase (Fix voor Gast-fouten)
 if "user" in st.session_state:
     user = st.session_state.user
     if user.get('id') != 'temp' and auth.supabase:
         try:
-            sync_res = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
-            if sync_res.data:
-                st.session_state.user.update(sync_res.data[0])
-                user = st.session_state.user 
+            # Trek altijd de allernieuwste XP data uit de cloud
+            refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+            if refresh_data.data:
+                st.session_state.user.update(refresh_data.data[0])
+                user = st.session_state.user
         except:
             pass
 
