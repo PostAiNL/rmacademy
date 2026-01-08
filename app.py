@@ -1070,76 +1070,65 @@ else:
         st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
         st.progress(safe_progress / 100)
 
-        with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform?** ❓", expanded=False):
-            # We maken een strakke, 2-koloms layout zonder dubbele kaders
-            col_vid, col_info = st.columns([0.30, 1], gap="medium")
+        with st.expander("ℹ️ **UITLEG: Hoe werkt de RM Academy?** ❓", expanded=False):
+            col_vid, col_info = st.columns([0.38, 1], gap="large")
 
             with col_vid:
-                import os
-                # 1. Check of het bestand echt bestaat
                 if os.path.exists(COACH_VIDEO_PATH):
-                    try:
-                        # We laden de video in
-                        with open(COACH_VIDEO_PATH, "rb") as f:
-                            video_bytes = f.read()
-                        video_base64 = base64.b64encode(video_bytes).decode()
-                        
-                        # HTML Player: 
-                        # - 'controls' toegevoegd (nodig voor geluid)
-                        # - 'autoplay' verwijderd (browser blokkeert autoplay met geluid)
-                        # - 'loop' verwijderd
-                        # - 'muted' verwijderd
-                        video_html = f'''
-                            <div style="text-align: center;">
-                                <video controls playsinline 
-                                    style="width: 100%; max-width: 160px; border-radius: 12px; border: 1px solid #E2E8F0; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                                    <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
-                                </video>
-                            </div>
-                        '''
-                        st.markdown(video_html, unsafe_allow_html=True)
-                    except Exception as e:
-                        st.error(f"Fout bij laden: {e}")
-                else:
-                    st.error("Bestand 'Ecom.mp4' niet gevonden in assets map.")
-
+                    with open(COACH_VIDEO_PATH, "rb") as f:
+                        video_bytes = f.read()
+                    video_base64 = base64.b64encode(video_bytes).decode()
+                    st.markdown(f'''
+                        <div style="text-align: center;">
+                            <video controls playsinline 
+                                style="width: 100%; max-width: 180px; border-radius: 16px; border: 2px solid #EFF6FF; box-shadow: 0 10px 25px rgba(0,0,0,0.1);">
+                                <source src="data:video/mp4;base64,{video_base64}" type="video/mp4">
+                            </video>
+                        </div>
+                    ''', unsafe_allow_html=True)
 
             with col_info:
                 st.markdown("""
-                    <h3 style="margin-top:0; font-size:1.4rem; font-weight:800; color:#0F172A;">Welkom bij de Academy</h3>
-                    <p style="font-size:0.9rem; color:#64748B; margin-bottom:15px; line-height:1.4;">
-                        Bouw stap-voor-stap aan jouw winstgevende webshop met onze roadmap en handige AI tools.
-                    </p>
-                    <div style="margin-bottom: 20px;">
-                        <div style="display:flex; align-items:center; margin-bottom:8px;">
-                            <span style="background:#F1F5F9; color:#475569; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">DEMO</span>
-                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Roadmap + 3 AI credits</span>
-                        </div>
-                        <div style="display:flex; align-items:center; margin-bottom:8px;">
-                            <span style="background:#FEF3C7; color:#92400E; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">PRO ⚡</span>
-                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Onbeperkt AI + Spy-tools</span>
-                        </div>
-                        <div style="display:flex; align-items:center;">
-                            <span style="background:#DBEAFE; color:#1E40AF; padding:2px 8px; border-radius:4px; font-size:0.7rem; font-weight:800; min-width:60px; text-align:center;">STUDENT</span>
-                            <span style="margin-left:10px; font-size:0.85rem; color:#1E293B;">Volledige cursus + 1-op-1 coaching</span>
-                        </div>
-                    </div>
+<div style="margin-top: -3px;">
+<h3 style="margin-bottom: 4px; font-size: 1.4rem; font-weight: 800; color: #0F172A; border:none; padding:0;">🚀Jouw weg naar €15k per maand</h3>
+<p style="font-size: 0.9rem; color: #64748B; line-height: 1.4; margin-bottom: 15px;">
+Welkom bij de Elite. Volg de roadmap, gebruik onze AI-modellen en bouw een merk dat blijft bestaan.
+</p>
+                        
+<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+<div style="display:flex; align-items:center; gap:12px;">
+<div style="background:#F1F5F9; color:#475569; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">BASIC</div>
+<span style="font-size:0.85rem; color:#1E293B;">🔑 Roadmap toegang + AI Credits</span>
+</div>
+<div style="display:flex; align-items:center; gap:12px;">
+<div style="background:#FEF3C7; color:#92400E; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">PRO ⚡️</div>
+<span style="font-size:0.85rem; color:#1E293B;">🤖 <b>Onbeperkt AI</b> + Spy-tools + WinningHunter</span>
+</div>
+<div style="display:flex; align-items:center; gap:12px;">
+<div style="background:#DBEAFE; color:#1E40AF; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">STUDENT</div>
+<span style="font-size:0.85rem; color:#1E293B;">👨‍🏫 1-op-1 Coaching + Private Community</span>
+</div>
+</div>
+</div>
                 """, unsafe_allow_html=True)
 
                 if not is_pro:
                     st.markdown(f"""
                         <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
                             <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
-                                        padding: 12px; border-radius: 10px; text-align: center; 
+                                        padding: 14px; border-radius: 12px; text-align: center; 
                                         box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); 
-                                        border: 1px solid #FCD34D;">
-                                <div style="font-weight: 800; color: #78350F; font-size: 0.95rem;">🚀UPGRADE NAAR PRO</div>
-                                <div style="font-size: 0.65rem; color: #92400E; font-weight: 700; text-transform: uppercase;">Unlock alle tools (€49,95)</div>
+                                        border: 1px solid #FCD34D; transition: transform 0.2s;">
+                                <div style="font-weight: 900; color: #78350F; font-size: 1rem; letter-spacing: 0.5px;">💎 WORD NU PRO LID</div>
+                                <div style="font-size: 0.65rem; color: #92400E; font-weight: 700; text-transform: uppercase; margin-top: 2px;">Direct toegang tot alle tools (€49,95)</div>
                             </div>
                         </a>
+                        <p style="text-align:center; font-size:0.7rem; color:#94A3B8; margin-top:8px;">
+                            ⭐️ Sluit je aan bij 550+ actieve studenten
+                        </p>
                     """, unsafe_allow_html=True)
                 else:
-                    st.success("✅ Je bent een PRO lid!")
+                    st.success("✨ Je bent een gewaardeerd PRO lid!")
 
         # --- 4. DAILY HABIT SECTIE ---
         daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
