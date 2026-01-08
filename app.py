@@ -1075,15 +1075,7 @@ else:
             col_vid, col_info = st.columns([1.2, 1], gap="large")
 
             with col_vid:
-                # Video: Iframe methode voor Shorts (omzeilt "niet beschikbaar" fout)
-                video_id = "fDY0wbUEPDK"
-                st.markdown(f"""
-                    <iframe width="100%" height="320" 
-                        src="https://www.youtube.com/embed/{video_id}?rel=0" 
-                        frameborder="0" allowfullscreen 
-                        style="border-radius: 12px; border: 1px solid #E2E8F0;">
-                    </iframe>
-                """, unsafe_allow_html=True)
+                            st.video(COACH_VIDEO_PATH)
 
             with col_info:
                 st.markdown("""
