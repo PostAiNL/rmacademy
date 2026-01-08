@@ -16,7 +16,7 @@ from modules import ai_coach, ui, auth, shopify_client, competitor_spy, roadmap,
 # --- 0. CONFIGURATIE ---
 STRATEGY_CALL_URL = "https://www.paypro.nl/product/RM_Academy_APP_PRO/125684"
 COMMUNITY_URL = "https://discord.gg/fCWhU6MC"
-COACH_VIDEO_URL = "https://www.youtube.com/watch?v=fDY0wbUEPDK" 
+COACH_VIDEO_PATH = "assets/Video%20App%20RM%20Ecom.mp4" 
 
 
 # Functie om afbeelding om te zetten naar Base64 string (voor icoon fix)
@@ -355,58 +355,55 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. COOKIE MANAGER ---
+# --- 2. COOKIE MANAGER & LOGIN SYNC ---
 cookie_manager = stx.CookieManager()
 
-# 1. Check op Magic Link (Autologin via email)
+# 1. Check op Magic Link (Autologin via email link)
 if "autologin" in st.query_params and "user" in st.query_params:
     token = st.query_params["autologin"]
     email = st.query_params["user"]
-    
-    # Controleer of de token klopt
     import hashlib
     secret_key = st.secrets["supabase"]["key"]
     expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
-    
     if token == expected_token:
-        # Token is valide, log de gebruiker in
         auth.login_or_register(email)
         cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
-        
-        # Ruim de URL op
         st.query_params.clear()
         st.rerun()
 
-# --- INITIALISEER PAGINA STATUS ---
-if "view" not in st.session_state:
-    st.session_state.view = "main"
-
-if "nav_index" not in st.session_state:
-    st.session_state.nav_index = 0
-
-if "generated_logos" not in st.session_state:
-    st.session_state.generated_logos = []
-
-if "logo_generations" not in st.session_state:
-    st.session_state.logo_generations = 0
+# 2. INITIALISEER PAGINA STATUS
+if "view" not in st.session_state: st.session_state.view = "main"
+if "nav_index" not in st.session_state: st.session_state.nav_index = 0
+if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
+if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
 
 def set_view(name):
     st.session_state.view = name
     st.rerun()
 
-# Check of we de gebruiker moeten inloggen
+# 3. Check of we de gebruiker moeten inloggen via cookies (voor refresh fix)
 if "user" not in st.session_state:
-    # Belangrijk: Geef de browser tijd om cookies te verzenden (Render fix)
-    time.sleep(0.6) 
+    time.sleep(0.7) # Geef CookieManager tijd om te laden
     all_cookies = cookie_manager.get_all()
-    
-    # Debug (optioneel): st.write(all_cookies)
-    
     if all_cookies and "rmecom_user_email" in all_cookies:
         cookie_email = all_cookies["rmecom_user_email"]
-        if cookie_email and len(cookie_email) > 3: # Check of het een echt emailadres is
+        if cookie_email and len(cookie_email) > 3:
             auth.login_or_register(cookie_email)
             st.rerun()
+
+# 4. DATA SYNC: Haal ALTIJD de laatste XP uit de DB (Fix voor 'Gast' & Progress probleem)
+if "user" in st.session_state:
+    user = st.session_state.user
+    if user.get('id') != 'temp' and auth.supabase:
+        try:
+            # Trek de allernieuwste data uit Supabase
+            refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
+            if refresh_data.data:
+                # Update de sessie met de echte database waarden (XP, Level, Shopnaam)
+                st.session_state.user.update(refresh_data.data[0])
+                user = st.session_state.user 
+        except:
+            pass
 
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
