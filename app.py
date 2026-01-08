@@ -363,17 +363,16 @@ if "autologin" in st.query_params and "user" in st.query_params:
     token = st.query_params["autologin"]
     email = st.query_params["user"]
     
-    # Controleer of de token klopt
     import hashlib
     secret_key = st.secrets["supabase"]["key"]
     expected_token = hashlib.sha256(f"{email}{secret_key}".encode()).hexdigest()
     
     if token == expected_token:
-        # Token is valide, log de gebruiker in
+        # Michael inloggen
         auth.login_or_register(email)
+        # HIER WORDT DE COOKIE GEZET VOOR PERSISTENTIE (MET PATH!)
         cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
         
-        # Ruim de URL op
         st.query_params.clear()
         st.rerun()
 
@@ -401,6 +400,7 @@ if "user" not in st.session_state:
         if cookie_email and len(cookie_email) > 3: # Check of het een echt emailadres is
             auth.login_or_register(cookie_email)
             st.rerun()
+
 
 # --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
 if "user" not in st.session_state:
@@ -1073,8 +1073,6 @@ else:
         with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform** ❓", expanded=False):
             col_vid, col_info = st.columns([0.38, 1], gap="large")
 
-            col_vid, col_info = st.columns([0.38, 1], gap="large")
-
             with col_vid:
                 # Toon de lokale video uit de assets map (Ecom.mp4)
                 if os.path.exists(COACH_VIDEO_PATH):
@@ -1598,40 +1596,33 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
         
         # --- TAB 1: TIKTOK HUNTER ---
         with tab1:
-            # 1. HEADER (Deze heb je al, maar ik zet hem erbij voor de context)
             st.markdown("""
             <div style="background: #F0F9FF; border: 1px solid #BAE6FD; padding: 25px; border-radius: 16px; margin-bottom: 25px;">
                 <h3 style="margin-top: 0; color: #0369A1; font-size: 1.2rem; display: flex; align-items: center; gap: 10px; font-weight: 700;">
                     <span style="font-size: 1.5rem;">🔥</span> Viral TikTok Hunter
                 </h3>
-                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">
-                    Vind producten die <b>nu</b> de wereld veroveren. De AI scant miljoenen video's op zoek naar patronen van winnende advertenties.
-                </p>
+                <p style="font-size: 1rem; color: #1E293B; line-height: 1.6;">Vind producten die <b>nu</b> viraal gaan.</p>
             </div>
             """, unsafe_allow_html=True)
 
-            # 2. DE ZOEK-INSTELLINGEN (DIT ONTBAK ER NOG)
+            # --- DE UI VELDEN (MOETEN ERIN!) ---
             with st.container(border=True):
                 st.markdown("#### 🎯 Instellingen")
                 col_a, col_b = st.columns(2)
-                
-                tk_query = col_a.text_input("Product of Niche", placeholder="bijv. keuken gadgets of beauty", key="tk_search_q")
-                tk_sort = col_b.selectbox("Sorteer op", ["Meeste Views", "Recent Geplaatst", "Meest Relevant"])
+                tk_query = col_a.text_input("Product of Niche", placeholder="bijv. keuken gadgets", key="tk_search_q")
+                tk_sort = col_b.selectbox("Sorteer op", ["Meeste Views", "Recent", "Relevant"])
                 
                 if st.button("🚀 Start Viral Hunter", type="primary", use_container_width=True):
                     if tk_query:
-                        with st.status("🕵️‍♂️ AI scant TikTok Ad Library...", expanded=True) as status:
-                            # We roepen de scraper aan (zorg dat deze in je modules staat)
+                        with st.status("🕵️‍♂️ AI scant TikTok...", expanded=True) as status:
                             from modules import tiktok_spy
                             results = tiktok_spy.search_tiktok_trends(tk_query, tk_sort)
-                            
                             if results and results != "ERROR":
                                 st.session_state.tiktok_results = results
-                                status.update(label="✅ Scannen voltooid! Winners gevonden.", state="complete")
-                            else:
-                                status.update(label="Oeps, TikTok blokkeert de scan. Probeer het over een minuutje weer.", state="error")
+                                status.update(label="✅ Winners gevonden!", state="complete")
                     else:
-                        st.warning("Vul eerst een zoekterm in!")
+                        st.warning("Vul een zoekterm in.")
+
 
             # 3. DE RESULTATEN WEERGAVE (Houd dit zoals het was)
             if st.session_state.get("tiktok_results"):
