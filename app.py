@@ -355,26 +355,25 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- 2. COOKIE MANAGER & LOGIN SYNC ---
+# --- 2. COOKIE MANAGER & AUTHENTICATIE ---
 cookie_manager = stx.CookieManager()
 
-# 1. Herstel sessie via cookies (Fix voor Gast-login na refresh)
+# 1. INITIALISEER BASIS STATUS
+if "view" not in st.session_state: st.session_state.view = "main"
+if "nav_index" not in st.session_state: st.session_state.nav_index = 0
+
+# 2. PERSISTENT LOGIN CHECK (Michael automatisch inloggen)
 if "user" not in st.session_state:
-    time.sleep(0.7) # Cruciaal: geef de browser tijd om cookies te sturen
+    time.sleep(0.8) # Geef de browser tijd om Michael's e-mail te sturen
     all_cookies = cookie_manager.get_all()
+    
     if all_cookies and "rmecom_user_email" in all_cookies:
         cookie_email = all_cookies["rmecom_user_email"]
         if cookie_email and len(cookie_email) > 3:
-            # Forceer inlog met database data
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# 2. INITIALISEER BASIS STATUS
-if "view" not in st.session_state: st.session_state.view = "main"
-if "nav_index" not in st.session_state: st.session_state.nav_index = 0
-if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
-
-# 3. DATA SYNC: Haal ALTIJD de laatste XP uit Supabase
+# 3. DATA SYNC (Alleen als Michael echt is ingelogd)
 if "user" in st.session_state:
     user = st.session_state.user
     if user.get('id') != 'temp' and auth.supabase:
@@ -382,7 +381,7 @@ if "user" in st.session_state:
             refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
             if refresh_data.data:
                 st.session_state.user.update(refresh_data.data[0])
-                user = st.session_state.user # Sync lokale variabele
+                user = st.session_state.user
         except:
             pass
 
