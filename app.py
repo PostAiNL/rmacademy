@@ -1033,294 +1033,245 @@ elif st.session_state.view == "terms":
 
 else:
     # --- DIT IS DE ORIGINELE APP INHOUD ---
+    # --- DIT IS DE VERBETERDE DASHBOARD SECTIE ---
     if pg == "Dashboard":
-        # 1. Level Up Melding (Subtiel rechtsboven, geen popup)
+        # 1. Level Up Melding (Subtiel rechtsboven)
         if user['level'] > st.session_state.prev_level:
             st.balloons()
-            # We updaten de status direct zodat de melding bij de volgende klik weer weggaat
             st.session_state.prev_level = user['level']
-            
             st.markdown(f"""
-    <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; animation: slideIn 0.5s ease-out;">
-        <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
-                    padding: 15px 25px; 
-                    border-radius: 12px; 
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.2); 
-                    border: 1px solid #FCD34D;
-                    display: flex; 
-                    align-items: center; 
-                    gap: 15px;">
-            <span style="font-size: 24px;">🏆</span>
-            <div style="text-align: left;">
-                <div style="color: #78350F; font-weight: 800; font-size: 0.9rem; margin: 0; line-height: 1;">LEVEL UP!</div>
-                <div style="color: #92400E; font-size: 0.8rem; font-weight: 600; margin-top: 4px;">Je bent nu Level {user['level']}</div>
+            <div style="position: fixed; top: 80px; right: 20px; z-index: 9999; animation: slideIn 0.5s ease-out;">
+                <div style="background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-left: 5px solid #2563EB; display: flex; align-items: center; gap: 15px;">
+                    <span style="font-size: 24px;">📈</span>
+                    <div>
+                        <div style="color: #0F172A; font-weight: 800; font-size: 0.9rem;">Level Up!</div>
+                        <div style="color: #64748B; font-size: 0.8rem;">Je bent nu een <b>{rank_title}</b></div>
+                    </div>
+                </div>
             </div>
-        </div>
-    </div>
+            """, unsafe_allow_html=True)
 
-    <style>
-    @keyframes slideIn {{
-        0% {{ transform: translateX(100%); opacity: 0; }}
-        100% {{ transform: translateX(0); opacity: 1; }}
-    }}
-    </style>
-    """, unsafe_allow_html=True)
-
-
-        if "force_completed" not in st.session_state: st.session_state.force_completed = []
-        @st.cache_data(ttl=60, show_spinner=False)
-        def get_cached_progress_db(uid): return auth.get_progress()
-        db_progress = get_cached_progress_db(user['id'])
-        completed_steps = list(set(db_progress + st.session_state.force_completed))
-    # --- 1. LOGICA & VARIABELEN (FIXED: OPSLAAN & WEERGAVE) ---
+        # Variabelen laden
         full_map = roadmap.get_roadmap()
-        # Haal ALTIJD de laatste voortgang op uit de database
         db_progress = auth.get_progress()
         completed_steps = list(set(db_progress + st.session_state.force_completed))
         
         all_roadmap_ids = [s['id'] for fase in full_map.values() for s in fase['steps']]
         valid_done_count = len([sid for sid in completed_steps if sid in all_roadmap_ids])
         total_steps_count = len(all_roadmap_ids)
-        
         progress_pct = int((valid_done_count / total_steps_count) * 100) if total_steps_count > 0 else 0
         safe_progress = min(progress_pct, 100)
         is_finished = valid_done_count >= total_steps_count
 
-        # Initialiseer knoppen
-        btn_url = "#roadmap_start"
-        btn_pro_url = STRATEGY_CALL_URL
-        btn_student_url = "https://calendly.com/rmecomacademy/30min"
+        # --- 2. ZAKELIJKE HEADER (SaaS Look) ---
+        begroeting = get_greeting()
+        shop_display = user.get('shop_name') if user.get('shop_name') else "Mijn Onderneming"
+        
+        # We gebruiken kolommen voor een strakke 'Head of Operations' look
+        hd1, hd2 = st.columns([2, 1])
+        with hd1:
+            st.markdown(f"<h1 style='margin-bottom:0px;'>{begroeting}, {user.get('first_name', 'Founder')}</h1>", unsafe_allow_html=True)
+            st.markdown(f"<p style='color:#64748B; font-size:1rem; margin-top:5px;'>Dit is jouw kantoor met handige <b>RM Tools</b>. Je huidige focus ligt op: <b>{shop_display}</b>.</p>", unsafe_allow_html=True)
+        
+        with hd2:
+            # Een compacte status kaart in plaats van tekst
+            st.markdown(f"""
+            <div style="background:white; padding:10px 15px; border-radius:10px; border:1px solid #E2E8F0; text-align:right;">
+                <div style="font-size:0.75rem; color:#64748B; text-transform:uppercase; font-weight:700;">Account Status:</div>
+                <div style="font-weight:700; color:{'#16A34A' if is_pro else '#64748B'}; font-size:0.9rem;">
+                    {'⚡ PRO BUSINESS' if is_pro else '🌱 STARTERS PLAN'}
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
 
+        # Voortgangsbalk (Subtieler)
+        st.markdown(f"<div style='margin-top:10px; margin-bottom:5px; font-size:0.8rem; color:#64748B; font-weight:600;'>Roadmap Voltooid: {safe_progress}%</div>", unsafe_allow_html=True)
+        st.progress(safe_progress / 100)
+
+        # --- 3. INTRODUCTIE VIDEO (GECORRIGEERD) ---
+        with st.expander("ℹ️ **Startgids: Zo werkt RM Tools**", expanded=False):
+            # We maken de rechterkolom (tekst) breder (0.65), zodat de video links (0.35) kleiner wordt
+            col_vid, col_info = st.columns([0.25, 0.75], gap="medium")
+
+            with col_vid:
+                if os.path.exists(COACH_VIDEO_PATH):
+                    # OUDE MANIER (te groot op mobiel):
+                    # st.video(COACH_VIDEO_PATH)
+                    
+                    # NIEUWE MANIER (HTML speler met hoogte limiet):
+                    try:
+                        with open(COACH_VIDEO_PATH, "rb") as f:
+                            video_bytes = f.read()
+                            video_b64 = base64.b64encode(video_bytes).decode()
+                            
+                        st.markdown(f"""
+                            <div style="display: flex; justify-content: center; align-items: center; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                                <video controls style="width: 100%; max-height: 270px; object-fit: cover;">
+                                    <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
+                                    Je browser ondersteunt deze video niet.
+                                </video>
+                            </div>
+                        """, unsafe_allow_html=True)
+                    except Exception as e:
+                        st.error("Video kon niet geladen worden.")
+                else:
+                    st.info("Video wordt geladen...")
+
+            with col_info:
+                st.markdown("""
+                <h3 style="font-size: 1.1rem; margin-top:0; color:#0F172A;">Jouw digitale hoofdkantoor</h3>
+                <p style="font-size: 0.9rem; color: #475569; line-height: 1.5; margin-bottom:15px;">
+                    RM Tools combineert data-analyse met AI om jouw werk uit handen te nemen.
+                </p>
+                
+                <div style="font-size: 0.85rem; color: #334155; display: flex; flex-direction: column; gap: 8px;">
+                    <div>🎯 <b>Roadmap:</b> Volg het stappenplan hieronder.</div>
+                    <div>🛍️ <b>Product Hunter:</b> Vind producten die nu verkopen.</div>
+                    <div>🎨 <b>Marketing AI:</b> Laat logo's en teksten genereren.</div>
+                </div>
+                <br>
+                """, unsafe_allow_html=True)
+
+                if not is_pro:
+                    # PRO knop: Zakelijk Blauw (Alleen deze ene knop)
+                    st.markdown(f"""
+                        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
+                            <div style="background: #2563EB; color: white; padding: 12px; border-radius: 8px; text-align: center; font-weight: 700; font-size: 0.9rem; box-shadow: 0 4px 6px rgba(37, 99, 235, 0.2); transition: opacity 0.2s;">
+                                ⚡ Activeer PRO Licentie (€49,95)
+                            </div>
+                        </a>
+                        <div style="text-align:center; font-size:0.75rem; color:#94A3B8; margin-top:5px;">Direct toegang tot Spy-tools & AI</div>
+                    """, unsafe_allow_html=True)
+
+        # --- 4. ACTION CARD (De "Volgende Stap") ---
+        # We bepalen de volgende stap, maar presenteren het zakelijk
+        next_step_title, next_step_desc, next_step_id, next_step_phase_index = "Alles afgerond", "Je bent klaar om te schalen.", None, 6
+        
         if not is_finished:
-            # --- BLAUWE KAART LOGICA ---
-            next_step_title, next_step_phase_index, next_step_id, next_step_locked, next_step_desc = "Laden...", 0, None, False, ""
             for idx, (fase_key, fase) in enumerate(full_map.items()):
                 phase_done = True
                 for s in fase['steps']:
                     if s['id'] not in completed_steps:
-                        next_step_title, next_step_desc, next_step_phase_index, next_step_id, next_step_locked = s['title'], s.get('teaser', 'Voltooi deze stap.'), idx + 1, s['id'], s.get('locked', False)
+                        next_step_title = s['title']
+                        next_step_desc = s.get('teaser', 'Voltooi deze taak om verder te gaan.')
+                        next_step_id = s['id']
+                        next_step_phase_index = idx + 1
                         phase_done = False
                         break
                 if not phase_done: break
-                
-            card_bg = "linear-gradient(135deg, #2563EB 0%, #1E40AF 100%)"
-            accent_color = "#FFFFFF"
-            card_icon = "bi-crosshair"
-            buttons_html = f"""<div style="margin-top: 15px;"><a href="#roadmap_start" target="_self" style="text-decoration:none;"><div style="display: inline-block; background: #FBBF24; color: #000; padding: 12px 25px; border-radius: 12px; font-weight: 900; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 15px rgba(251, 191, 36, 0.4);">🚀 Start Opdracht</div></a></div>"""
-
-        else:
-            # --- GOUDEN KAART LOGICA (NA VOLTOOIING) ---
-            next_step_title = "Toegang Verleend tot de Elite 🏆"
-            
-            # DEZE REGELS ONTBREKEN WAARSCHIJNLIJK:
-            card_bg = "linear-gradient(135deg, #FFD700 0%, #F59E0B 50%, #D97706 100%)"
-            card_icon = "bi-trophy-fill"  # <--- DIT IS DE FIX
-            
-            next_step_desc = (
-                "<div style='line-height: 1.5; color: white !important;'>"
-                "Gefeliciteerd! Je hebt de volledige Roadmap voltooid. Je hoort nu bij de top 5% van starters die daadwerkelijk actie onderneemt. <br><br>"
-                "<b>De volgende stap:</b> Je fundament staat. Nu is het tijd om te schalen naar <b>€15.000+/maand</b>. Hiervoor heb je onze winnende advertentie-strategieën en Private Agents nodig."
-                "</div>"
-            )
-            
-            next_step_phase_index = 6
-            
-            buttons_html = f"""
-<div style='display: flex; gap: 12px; flex-wrap: wrap; align-items: center; margin-top: 20px;'>
-<a href='{btn_student_url}' target='_blank' style='text-decoration:none;'>
-<div style='background: #1a1a1a; color: #FFD700; padding: 12px 24px; border-radius: 10px; font-weight: 900; font-size: 0.95rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid #FFD700;'>
-🚀 Word student (Gratis call)
-</div>
-</a>
-<a href='{btn_pro_url}' target='_blank' style='text-decoration:none;'>
-<div style='background: rgba(255,255,255,0.2); color: #FFFFFF; padding: 12px 24px; border-radius: 10px; font-weight: 800; font-size: 0.95rem; border: 2px solid #FFFFFF; backdrop-filter: blur(5px);'>
-⚡ Activeer PRO
-</div>
-</a>
-</div>
-""".replace("\n", "")
-
-    # --- 2. HEADER & PROGRESS ---
-        db_shop_name = user.get('shop_name')
-        db_goal = user.get('income_goal')
-        us = db_shop_name if db_shop_name and str(db_shop_name) != "None" else "Mijn Webshop"
-        ug = db_goal if db_goal and str(db_goal) != "None" else "€15k/maand"
         
-        begroeting = get_greeting()
-        st.markdown(f"<h1>{begroeting}, {user.get('first_name', 'Gast')} 👋</h1>", unsafe_allow_html=True)
-        st.caption(f"🚀 {us}: **{ug}** | 📈 Voortgang: **{safe_progress}%**")
-        st.progress(safe_progress / 100)
-
-        with st.expander("ℹ️ **UITLEG: Hoe werkt ons platform** ❓", expanded=False):
-            col_vid, col_info = st.columns([0.38, 1], gap="large")
-
-            with col_vid:
-                # Toon de lokale video uit de assets map (Ecom.mp4)
-                if os.path.exists(COACH_VIDEO_PATH):
-                    st.video(COACH_VIDEO_PATH)
-                else:
-                    st.error("Bestand 'assets/Ecom.mp4' niet gevonden.")
-
-            with col_info:
-                st.markdown("""
-<div style="margin-top: -3px;">
-<h3 style="margin-bottom: 4px; font-size: 1.4rem; font-weight: 800; color: #0F172A; border:none; padding:0;">🚀Jouw weg naar €15k per maand</h3>
-<p style="font-size: 0.9rem; color: #64748B; line-height: 1.4; margin-bottom: 15px;">
-Welkom bij de Elite. Volg de roadmap, gebruik onze AI-modellen en bouw een merk dat blijft bestaan.
-</p>
-                        
-<div style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-<div style="display:flex; align-items:center; gap:12px;">
-<div style="background:#F1F5F9; color:#475569; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">BASIC</div>
-<span style="font-size:0.85rem; color:#1E293B;">Roadmap toegang + AI Credits</span>
-</div>
-<div style="display:flex; align-items:center; gap:12px;">
-<div style="background:#FEF3C7; color:#92400E; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">PRO ⚡️</div>
-<span style="font-size:0.85rem; color:#1E293B;"><b>Onbeperkt AI</b> + Spy-tools + WinningHunter</span>
-</div>
-<div style="display:flex; align-items:center; gap:12px;">
-<div style="background:#DBEAFE; color:#1E40AF; padding:4px 10px; border-radius:6px; font-size:0.65rem; font-weight:800; min-width:65px; text-align:center;">STUDENT</div>
-<span style="font-size:0.85rem; color:#1E293B;">1-op-1 Coaching + Private Community</span>
-</div>
-</div>
-</div>
-                """, unsafe_allow_html=True)
-
-                if not is_pro:
-                    st.markdown(f"""
-                        <a href="{STRATEGY_CALL_URL}" target="_blank" style="text-decoration:none;">
-                            <div style="background: linear-gradient(135deg, #FFD700 0%, #F59E0B 100%); 
-                                        padding: 14px; border-radius: 12px; text-align: center; 
-                                        box-shadow: 0 4px 15px rgba(245, 158, 11, 0.3); 
-                                        border: 1px solid #FCD34D; transition: transform 0.2s;">
-                                <div style="font-weight: 900; color: #78350F; font-size: 1rem; letter-spacing: 0.5px;">💎 WORD NU PRO LID</div>
-                                <div style="font-size: 0.65rem; color: #92400E; font-weight: 700; text-transform: uppercase; margin-top: 2px;">Direct toegang tot alle tools (€49,95)</div>
-                            </div>
-                        </a>
-                        <p style="text-align:center; font-size:0.7rem; color:#94A3B8; margin-top:8px;">
-                            ⭐️ Sluit je aan bij 550+ actieve studenten
-                        </p>
-                    """, unsafe_allow_html=True)
-                else:
-                    st.success("✨ Je bent een gewaardeerd PRO lid!")
-
-        # --- 4. DAILY HABIT SECTIE ---
-        daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
-        is_daily_done = daily_id in completed_steps
-
-        st.markdown("### 📅 Jouw Focus (Roadmap)")
-        with st.container(border=False):
-            if not is_daily_done:
-                c1, c2 = st.columns([3, 1], vertical_alignment="center")
-                c1.markdown("Heb je vandaag minstens 15 minuten aan je shop gewerkt? Consistentie is de sleutel tot succes.")
-                if c2.button("✅ Ja, Claim XP", type="primary", use_container_width=True, key="dashboard_daily_focus"):
-                    auth.mark_step_complete(daily_id, 10)
-                    st.cache_data.clear()
-                    st.rerun()
-            else:
-                st.success("Lekker bezig! Je hebt je daily habit voor vandaag gehaald. 🔥")
-
-# --- 1. RENDERING VAN DE ORANJE KAART (Zorg dat dit blok boven de nieuwe code staat) ---
+        # Styling: Geen fel oranje meer, maar "Tech Blue"
+        # --- 4. ACTION CARD (HERO STYLE: BLAUW MET GELE KNOP) ---
         st.markdown(f"""
-        <div style="background: {card_bg}; padding: 25px; border-radius: 20px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3); box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-            <div style="color: white !important; font-family: sans-serif;">
-                <div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 8px; font-weight: 800; color: white !important; opacity: 0.9;">
-                    <i class="bi {card_icon}"></i> ELITE STATUS BEREIKBAAR
-                </div>
-                <h2 style="margin: 0; font-size: 1.8rem; color: white !important; font-weight: 900; line-height: 1.2; margin-bottom: 10px; border: none; padding: 0;">
+<div style="
+background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%); 
+padding: 30px; 
+border-radius: 20px; 
+margin-top: 20px; 
+margin-bottom: 25px; 
+box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4); 
+position: relative; 
+overflow: hidden;
+border: 1px solid #1E40AF;">
+            
+<div style="position: relative; z-index: 2;">
+<div style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.7); font-weight: 800; margin-bottom: 8px;">
+Volgende mijlpaal
+</div>
+                <h2 style="margin: 0; font-size: 2rem; color: #FFFFFF; font-weight: 900; margin-bottom: 10px; line-height: 1.1;">
                     {next_step_title}
                 </h2>
-                <p style="margin: 0; font-size: 1.1rem; line-height: 1.4; color: white !important; max-width: 650px; font-weight: 500;">
+                <p style="font-size: 1.05rem; color: rgba(255,255,255,0.9); max-width: 600px; line-height: 1.5; margin-bottom: 25px; font-weight: 500;">
                     {next_step_desc}
                 </p>
-                {buttons_html}
-            </div>
-        </div>
+                
+<a href="#roadmap_start" target="_self" style="text-decoration:none;">
+<div style="
+display: inline-block; 
+background: #FFC107; 
+background: linear-gradient(180deg, #FFD700 0%, #FFC107 100%);
+color: #000000; 
+padding: 14px 32px; 
+border-radius: 12px; 
+font-weight: 800; 
+font-size: 1rem; 
+box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+border: 1px solid #EAB308;
+transition: transform 0.2s;">
+Start module
+</div>
+</a>
+</div>
+</div>
         """, unsafe_allow_html=True)
 
-        # --- 2. DE XP BOOSTER (NU ONDER DE KAART + 2-STAP LOGICA) ---
-        if is_finished and user['xp'] >= 930 and user['xp'] < 1000:
-            st.markdown("### 🚀 Laatste stap naar Level 4")
-            with st.container(border=True):
-                st.write(f"Je hebt nu **{user['xp']} XP**. Deel de RM Tools APP om de laatste XP te verdienen en de 'E-com Boss' status te claimen.")
-                
-                col_1, col_2 = st.columns(2)
-                
-                with col_1:
-                    # WhatsApp Bericht met FOMO en Urgentie
-                    whatsapp_tekst = """STOP met wat je doet! Ik heb net de 'gouden' app van RM Tools ontdekt. Je krijgt nu GRATIS toegang tot hun WinningHunter (viral producten), Concurrenten-Spy en AI LogoMaker. Dit is letterlijk de toolkit waarmee zij €10k+ maanden draaien. Ik heb geen idee hoelang dit nog gratis blijft: https://app.rmacademy.nl"""
-                    
-                    # De tekst veilig omzetten voor een URL
-                    share_msg = urllib.parse.quote(whatsapp_tekst)
-                    wa_url = f"https://wa.me/?text={share_msg}"
-                    
-                    st.link_button("📲 1. Deel via WhatsApp", wa_url, use_container_width=True)
-                
-                with col_2:
-                    # De 'Vrijgave' check
-                    has_shared = st.checkbox("Ik heb de link gedeeld ✅", key="booster_check")
-                    
-                    if has_shared:
-                        if st.button("✅ 2. Claim +100 XP Boost", type="primary", use_container_width=True):
-                            auth.mark_step_complete("final_share_boost_milestone", 100)
-                            st.balloons()
-                            st.success("Boom! Je bent nu een E-com Boss! 🏆")
-                            time.sleep(2)
-                            st.rerun()
-                    else:
-                        # Grijze knop als er nog niet gevinkt is
-                        st.button("Claim XP (Deel eerst)", disabled=True, use_container_width=True)
-
-        # --- 7. STATS GRID ---
+        # --- 5. STATS GRID (Clean) ---
         needed = next_xp_goal_sidebar - user['xp']
-        next_reward = "Spy tool" if user['level'] < 2 else "Video scripts"
         st.markdown(f"""
         <div class="stat-grid">
             <div class="stat-card">
-                <div class="stat-icon">Level</div>
+                <div class="stat-icon">Jouw Level</div>
                 <div class="stat-value">{user['level']}</div>
                 <div class="stat-sub">{rank_title}</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">XP</div>
+                <div class="stat-icon">Ervaring (XP)</div>
                 <div class="stat-value">{user['xp']}</div>
-                <div class="stat-sub">Nog {needed} voor Lvl {user['level']+1}</div>
+                <div class="stat-sub">{needed} nodig voor volgende stap</div>
             </div>
             <div class="stat-card">
-                <div class="stat-icon">Beloning</div>
-                <div class="stat-value" style="font-size: 1.2rem;">\U0001F381</div>
-                <div class="stat-sub" style="color:#2563EB;">{next_reward}</div>
+                <div class="stat-icon"> Credits</div>
+                <div class="stat-value" style="color:#2563EB;">{st.session_state.ai_credits}/3</div>
+                <div class="stat-sub">Wordt vannacht gereset</div>
             </div>
         </div>""", unsafe_allow_html=True)
         
-        
-        st.markdown("<div id='roadmap_start' style='height: 0px;'></div>", unsafe_allow_html=True)
-        st.markdown("### 📍 Jouw Roadmap")
-        st.caption("Klik op een fase om je taken te bekijken.")
+        # --- 6. DAILY HABIT (Business Routine) ---
+        daily_id = f"daily_habit_{datetime.now().strftime('%Y%m%d')}"
+        is_daily_done = daily_id in completed_steps
+
+        st.markdown("### 📅 Dagelijkse Routine")
+        with st.container(border=True):
+            if not is_daily_done:
+                c1, c2 = st.columns([3, 1], vertical_alignment="center")
+                c1.markdown("**Consistentie wint.** Heb je vandaag 15 minuten aan je onderneming gewerkt?")
+                if c2.button("✅ Check-in (+10 XP)", type="primary", use_container_width=True, key="dashboard_daily_focus"):
+                    auth.mark_step_complete(daily_id, 10)
+                    st.cache_data.clear()
+                    st.rerun()
+            else:
+                st.markdown("<div style='color:#166534; font-weight:600;'>✅ Check-in voltooid voor vandaag. Goed bezig.</div>", unsafe_allow_html=True)
+
+        # --- 7. ROADMAP WEERGAVE ---
+        st.markdown("<div id='roadmap_start' style='height: 20px;'></div>", unsafe_allow_html=True)
+        st.markdown("### 🗺️ Project Roadmap")
         
         active_phase_idx = next_step_phase_index 
         for idx, (fase_key, fase) in enumerate(full_map.items()):
             phase_num = idx + 1
             is_current_phase = (phase_num == active_phase_idx)
-            if phase_num < active_phase_idx: phase_icon, phase_label = "✅", f"{fase['title']} (Voltooid)"
-            elif phase_num == active_phase_idx: phase_icon, phase_label = "📍", f"{fase['title']} (Nu Actief)" 
-            else: phase_icon, phase_label = "📂", fase['title']
+            
+            # Iconen ipv emojis voor strakkere look
+            if phase_num < active_phase_idx: phase_icon, phase_label = "✅", f"{fase['title']}"
+            elif phase_num == active_phase_idx: phase_icon, phase_label = "🔹", f"{fase['title']} (Actief)" 
+            else: phase_icon, phase_label = "🔒", fase['title']
                 
             with st.expander(f"{phase_icon} {phase_label}", expanded=is_current_phase):
                 st.caption(fase['desc'])
                 for step in fase['steps']:
                     is_done = step['id'] in completed_steps
                     if is_done:
-                        with st.expander(f"✅ {step['title']}", expanded=False): st.info("Deze stap heb je al afgerond. Goed bezig!")
+                        st.markdown(f"<div style='color:#94A3B8; margin-left:20px; font-size:0.9rem;'><s>{step['title']}</s> ✅</div>", unsafe_allow_html=True)
                     else:
                         is_recommended = (step['id'] == next_step_id)
+                        # We gebruiken de bestaande render functie, die is prima
                         just_completed_id, xp = roadmap.render_step_card(step, is_done, is_pro, expanded=is_recommended)
                         if just_completed_id:
                             with st.spinner("Opslaan..."):
                                 auth.mark_step_complete(just_completed_id, xp)
                                 if "force_completed" not in st.session_state: st.session_state.force_completed = []
                                 st.session_state.force_completed.append(just_completed_id)
-                                st.toast(f"🚀 Lekker bezig! +{xp} XP", icon="🎉") 
+                                st.toast(f"Taak voltooid! +{xp} XP", icon="🚀") 
                                 st.rerun()
         st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
 
