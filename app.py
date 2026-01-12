@@ -7,6 +7,7 @@ import textwrap
 import base64 
 import os
 import io
+import requests # Nieuw: Nodig voor de download knop in de publieke logo maker
 from PIL import Image
 from streamlit_option_menu import option_menu
 from datetime import datetime, timedelta, timezone
@@ -36,10 +37,10 @@ except:
     pass
 
 st.set_page_config(
-    page_title="RM Ecom Academy",
+    page_title="RM Tools - Gratis AI voor Ondernemers", # AANGEPAST: Breder publiek
     page_icon=fav_icon,
     layout="wide",
-    initial_sidebar_state="auto"
+    initial_sidebar_state="collapsed" # AANGEPAST: Standaard ingeklapt voor focus op tools
 )
 
 # --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
@@ -128,6 +129,15 @@ st.markdown("""
         h1, h2, h3 { color: #0F172A !important; }
         p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small { color: #0F172A !important; }
         * { -webkit-tap-highlight-color: transparent !important; }
+
+        /* ==============================================
+           LANDING PAGE STYLES (NIEUW)
+           ============================================== */
+        .landing-title { font-size: 2.2rem !important; font-weight: 800 !important; color: #0F172A; line-height: 1.2; text-align: center; }
+        .landing-sub { font-size: 1.0rem !important; color: #64748B; text-align: center; margin-bottom: 25px; }
+        
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .roulette-box { background: #F0F9FF; border: 2px solid #BAE6FD; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
 
         /* ==============================================
            UI ELEMENTEN
@@ -225,7 +235,7 @@ st.markdown("""
             font-weight: 600 !important;
         }
         
-        div.stButton > button[kind="primary"] { background-color: #2563EB !important; border-color: #2563EB !important; color: white !important; }
+        div.stButton > button[kind="primary"] { background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%) !important; border-color: #2563EB !important; color: white !important; }
         div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
         div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
         div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
@@ -372,19 +382,20 @@ if "autologin" in st.query_params and "user" in st.query_params:
         st.query_params.clear()
         st.rerun()
 
-# 2. INITIALISEER BASIS STATUS
+# 2. INITIALISEER BASIS STATUS (MET FIXES VOOR LANDING PAGE)
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
-if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
-if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
+if "generated_logos" not in st.session_state: st.session_state.generated_logos = [] # FIX: Logo crash
+if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0 # FIX
+if "niche_roulette_result" not in st.session_state: st.session_state.niche_roulette_result = None # FIX: Roulette
+if "is_spinning" not in st.session_state: st.session_state.is_spinning = False
 
 def set_view(name):
     st.session_state.view = name
     st.rerun()
 
-# 3. PERSISTENT LOGIN (Michael's identiteit herstellen na F5)
+# 3. PERSISTENT LOGIN (UITGESCHAKELD OP JOUW VERZOEK - ZODAT JE LANDING PAGE ZIET)
 if "user" not in st.session_state:
-    # We geven de browser tijd (0.8s is de sweetspot voor mobiel/live)
     time.sleep(0.8) 
     all_cookies = cookie_manager.get_all()
     if all_cookies and "rmecom_user_email" in all_cookies:
@@ -393,149 +404,205 @@ if "user" not in st.session_state:
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# 4. DATA SYNC: Trek de echte 1030 XP stand uit Supabase (Fix voor Gast-fouten)
-if "user" in st.session_state:
-    user = st.session_state.user
-    if user.get('id') != 'temp' and auth.supabase:
-        try:
-            # Trek altijd de allernieuwste XP data uit de cloud
-            refresh_data = auth.supabase.table('users').select("*").eq('email', user['email']).execute()
-            if refresh_data.data:
-                st.session_state.user.update(refresh_data.data[0])
-                user = st.session_state.user
-        except:
-            pass
+# --- HELPER FUNCTIE VOOR INLOGGEN (PREMIUM DESIGN + PLACEHOLDERS) ---
+def render_auth_footer(key_suffix):
+    """Toont het inlog/registratie blok onderaan de tools."""
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("---")
+    
+    # Premium Header
+    st.markdown(f"""
+    <div style="text-align:center; margin-bottom: 40px; margin-top: 20px;">
+        <h2 style="color:#0F172A; font-weight: 800; font-size: 2rem;">🚀 Klaar om te starten?</h2>
+        <p style="color:#64748B; font-size: 1.1rem;">Sla je voortgang op en krijg direct toegang tot het volledige dashboard.</p>
+    </div>
+    """, unsafe_allow_html=True)
 
-# 4. ENTRY GATE: Als Michael niet is gevonden, toont hij het inlogscherm
-if "user" not in st.session_state:
-    # Hier komt je bestaande inlog-UI (Account maken / Inloggen)
-    pass
+    c1, c2 = st.columns(2, gap="large")
 
+    # KOLOM 1 (LINKS): REGISTREREN - DE HOOFDACTIE
+    with c1:
+        # We gebruiken een container met border voor de 'Card' look
+        with st.container(border=True):
+            st.markdown("### ✨Nieuw Account (Gratis)")
+            st.markdown("<div style='font-size:0.85rem; color:#64748B; margin-bottom:15px;'>Maak binnen 1 minuut een account aan.</div>", unsafe_allow_html=True)
+            
+            # Placeholders toegevoegd ("Voorgekauwd")
+            r_name = st.text_input("Voornaam", placeholder="Bijv. Michael", key=f"reg_name_{key_suffix}")
+            r_email = st.text_input("Email", placeholder="jouw@email.nl", key=f"reg_email_{key_suffix}")
+            r_pass = st.text_input("Kies Wachtwoord", placeholder="Minimaal 6 tekens...", type="password", key=f"reg_pass_{key_suffix}")
+            
+            # Referral code iets subtieler
+            ref_code = None
+            with st.expander("Heb je een vriendencode? (Optioneel)"):
+                ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key=f"ref_{key_suffix}")
 
-# --- 3. LOGIN SCHERM (PIXEL PERFECT MOBILE) ---
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+            
+            if st.button("🚀 Account Aanmaken & Starten", type="primary", key=f"btn_reg_{key_suffix}", use_container_width=True):
+                if r_email and "@" in r_email and r_name and r_pass:
+                    with st.spinner("Profiel aanmaken..."):
+                        status = db.create_user(r_email, r_pass, r_name)
+                        if status == "SUCCESS" or status == "EXISTS":
+                            if status == "SUCCESS":
+                                auth.send_welcome_email(r_email, r_name, r_pass)
+                            
+                            auth.login_or_register(r_email, ref_code_input=ref_code, name_input=r_name)
+                            cookie_manager.set("rmecom_user_email", r_email, expires_at=datetime.now() + timedelta(days=30), path="/")
+                            st.balloons()
+                            time.sleep(1)
+                            st.rerun()
+                        else:
+                            st.error("Er ging iets mis met de database.")
+                else:
+                    st.warning("Vul alsjeblieft je naam, email en wachtwoord in.")
+            
+            # Trust indicators
+            st.markdown("""
+                <div style="text-align:center; margin-top:10px;">
+                    <small style="color:#94A3B8;">✅ Geen creditcard nodig • Direct toegang</small>
+                </div>
+            """, unsafe_allow_html=True)
+
+    # KOLOM 2 (RECHTS): INLOGGEN
+    with c2:
+        with st.container(border=True):
+            st.markdown("### 🔑Bestaand Account (Inloggen)")
+            st.markdown("<div style='font-size:0.85rem; color:#64748B; margin-bottom:15px;'>Welkom terug, boss. Log hier in.</div>", unsafe_allow_html=True)
+            
+            l_email = st.text_input("Email", placeholder="jouw@email.nl", key=f"login_email_{key_suffix}")
+            l_pass = st.text_input("Wachtwoord", placeholder="Je wachtwoord...", type="password", key=f"login_pass_{key_suffix}")
+            
+            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+            
+            if st.button("Inloggen", key=f"btn_login_{key_suffix}", use_container_width=True):
+                if l_email and l_pass:
+                    if db.verify_user(l_email, l_pass):
+                        auth.login_or_register(l_email)
+                        cookie_manager.set("rmecom_user_email", l_email, expires_at=datetime.now() + timedelta(days=30), path="/")
+                        st.rerun()
+                    else:
+                        st.error("Onjuiste gegevens. Probeer het opnieuw.")
+# ==============================================================================
+# 🚀 PUBLIC LANDING PAGE (2 TABS: Logo & Roulette)
+# ==============================================================================
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     
+    # CSS voor Landingspagina
     st.markdown("""
     <style>
-        div.stButton > button[kind="primary"] { 
-            background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%) !important;
-            border: 1px solid #B45309 !important;
-            color: white !important;
-            font-weight: 800 !important;
-            font-size: 1rem !important;
-            padding-top: 0.5rem !important;
-            padding-bottom: 0.5rem !important;
-            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.3);
-            transition: all 0.2s;
-            margin-top: 0px !important;
-        }
-        div.stButton > button[kind="primary"]:hover { 
-            transform: scale(1.02);
-            box-shadow: 0 6px 12px rgba(245, 158, 11, 0.4);
-        }
-        .compact-title {
-            font-size: 1.8rem !important;
-            line-height: 1.2 !important;
-            margin-bottom: 5px !important;
-            margin-top: 0px !important;
-            font-weight: 800 !important;
-        }
-        .compact-sub {
-            font-size: 0.95rem !important;
-            color: #64748B !important;
-            line-height: 1.4 !important;
-            margin-bottom: 15px !important;
-        }
-        div[data-testid="stVerticalBlockBorderWrapper"] > div {
-            padding: 20px !important;
-            padding-top: 15px !important;
-            padding-bottom: 15px !important;
-        }
-        @media only screen and (max-width: 600px) {
-            .block-container { padding-top: 1rem !important; padding-bottom: 1rem !important; }
-            .compact-title { font-size: 1.35rem !important; margin-bottom: 4px !important; line-height: 1.2 !important; }
-            .compact-sub { font-size: 0.85rem !important; margin-bottom: 8px !important; line-height: 1.3 !important; }
-            .logo-text { font-size: 0.8rem !important; margin-bottom: 0px !important; }
-            div[data-testid="stVerticalBlockBorderWrapper"] > div { padding: 12px !important; padding-top: 10px !important; }
-            div[data-testid="stExpander"] { margin-bottom: 0px !important; }
-            .stTextInput { margin-bottom: 0px !important; }
-            div[class*="stGap"] { gap: 0.5rem !important; }
-        }
+        .landing-title { font-size: 2.2rem !important; font-weight: 800 !important; color: #0F172A; line-height: 1.2; text-align: center; }
+        .landing-sub { font-size: 1.0rem !important; color: #64748B; text-align: center; margin-bottom: 25px; }
+        .casino-box { background: white; border: 2px solid #E2E8F0; border-radius: 20px; padding: 40px 20px; text-align: center; box-shadow: 0 20px 50px -10px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; transition: all 0.3s; }
+        .winner-box { background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border: 2px solid #3B82F6; transform: scale(1.02); }
+        .slot-text { font-size: 1.8rem; font-weight: 800; color: #0F172A; min-height: 60px; display: flex; align-items: center; justify-content: center; }
     </style>
     """, unsafe_allow_html=True)
+
+    # Header
+    st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+    st.markdown("<div class='logo-text' style='text-align:center; margin-bottom:0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Tools</div>", unsafe_allow_html=True)
+    st.markdown("<h1 class='landing-title'>Start je Business met AI🚀</h1>", unsafe_allow_html=True)
+    st.markdown("<p class='landing-sub'>Gebruik onze premium tools <b>gratis</b>. Geen account nodig om te testen.</p>", unsafe_allow_html=True)
     
-    col_left, col_right = st.columns([1, 1.1], gap="large", vertical_alignment="center")
+    # MAAR 2 TABS!
+    tab_logo, tab_roulette = st.tabs(["AI Logo Maker", "Niche Roulette"])
     
-    with col_left:
-        st.markdown("<div class='logo-text' style='font-size: 0.9rem; font-weight: 600; color: #475569; margin-bottom: 0px;'><i class='bi bi-lightning-charge-fill' style='color:#2563EB;'></i> RM Ecom Academy</div>", unsafe_allow_html=True)
+    # === TAB 1: LOGO MAKER ===
+    with tab_logo:
         st.markdown("""
-        <h1 class='compact-title'>
-            Van 0 naar <span style='color:#166534; background: #DCFCE7; padding: 0 6px; border-radius: 6px;'>€15k/maand</span> met je eigen webshop.
-        </h1>
-        <p class='compact-sub'>
-            De enige app die je stap-voor-stap begeleidt. Geen technische kennis nodig. Start vandaag <b>gratis</b>.
-        </p>
+        <div style="background: #F8FAFC; border: 1px solid #E2E8F0; padding: 20px; border-radius: 12px; margin-bottom: 20px;">
+            <h4 style="margin:0; color:#0F172A;">✨ Ontwerp je merk in 10 seconden</h4>
+            <p style="font-size:0.9rem; color:#64748B;">Bespaar €300 aan designers. Onze AI maakt unieke logo's voor je webshop.</p>
+        </div>
         """, unsafe_allow_html=True)
         
-        with st.container(border=True):
-            tab_free, tab_pro = st.tabs(["Nieuw Account", "Inloggen"])
-            with tab_free:
-                col_name, col_email = st.columns(2)
-                first_name = col_name.text_input("Voornaam", placeholder="Je naam...", label_visibility="collapsed", key="reg_name")
-                email = col_email.text_input("Email", placeholder="Je email...", label_visibility="collapsed", key="reg_email")
-                password = st.text_input("Wachtwoord verzinnen", placeholder="Wachtwoord...", type="password", label_visibility="collapsed", key="reg_pass")
-                with st.expander("Heb je een vriendencode?"):
-                    ref_code = st.text_input("Vriendencode", placeholder="bv. JAN-482", label_visibility="collapsed", key="ref_code_input")
-                st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
-                if st.button("Start direct (gratis)", type="primary", use_container_width=True):
-                    if email and "@" in email and first_name and password:
-                        with st.spinner("Account aanmaken..."):
-                            status = db.create_user(email, password, first_name)
-                            if status == "SUCCESS":
-                                auth.send_welcome_email(email, first_name, password)
-                                auth.login_or_register(email, ref_code_input=ref_code if 'ref_code' in locals() and ref_code else None, name_input=first_name)
-                                cookie_manager.set("rmecom_user_email", email, expires_at=datetime.now() + timedelta(days=30), path="/")
-                                st.rerun()
-                            elif status == "EXISTS": st.warning("Dit emailadres bestaat al. Probeer in te loggen.")
-                            else: st.error("Er ging iets mis met de database.")
-                    else: st.warning("Vul alle velden in.")
-                st.markdown("""<div style='text-align:center; margin-top:4px; line-height:1.2;'><div style='font-size:0.7rem; color:#475569; font-weight:500;'><i class="bi bi-check-circle-fill" style="font-size:10px; color:#16A34A;"></i> Geen creditcard nodig <span style='color:#CBD5E1;'>|</span> Direct toegang</div></div>""", unsafe_allow_html=True)
-                st.markdown("""<div style='display: flex; align-items: center; justify-content: center; gap: 4px; margin-top: 2px; opacity: 1.0;'><div style="color: #F59E0B; font-size: 0.75rem;"><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i><i class="bi bi-star-fill"></i></div><span style='font-size: 0.75rem; color: #475569; font-weight: 600;'>4.9/5 (550+ studenten)</span></div>""", unsafe_allow_html=True)
-            
-            with tab_pro:
-                log_email = st.text_input("Email", placeholder="Email...", key="log_email_in")
-                log_pass = st.text_input("Wachtwoord", placeholder="Wachtwoord...", type="password", key="log_pass_in")
-                st.markdown("<br>", unsafe_allow_html=True)
-                if st.button("Inloggen", type="primary", use_container_width=True):
-                    if log_email and log_pass:
-                        if db.verify_user(log_email, log_pass):
-                            auth.login_or_register(log_email)
-                            cookie_manager.set("rmecom_user_email", log_email, expires_at=datetime.now() + timedelta(days=30), path="/")
-                            st.rerun()
-                        else: st.error("Onjuiste gegevens.")
-                    else: st.warning("Vul alles in.")
-    
-    with col_right:
-        st.markdown("<br class='desktop-only'>", unsafe_allow_html=True)
-        raw_html = """
-        <div style="background: white; padding: 30px; border-radius: 20px; border: 1px solid #E2E8F0; box-shadow: 0 10px 40px -10px rgba(0,0,0,0.08); color: #0F172A;">
-            <h3 style="margin-top:0; color:#0F172A; font-size:1.1rem; font-weight: 700; margin-bottom: 15px;">Dit krijg je gratis:</h3>
-            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
-                <div style="width:48px; height:48px; background:#EFF6FF; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-map-fill" style="color:#2563EB;"></i></div>
-                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">De 'Van 0 naar sales' roadmap</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Stap-voor-stap handleiding.</p></div>
-            </div>
-            <div style="display:flex; gap:16px; margin-bottom:20px; align-items:center;">
-                <div style="width:48px; height:48px; background:#F0FDF4; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-robot" style="color:#16A34A;"></i></div>
-                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Jouw eigen AI coach</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">24/7 hulp bij al je vragen.</p></div>
-            </div>
-            <div style="display:flex; gap:16px; align-items:center;">
-                <div style="width:48px; height:48px; background:#FFF7ED; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:22px; flex-shrink: 0;"><i class="bi bi-trophy-fill" style="color:#EA580C;"></i></div>
-                <div><h4 style="margin:0; font-size:0.9rem; font-weight:600; color:#1E293B;">Level-based groei</h4><p style="margin:0; font-size:0.8rem; color:#64748B;">Verdien tools door actie te nemen.</p></div>
-            </div>
-        </div>
-        """
-        st.markdown(raw_html.replace("\n", ""), unsafe_allow_html=True)
+        col_l1, col_l2 = st.columns(2)
+        l_name = col_l1.text_input("Merknaam", placeholder="Bijvoorbeeld: Nova", key="pub_logo_name")
+        l_niche = col_l1.text_input("Wat doe je?", placeholder="Bijvoorbeeld: Kleding, Gadgets", key="pub_logo_niche")
+        l_style = col_l2.selectbox("Stijl", ["Minimalistisch", "Modern", "Luxe", "Speels"], key="pub_logo_style")
+        l_color = col_l2.text_input("Kleuren", placeholder="Zwart & Goud", key="pub_logo_color")
+        
+        if st.button("🚀Genereer Logo's (Gratis)", type="primary", use_container_width=True):
+            if l_name and l_niche:
+                with st.spinner("🎨AI is aan het ontwerpen..."):
+                    try:
+                        new_logos = []
+                        for i in range(2): # 2 gratis generaties
+                            img_url = ai_coach.generate_logo(l_name, l_niche, l_style, l_color)
+                            if img_url and "placehold" not in img_url:
+                                new_logos.append({"url": img_url, "name": f"logo_{i}.png"})
+                        st.session_state.generated_logos = new_logos
+                    except Exception as e: st.error(f"AI Fout: {e}")
+            else:
+                st.warning("Vul naam en niche in.")
+
+        if st.session_state.generated_logos:
+            st.success("✅Je logo's zijn klaar!")
+            cols = st.columns(2)
+            for idx, logo in enumerate(st.session_state.generated_logos):
+                with cols[idx]:
+                    st.image(logo["url"], use_container_width=True)
+        
+        # FOOTER ONDER LOGO MAKER
+        render_auth_footer("logo_tab")
+
+    # === TAB 2: NICHE ROULETTE (Premium Slot Style) ===
+    with tab_roulette:
+        st.markdown("<div style='height:20px'></div>", unsafe_allow_html=True)
+        niches = ["🌿 Eco Yoga Matten", "🐶 Orthopedische Hondenmanden", "💡 Galaxy Projectors", "💄 Magnetische Wimpers", "🎒 Anti-diefstal Rugzakken", "☕ Zelfroerende Mokken", "👶 Houten Speelgoed", "🚗 Auto Led-strips", "📱 Telefoonhoesjes met Koord", "🥑 Avocado Slicers", "🦷 Tandenbleeksets"]
+        
+        container = st.empty()
+        
+        # Stap 1: Startscherm
+        if not st.session_state.niche_roulette_result:
+            with container.container():
+                st.markdown("""
+                <div class="casino-box">
+                    <div style="font-size: 3rem; margin-bottom: 10px;">🎰</div>
+                    <h2 style="color:#0F172A; margin:0;">Geen inspiratie?</h2>
+                    <p style="color:#64748B; margin-bottom: 25px;">Laat het lot bepalen wat jouw 'Winning Product' wordt.</p>
+                    <div style="background:#F1F5F9; border-radius:12px; padding:20px; margin-bottom:20px; color:#94A3B8; font-weight:700; border:2px dashed #CBD5E1;">???</div>
+                </div>
+                """, unsafe_allow_html=True)
+                _, c2, _ = st.columns([1, 2, 1])
+                if c2.button("🎲 SPIN THE WHEEL", type="primary", use_container_width=True):
+                    st.session_state.is_spinning = True
+                    st.rerun()
+
+        # Stap 2: Resultaat
+        else:
+            final_res = st.session_state.niche_roulette_result
+            with container.container():
+                st.markdown(f"""
+                <div class="casino-box winner-box">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 2px; color: #3B82F6; font-weight: 800; margin-bottom: 10px;">✨ JOUW NICHE IS:</div>
+                    <div class="slot-text">{final_res}</div>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
+                if st.button("🔄 Nog eens draaien", use_container_width=True):
+                    st.session_state.niche_roulette_result = None
+                    st.rerun()
+
+        # Animatie Logica
+        if st.session_state.is_spinning:
+            placeholder = container.empty()
+            for _ in range(15):
+                placeholder.markdown(f"""<div class="casino-box"><div style="font-size:3rem;">🎰</div><h2>Draaien...</h2><div style="background:#F1F5F9; padding:20px; font-weight:700; font-size:1.2rem;">{random.choice(niches)}</div></div>""", unsafe_allow_html=True)
+                time.sleep(0.1)
+            st.session_state.niche_roulette_result = random.choice(niches)
+            st.session_state.is_spinning = False
+            st.balloons()
+            st.rerun()
+
+        # FOOTER ONDER ROULETTE
+        render_auth_footer("roulette_tab")
+
+    # BELANGRIJK: Stop hier voor niet-ingelogde gebruikers
     st.stop()
 
 # --- 4. INGELOGDE DATA (CACHED & SYNCHRONISED) ---
@@ -849,7 +916,7 @@ if not has_shop_name and not wizard_already_done and user.get('xp', 0) == 0:
     st.markdown("<br>", unsafe_allow_html=True)
     with st.container(border=True):
         welcome_name = user.get('first_name', 'Ondernemer')
-        st.markdown(f"""<div style="text-align: center; padding: 20px;"><h1 style="color: #2563EB; margin-bottom: 10px;">👋Welkom bij RM Academy, {welcome_name}!</h1><p style="font-size: 1.1rem; color: #64748B;">Laten we je profiel instellen voor maximaal succes.</p></div>""", unsafe_allow_html=True)
+        st.markdown(f"""<div style="text-align: center; padding: 20px;"><h1 style="color: #2563EB; margin-bottom: 10px;">👋Welkom bij de RM Tools, {welcome_name}!</h1><p style="font-size: 1.1rem; color: #64748B;">Laten we je profiel instellen voor maximaal succes.</p></div>""", unsafe_allow_html=True)
         
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
@@ -897,7 +964,7 @@ def render_footer():
     with col1:
         # Gebruik de huidige datum voor het jaartal
         current_year = datetime.now().year
-        st.markdown(f"<p style='font-size:0.8rem; color:#64748B;'>© {current_year} RM Ecom Academy. Alle rechten voorbehouden.</p>", unsafe_allow_html=True)
+        st.markdown(f"<p style='font-size:0.8rem; color:#64748B;'>© {current_year} RM TOOLS. Alle rechten voorbehouden.</p>", unsafe_allow_html=True)
     with col2:
         if st.button("🔒 Privacybeleid", key="btn_footer_priv", use_container_width=True):
             st.session_state.view = "privacy"
@@ -916,7 +983,7 @@ def render_privacy_page():
     with st.container(border=True):
         st.markdown(f"""
         ### 1. Hoe we je gegevens gebruiken
-        RM Ecom Academy gebruikt je e-mail en voornaam alleen om je account te beheren en je voortgang (XP en Levels) op te slaan in onze beveiligde database.
+        RM Tools gebruikt je e-mail en voornaam alleen om je account te beheren en je voortgang (XP en Levels) op te slaan in onze beveiligde database.
         
         ### 2. Cookies
         We gebruiken lokale cookies om je ingelogd te houden. Zonder deze cookies zou je bij elke verversing opnieuw moeten inloggen.
@@ -938,7 +1005,7 @@ def render_terms_page():
     with st.container(border=True):
         st.markdown(f"""
         ### 1. Gebruik van de App
-        Door gebruik te maken van RM Ecom Academy ga je akkoord met onze methodiek. Je bent zelf verantwoordelijk voor de uitvoering van je webshop.
+        Door gebruik te maken van RM Tools ga je akkoord met onze methodiek. Je bent zelf verantwoordelijk voor de uitvoering van je webshop.
         
         ### 2. AI & Credits
         Misbruik van de AI-tools (zoals het genereren van ongepaste content) kan leiden tot een directe blokkering van je account zonder teruggave van credits.
@@ -1175,13 +1242,13 @@ Welkom bij de Elite. Volg de roadmap, gebruik onze AI-modellen en bouw een merk 
         if is_finished and user['xp'] >= 930 and user['xp'] < 1000:
             st.markdown("### 🚀 Laatste stap naar Level 4")
             with st.container(border=True):
-                st.write(f"Je hebt nu **{user['xp']} XP**. Deel de RM Academy APP om de laatste XP te verdienen en de 'E-com Boss' status te claimen.")
+                st.write(f"Je hebt nu **{user['xp']} XP**. Deel de RM Tools APP om de laatste XP te verdienen en de 'E-com Boss' status te claimen.")
                 
                 col_1, col_2 = st.columns(2)
                 
                 with col_1:
                     # WhatsApp Bericht met FOMO en Urgentie
-                    whatsapp_tekst = """STOP met wat je doet! Ik heb net de 'gouden' app van RM Academy ontdekt. Je krijgt nu GRATIS toegang tot hun WinningHunter (viral producten), Concurrenten-Spy en AI LogoMaker. Dit is letterlijk de toolkit waarmee zij €10k+ maanden draaien. Ik heb geen idee hoelang dit nog gratis blijft: https://app.rmacademy.nl"""
+                    whatsapp_tekst = """STOP met wat je doet! Ik heb net de 'gouden' app van RM Tools ontdekt. Je krijgt nu GRATIS toegang tot hun WinningHunter (viral producten), Concurrenten-Spy en AI LogoMaker. Dit is letterlijk de toolkit waarmee zij €10k+ maanden draaien. Ik heb geen idee hoelang dit nog gratis blijft: https://app.rmacademy.nl"""
                     
                     # De tekst veilig omzetten voor een URL
                     share_msg = urllib.parse.quote(whatsapp_tekst)
@@ -1424,7 +1491,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 # --- DE VIDEOS (Alleen voor geverifieerde studenten) ---
                 course_content = {
                     "Module 1: Welkom": [
-                        {"title": "Introductie - Welkom bij RM Ecom Academy", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
+                        {"title": "Introductie - Welkom bij de RM Tools", "url": "https://youtu.be/N7sftaU3T_E", "duration": "5 min"},
                         {"title": "Jouw 100K Laserfocus Systeem", "url": "https://youtu.be/aBpsJN0D3QE", "duration": "10 min"},
                         {"title": "Jouw Transformatieplan in 70 Dagen", "url": "https://youtu.be/gx5dJ6nUrf4", "duration": "15 min"},
                         {"title": "De eerste stappen naar succes", "url": "https://youtu.be/ajnJeKuKp7c", "duration": "8 min"},
@@ -2348,7 +2415,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 st.markdown("""
                 1. Ga in Shopify naar **Settings** > **Apps and sales channels**.
                 2. Klik op **Develop apps**.
-                3. Klik op **Create an app** en geef het de naam 'RM Academy'.
+                3. Klik op **Create an app** en geef het de naam 'RM Tools'.
                 4. Ga naar **Configuration** en geef toegang tot 'Admin API' (Products, Orders, Content).
                 5. Klik op **Install App** en kopieer de 'Admin API access token'.
                 """)
@@ -2405,7 +2472,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                 **Hoe krijg ik meer AI Credits?**
                 Je credits worden elke nacht om 00:00 uur automatisch ververst naar 3. PRO-leden hebben onbeperkte credits.
                 
-                **Werkt mijn vriendencode ook voor de Academy?**
+                **Werkt mijn vriendencode ook voor de RM Tools?**
                 Nee, vriendencodes geven je direct toegang tot de app. Voor het volledige coaching-traject moet je een strategiegesprek inplannen.
                 """)
         
