@@ -375,6 +375,8 @@ if "autologin" in st.query_params and "user" in st.query_params:
 # 2. INITIALISEER BASIS STATUS
 if "view" not in st.session_state: st.session_state.view = "main"
 if "nav_index" not in st.session_state: st.session_state.nav_index = 0
+if "generated_logos" not in st.session_state: st.session_state.generated_logos = []
+if "logo_generations" not in st.session_state: st.session_state.logo_generations = 0
 
 def set_view(name):
     st.session_state.view = name
