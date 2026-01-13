@@ -4,20 +4,34 @@
     var SERVER = global.BMS_CHAT_SERVER || "";
     var DOC = global.document;
 
-    // --- 1. USER DATA OPHALEN (Uit Streamlit injectie) ---
-    // Dit is de cruciale stap. Als Python data heeft klaargezet, gebruiken we die.
+    // DATA OPHALEN
     var USER_PROFILE = global.RM_USER_DATA || null;
+    var CUSTOM_LOGO = global.RM_LOGO_DATA || ""; // Hier komt je logo binnen
 
-    // Elementen aanmaken
+    // 1. DE LAUNCHER (KNOP)
     var launcher = DOC.createElement("div");
     launcher.id = "bms-chat-launcher";
-    launcher.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
     
+    // Als er een logo is -> Plaatje. Anders -> Raket icoon.
+    if (CUSTOM_LOGO && CUSTOM_LOGO.length > 20) {
+        launcher.innerHTML = `<img src="${CUSTOM_LOGO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">`;
+    } else {
+        // Fallback raketje
+        launcher.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>';
+    }
+    
+    // 2. HET CHAT VENSTER (HEADER)
     var chat = DOC.createElement("div");
     chat.id = "bms-chat";
+    
+    // Bepaal ook het plaatje voor in de header (bovenin de chat)
+    var headerIcon = (CUSTOM_LOGO && CUSTOM_LOGO.length > 20) 
+        ? `<img src="${CUSTOM_LOGO}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">` 
+        : "🚀";
+
     chat.innerHTML = `
         <div class="hdr">
-            <div class="avatar">🚀</div>
+            <div class="avatar">${headerIcon}</div>
             <div class="titles">
                 <h3>RM Coach</h3>
                 <p>Jouw AI Business Partner</p>
