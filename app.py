@@ -8,6 +8,8 @@ import base64
 import os
 import io
 import requests # Nieuw: Nodig voor de download knop in de publieke logo maker
+import json
+import streamlit.components.v1 as components
 from PIL import Image
 from streamlit_option_menu import option_menu
 from datetime import datetime, timedelta, timezone
@@ -403,6 +405,42 @@ if "user" not in st.session_state:
         if cookie_email and len(cookie_email) > 3:
             auth.login_or_register(cookie_email)
             st.rerun()
+
+# --- NIEUWE FUNCTIE: CHAT WIDGET INJECTIE ---
+def inject_chat_widget(user_data):
+    # ⚠️ LET OP: Vervang dit door jouw Render URL (zonder / aan het eind)
+    # Bijvoorbeeld: "https://rm-chat-server.onrender.com"
+    CHAT_SERVER_URL = "https://app.rmacademy.nl" 
+    
+    if not user_data: return
+
+    # We filteren alleen de data die de bot nodig heeft
+    safe_profile = {
+        "first_name": user_data.get("first_name", "Ondernemer"),
+        "shop_name": user_data.get("shop_name", ""),
+        "level": user_data.get("level", 1),
+        "xp": user_data.get("xp", 0),
+        "is_pro": user_data.get("is_pro", False)
+    }
+    
+    json_data = json.dumps(safe_profile)
+
+    # Het script dat de data in de browser zet EN de widget laadt
+    html_code = f"""
+    <script>
+        window.RM_USER_DATA = {json_data};
+        window.BMS_CHAT_SERVER = "{CHAT_SERVER_URL}";
+    </script>
+    <script src="{CHAT_SERVER_URL}/chat-boot.js" async></script>
+    """
+    
+    # Injecteer het onzichtbaar in de pagina
+    components.html(html_code, height=0, width=0)
+
+# --- EINDE NIEUWE FUNCTIE ---
+
+# Hieronder staat als het goed is jouw bestaande functie:
+# def render_auth_footer(key_suffix):
 
 # --- HELPER FUNCTIE VOOR INLOGGEN (PREMIUM DESIGN + PLACEHOLDERS) ---
 def render_auth_footer(key_suffix):
@@ -2490,3 +2528,8 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
 
     # --- DE FOOTER (STAAT ONDERAAN ELKE PAGINA) ---
     render_footer()
+
+    # --- NIEUW: CHAT WIDGET LADEN ---
+    # We laden de chat alleen als de gebruiker is ingelogd
+    if "user" in st.session_state and st.session_state.user:
+        inject_chat_widget(st.session_state.user)
