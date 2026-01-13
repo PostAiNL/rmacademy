@@ -118,10 +118,10 @@ app.post("/api/chat", async (req, res) => {
 
     const userContext = `
     NAAM: ${profile.first_name || "Ondernemer"}
-    SHOP NAAM: ${profile.shop_name || "Nog geen shop"}
+    SHOP: ${profile.shop_name || "Nog geen naam"}
     LEVEL: ${profile.level || "Starter"}
-    STATUS: ${profile.is_pro ? "PRO LID (Volledige toegang)" : "GRATIS LID (Beperkte toegang)"}
-    HUIDIGE XP: ${profile.xp || 0}
+    XP: ${profile.xp || 0}
+    HUIDIGE PAGINA: ${profile.current_page || "Onbekend"}
   `;
 
   try {
