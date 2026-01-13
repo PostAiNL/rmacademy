@@ -410,7 +410,7 @@ if "user" not in st.session_state:
 def inject_chat_widget(user_data):
     # ⚠️ LET OP: Vervang dit door jouw Render URL (zonder / aan het eind)
     # Bijvoorbeeld: "https://rm-chat-server.onrender.com"
-    CHAT_SERVER_URL = "https://app.rmacademy.nl" 
+    CHAT_SERVER_URL = "https://rmecom.onrender.com" 
     
     if not user_data: return
 
