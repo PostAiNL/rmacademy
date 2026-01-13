@@ -408,13 +408,11 @@ if "user" not in st.session_state:
 
 # --- NIEUWE FUNCTIE: CHAT WIDGET INJECTIE ---
 def inject_chat_widget(user_data):
-    # ⚠️ LET OP: Vervang dit door jouw Render URL (zonder / aan het eind)
-    # Bijvoorbeeld: "https://rm-chat-server.onrender.com"
+    # 👇 Zorg dat deze URL klopt (zonder slash op het eind)
     CHAT_SERVER_URL = "https://rmecom.onrender.com" 
     
     if not user_data: return
 
-    # We filteren alleen de data die de bot nodig heeft
     safe_profile = {
         "first_name": user_data.get("first_name", "Ondernemer"),
         "shop_name": user_data.get("shop_name", ""),
@@ -425,20 +423,43 @@ def inject_chat_widget(user_data):
     
     json_data = json.dumps(safe_profile)
 
-    # Het script dat de data in de browser zet EN de widget laadt
+    # We gebruiken Javascript om uit de Streamlit-sandbox te breken (window.parent)
     html_code = f"""
     <script>
-        window.RM_USER_DATA = {json_data};
-        window.BMS_CHAT_SERVER = "{CHAT_SERVER_URL}";
+    (function() {{
+        try {{
+            var parentDoc = window.parent.document;
+            var serverUrl = "{CHAT_SERVER_URL}";
+            
+            // 1. Check of de widget er al is (voorkom dubbele knoppen bij refresh)
+            if (parentDoc.getElementById("bms-chat-launcher")) return;
+
+            // 2. Data klaarzetten in het HOOFDvenster
+            window.parent.RM_USER_DATA = {json_data};
+            window.parent.BMS_CHAT_SERVER = serverUrl;
+
+            // 3. CSS injecteren in de <head> van het hoofdvenster
+            var link = parentDoc.createElement("link");
+            link.rel = "stylesheet";
+            link.href = serverUrl + "/chat-widget.css";
+            parentDoc.head.appendChild(link);
+
+            // 4. JS injecteren in de <body> van het hoofdvenster
+            var js = parentDoc.createElement("script");
+            js.src = serverUrl + "/chat-widget.js";
+            js.defer = true;
+            parentDoc.body.appendChild(js);
+            
+            console.log("✅ RM Chat succesvol geïnjecteerd!");
+        }} catch (e) {{
+            console.error("⚠️ Kon chat niet laden:", e);
+        }}
+    }})();
     </script>
-    <script src="{CHAT_SERVER_URL}/chat-boot.js" async></script>
     """
     
-    # Injecteer het onzichtbaar in de pagina
     components.html(html_code, height=0, width=0)
-
-# --- EINDE NIEUWE FUNCTIE ---
-
+    
 # Hieronder staat als het goed is jouw bestaande functie:
 # def render_auth_footer(key_suffix):
 
