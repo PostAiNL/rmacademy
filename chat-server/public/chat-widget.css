@@ -1,0 +1,208 @@
+/* ========= RM Tools Chat Widget ========= */
+
+/* Reset & Fonts */
+#bms-chat, #bms-chat * {
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+/* 1. DE LAUNCHER (Knop rechtsonder) */
+#bms-chat-launcher {
+    position: fixed;
+    right: 25px;
+    bottom: 25px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    /* RM BLAUW GRADIENT */
+    background: linear-gradient(135deg, #2563EB 0%, #1D4ED8 100%);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 10px 25px rgba(37, 99, 235, 0.4);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999999;
+    font-size: 28px;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 2px solid white;
+}
+
+#bms-chat-launcher:hover {
+    transform: scale(1.05);
+    box-shadow: 0 15px 35px rgba(37, 99, 235, 0.5);
+}
+
+/* 2. HET CHAT VENSTER */
+#bms-chat {
+    position: fixed;
+    right: 25px;
+    bottom: 100px; /* Boven de launcher */
+    width: 380px;
+    max-width: calc(100vw - 50px);
+    height: 600px;
+    max-height: 70vh;
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.15);
+    z-index: 999999;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+#bms-chat.open {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* HEADER */
+#bms-chat .hdr {
+    background: #2563EB; /* Blauw */
+    color: white;
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+#bms-chat .avatar {
+    width: 40px;
+    height: 40px;
+    background: white;
+    color: #2563EB;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 18px;
+}
+
+#bms-chat .titles h3 { margin: 0; font-size: 16px; font-weight: 700; }
+#bms-chat .titles p { margin: 0; font-size: 12px; opacity: 0.9; }
+
+#bms-chat .close {
+    margin-left: auto;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    opacity: 0.8;
+}
+#bms-chat .close:hover { opacity: 1; }
+
+/* BODY (Berichten) */
+#bms-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background: #F8FAFC;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* BUBBELS */
+.bms-msg { display: flex; max-width: 85%; animation: fadeIn 0.3s ease; }
+.bms-msg.bot { align-self: flex-start; }
+.bms-msg.user { align-self: flex-end; }
+
+.bms-msg .bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    font-size: 14px;
+    line-height: 1.5;
+    word-wrap: break-word;
+}
+
+.bms-msg.bot .bubble {
+    background: white;
+    color: #0F172A;
+    border: 1px solid #E2E8F0;
+    border-top-left-radius: 2px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+}
+
+.bms-msg.user .bubble {
+    background: #2563EB; /* Blauw */
+    color: white;
+    border-top-right-radius: 2px;
+    box-shadow: 0 2px 5px rgba(37, 99, 235, 0.2);
+}
+
+/* INPUT SECTION */
+.inp {
+    padding: 15px;
+    background: white;
+    border-top: 1px solid #E2E8F0;
+    display: flex;
+    gap: 10px;
+}
+
+#bms-input {
+    flex: 1;
+    padding: 10px 15px;
+    border: 1px solid #CBD5E1;
+    border-radius: 25px;
+    outline: none;
+    font-size: 14px;
+}
+#bms-input:focus { border-color: #2563EB; }
+
+#bms-send {
+    background: #2563EB;
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+#bms-send:hover { background: #1D4ED8; }
+
+/* SUGGESTIES */
+.bms-suggestions {
+    padding: 10px 15px;
+    background: #F8FAFC;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    border-top: 1px solid #E2E8F0;
+}
+.bms-suggestions button {
+    background: white;
+    border: 1px solid #CBD5E1;
+    padding: 6px 12px;
+    border-radius: 15px;
+    font-size: 12px;
+    cursor: pointer;
+    color: #475569;
+    white-space: nowrap;
+}
+.bms-suggestions button:hover {
+    border-color: #2563EB;
+    color: #2563EB;
+}
+
+/* FORMATTING IN CHAT */
+.bms-heading { font-weight: 700; display: block; margin-bottom: 4px; color: #2563EB; }
+.bms-msg ul { padding-left: 20px; margin: 5px 0; }
+.bms-msg a { color: #2563EB; text-decoration: underline; }
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Typing Indicator */
+.typing-dots:after { content: '...'; animation: typing 1.5s infinite; }
+@keyframes typing { 0%{content:'.'} 33%{content:'..'} 66%{content:'...'} }
