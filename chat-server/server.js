@@ -116,12 +116,12 @@ app.post("/api/chat", async (req, res) => {
     return res.json({ reply: "⚠️ Server Config Error: Geen OpenAI Key ingesteld op Render." });
   }
 
-  // Bouw de gebruikerscontext string
-  const userContext = `
+    const userContext = `
     NAAM: ${profile.first_name || "Ondernemer"}
-    SHOP: ${profile.shop_name || "Nog geen naam"}
+    SHOP NAAM: ${profile.shop_name || "Nog geen shop"}
     LEVEL: ${profile.level || "Starter"}
-    XP: ${profile.xp || 0}
+    STATUS: ${profile.is_pro ? "PRO LID (Volledige toegang)" : "GRATIS LID (Beperkte toegang)"}
+    HUIDIGE XP: ${profile.xp || 0}
   `;
 
   try {
