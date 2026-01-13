@@ -406,9 +406,9 @@ if "user" not in st.session_state:
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# --- NIEUWE FUNCTIE: CHAT WIDGET INJECTIE ---
-def inject_chat_widget(user_data):
-    # 👇 Zorg dat deze URL klopt (zonder slash op het eind)
+# Pas de definitie aan: voeg 'current_page_name' toe
+def inject_chat_widget(user_data, current_page_name): 
+    # 👇 JOUW URL
     CHAT_SERVER_URL = "https://rmecom.onrender.com" 
     
     if not user_data: return
@@ -418,12 +418,12 @@ def inject_chat_widget(user_data):
         "shop_name": user_data.get("shop_name", ""),
         "level": user_data.get("level", 1),
         "xp": user_data.get("xp", 0),
-        "is_pro": user_data.get("is_pro", False)
+        "is_pro": user_data.get("is_pro", False),
+        "current_page": current_page_name # <--- NIEUW: Punt 1 (Context)
     }
     
     json_data = json.dumps(safe_profile)
 
-    # We gebruiken Javascript om uit de Streamlit-sandbox te breken (window.parent)
     html_code = f"""
     <script>
     (function() {{
@@ -431,29 +431,29 @@ def inject_chat_widget(user_data):
             var parentDoc = window.parent.document;
             var serverUrl = "{CHAT_SERVER_URL}";
             
-            // 1. Check of de widget er al is (voorkom dubbele knoppen bij refresh)
-            if (parentDoc.getElementById("bms-chat-launcher")) return;
+            // Check of de widget er al is
+            if (parentDoc.getElementById("bms-chat-launcher")) {{
+                // UPDATE: Als de widget er al is, updaten we alleen de data (voor de paginawissel)
+                if (window.parent.RM_USER_DATA) {{
+                    window.parent.RM_USER_DATA.current_page = "{current_page_name}";
+                }}
+                return;
+            }}
 
-            // 2. Data klaarzetten in het HOOFDvenster
             window.parent.RM_USER_DATA = {json_data};
             window.parent.BMS_CHAT_SERVER = serverUrl;
 
-            // 3. CSS injecteren in de <head> van het hoofdvenster
             var link = parentDoc.createElement("link");
             link.rel = "stylesheet";
             link.href = serverUrl + "/chat-widget.css";
             parentDoc.head.appendChild(link);
 
-            // 4. JS injecteren in de <body> van het hoofdvenster
             var js = parentDoc.createElement("script");
             js.src = serverUrl + "/chat-widget.js";
             js.defer = true;
             parentDoc.body.appendChild(js);
             
-            console.log("✅ RM Chat succesvol geïnjecteerd!");
-        }} catch (e) {{
-            console.error("⚠️ Kon chat niet laden:", e);
-        }}
+        }} catch (e) {{ console.error(e); }}
     }})();
     </script>
     """
