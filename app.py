@@ -2553,4 +2553,5 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
     # --- NIEUW: CHAT WIDGET LADEN ---
     # We laden de chat alleen als de gebruiker is ingelogd
     if "user" in st.session_state and st.session_state.user:
-        inject_chat_widget(st.session_state.user)
+        # We geven nu 'pg' (de variabele die de huidige pagina bevat) mee!
+        inject_chat_widget(st.session_state.user, pg)
