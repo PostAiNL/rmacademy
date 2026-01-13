@@ -13,7 +13,7 @@ const {
   NODE_ENV = "production",
   OPENAI_API_KEY,
   OPENAI_MODEL = "gpt-4o-mini", // Snel en goedkoop
-  ALLOWED_ORIGINS = "" // Vul in Render je Streamlit URL in (bijv: https://jouw-app.onrender.com)
+  ALLOWED_ORIGINS = "https://app.rmacademy.nl" // Vul in Render je Streamlit URL in (bijv: https://jouw-app.onrender.com)
 } = process.env;
 
 /* ---------- SYSTEM PROMPT (DE PERSOONLIJKHEID) ---------- */
