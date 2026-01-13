@@ -406,12 +406,21 @@ if "user" not in st.session_state:
             auth.login_or_register(cookie_email)
             st.rerun()
 
-# Pas de definitie aan: voeg 'current_page_name' toe
-def inject_chat_widget(user_data, current_page_name): 
+def inject_chat_widget(user_data, current_page_name):
     # 👇 JOUW URL
     CHAT_SERVER_URL = "https://rmecom.onrender.com" 
     
     if not user_data: return
+
+    # 1. LOGO OMZETTEN NAAR BASE64 (Zzodat de chat hem kan zien)
+    logo_data = ""
+    try:
+        # Zorg dat dit pad klopt!
+        with open("assets/logo.png", "rb") as img_file:
+            b64_string = base64.b64encode(img_file.read()).decode()
+            logo_data = f"data:image/png;base64,{b64_string}"
+    except Exception:
+        pass # Geen logo gevonden? Dan blijft het leeg.
 
     safe_profile = {
         "first_name": user_data.get("first_name", "Ondernemer"),
@@ -419,7 +428,7 @@ def inject_chat_widget(user_data, current_page_name):
         "level": user_data.get("level", 1),
         "xp": user_data.get("xp", 0),
         "is_pro": user_data.get("is_pro", False),
-        "current_page": current_page_name # <--- NIEUW: Punt 1 (Context)
+        "current_page": current_page_name
     }
     
     json_data = json.dumps(safe_profile)
@@ -431,9 +440,10 @@ def inject_chat_widget(user_data, current_page_name):
             var parentDoc = window.parent.document;
             var serverUrl = "{CHAT_SERVER_URL}";
             
-            // Check of de widget er al is
+            // Geef het logo door aan het hoofdscherm
+            window.parent.RM_LOGO_DATA = "{logo_data}";
+
             if (parentDoc.getElementById("bms-chat-launcher")) {{
-                // UPDATE: Als de widget er al is, updaten we alleen de data (voor de paginawissel)
                 if (window.parent.RM_USER_DATA) {{
                     window.parent.RM_USER_DATA.current_page = "{current_page_name}";
                 }}
