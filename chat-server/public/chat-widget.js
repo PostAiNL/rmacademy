@@ -167,4 +167,19 @@
     sendBtn.onclick = handleSend;
     inputEl.onkeypress = function(e) { if(e.key === "Enter") handleSend(); };
 
+// --- NUDGE LOGICA (Punt 3) ---
+    // Als de gebruiker nieuw is (weinig XP) en de chat nog niet open is...
+    if (USER_PROFILE && USER_PROFILE.xp < 50) {
+        // ... wacht dan 4 seconden en open de chat automatisch
+        setTimeout(function() {
+            var chatBox = DOC.getElementById("bms-chat");
+            // Check of hij niet al open is
+            if (chatBox && !chatBox.classList.contains("open")) {
+                toggleChat(); // Open de chat
+                // Speel eventueel een zacht geluidje af of laat de knop wiebelen (optioneel)
+                console.log("🔔 Auto-Nudge geactiveerd voor nieuwe gebruiker.");
+            }
+        }, 4000); 
+    }
+    
 })(window);
