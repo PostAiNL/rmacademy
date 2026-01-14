@@ -263,3 +263,80 @@ def translate_titles_batch(titles):
         return translated
     
     return titles # Fallback naar origineel bij error
+
+def analyze_profit_potential(title, selling_price):
+    """AI berekent de geschatte winst en geeft een stoplicht-advies."""
+    prompt = f"""
+    Product: {title}
+    Verkoopprijs concurrent: €{selling_price}
+    
+    Analyseer dit product voor een dropshipping starter.
+    1. Schat de inkoopprijs (Sourcing) op AliExpress.
+    2. Schat de advertentiekosten (CPA) om 1 verkoop te krijgen.
+    3. Bereken de netto winst per stuk.
+    
+    Geef antwoord in dit JSON formaat:
+    {{
+        "inkoop": "getal",
+        "ads": "getal",
+        "winst": "getal",
+        "advies": "Kort krachtig advies van max 15 woorden",
+        "status": "GROEN, ORANJE of ROOD"
+    }}
+    """
+    res = call_llm("Je bent een E-commerce CFO.", prompt, json_mode=True)
+    try:
+        return json.loads(res)
+    except:
+        return None
+
+# --- VOEG DIT TOE ONDERAAN IN modules/ai_coach.py ---
+
+def analyze_profit_potential(product_title, selling_price):
+    """
+    Berekent de potentiële winst op basis van de verkoopprijs van de concurrent.
+    We gebruiken een standaard E-com model:
+    - Inkoop (geschat): 30% van verkoopprijs
+    - Marketing (CPA): 35% van verkoopprijs
+    - Transactiekosten: 3%
+    """
+    try:
+        # 1. Prijs schoonmaken (zorg dat het een getal is)
+        if isinstance(selling_price, (int, float)):
+            price = float(selling_price)
+        else:
+            # Haal € tekens en komma's weg
+            clean = str(selling_price).replace('€', '').replace(',', '.').strip()
+            price = float(clean)
+    except:
+        return {
+            "inkoop": 0, "ads": 0, "winst": 0, 
+            "status": "ROOD", "advies": "Kon prijs niet lezen."
+        }
+
+    # 2. De Berekening (Schatting)
+    inkoop_est = round(price * 0.30, 2) # Geschatte inkoop via AliExpress/Agent
+    ads_est = round(price * 0.35, 2)    # Geschatte advertentiekosten
+    fees = round(price * 0.03, 2)       # Shopify/Mollie kosten
+    
+    netto_winst = round(price - inkoop_est - ads_est - fees, 2)
+    marge_pct = (netto_winst / price) * 100 if price > 0 else 0
+
+    # 3. Het Oordeel
+    if netto_winst >= 15:
+        status = "GROEN"
+        advies = "💎 GOUDMIJN: Hier zit veel ruimte voor winst."
+    elif netto_winst >= 5:
+        status = "ORANJE"
+        advies = "⚖️ STABIEL: Prima product, maar let op je advertentiekosten."
+    else:
+        status = "ROOD"
+        advies = "⚠️ RISICO: De marge is erg krap. Je moet goedkoop inkopen!"
+
+    return {
+        "inkoop": inkoop_est,
+        "ads": ads_est,
+        "winst": netto_winst,
+        "status": status,
+        "advies": advies
+    }
