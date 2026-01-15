@@ -260,6 +260,185 @@ st.markdown("""
 # --- 2. COOKIE MANAGER & AUTHENTICATIE ---
 cookie_manager = stx.CookieManager()
 
+# ==============================================================================
+# 💰 PAYPRO BETALING VERWERKEN (CLAIM SCHERM - BOVENAAN!)
+# ==============================================================================
+if "payment" in st.query_params and st.query_params["payment"] == "success":
+    
+    # CSS voor dit scherm
+    st.markdown("""
+    <style>
+        .claim-card {
+            max-width: 500px; margin: 50px auto; padding: 40px;
+            background: white; border-radius: 20px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #E2E8F0;
+            text-align: center;
+        }
+        .stApp { background-color: #F8FAFC !important; }
+        header, footer { display: none !important; }
+        [data-testid="stSidebar"] { display: none !important; }
+    </style>
+    """, unsafe_allow_html=True)
+
+    # SCENARIO A: Gebruiker is al ingelogd (Bestaande klant upgrade)
+    # We checken of er een email bekend is in de sessie
+    if "user" in st.session_state and st.session_state.user.get('email') and st.session_state.user.get('id') != 'temp':
+        if not st.session_state.user.get('is_pro'):
+            db.set_user_pro(st.session_state.user['email'])
+            st.session_state.user['is_pro'] = True
+            
+        st.balloons()
+        st.markdown("""
+        <div class="claim-card">
+            <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
+            <h1 style="color: #0F172A; font-weight:800;">Upgrade Geslaagd!</h1>
+            <p style="color: #64748B;">Je account is succesvol geüpgraded naar PRO.</p>
+            <br>
+            <a href="/" target="_self" style="text-decoration: none; background: #2563EB; color: white; padding: 15px 30px; border-radius: 12px; font-weight: 700;">Naar Dashboard</a>
+        </div>
+        """, unsafe_allow_html=True)
+        st.stop()
+
+    # SCENARIO B: Gebruiker is NIEUW (Komt via de Brief/Promo)
+    else:
+        st.markdown("""
+        <div class="claim-card">
+            <div style="font-size: 60px; margin-bottom: 10px;">💎</div>
+            <h1 style="color: #0F172A; font-size: 2rem; margin-bottom: 10px; font-weight:800;">Betaling Ontvangen!</h1>
+            <p style="color: #64748B; font-size: 1.1rem; margin-bottom: 30px;">
+                We hebben je PRO-aankoop verwerkt.<br>
+                <b>Maak nu je account aan om direct toegang te krijgen.</b>
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # Het formulier (Centraal)
+        c1, c2, c3 = st.columns([1, 2, 1])
+        with c2:
+            with st.container(border=True):
+                new_name = st.text_input("Voornaam", placeholder="Je voornaam", key="claim_name")
+                new_email = st.text_input("Email adres", placeholder="Waarop wil je inloggen?", key="claim_email")
+                new_pass = st.text_input("Kies wachtwoord", type="password", key="claim_pass")
+                
+                if st.button("🚀 Account Activeren & Starten", type="primary", use_container_width=True):
+                    if new_email and new_name and new_pass:
+                        with st.spinner("Account wordt geactiveerd..."):
+                            # 1. Maak gebruiker aan
+                            status = db.create_user(new_email, new_pass, new_name)
+                            
+                            # 2. Maak DIRECT PRO
+                            db.set_user_pro(new_email)
+
+                            # 3. Stuur Welkomstmail
+                            auth.send_welcome_email(new_email, new_name, new_pass)
+                            
+                            # 4. Log in in de sessie
+                            auth.login_or_register(new_email, name_input=new_name)
+                            
+                            # 5. ZET COOKIES (CRUCIAAL: Met unieke KEYS om error te voorkomen)
+                            # Cookie A: Blijf ingelogd
+                            cookie_manager.set("rmecom_user_email", new_email, expires_at=datetime.now() + timedelta(days=30), key="cookie_set_login_claim")
+                            
+                            # Cookie B: Zorg dat de brief NIET meer komt!
+                            cookie_manager.set("seen_promo_v1", "true", expires_at=datetime.now() + timedelta(days=30), key="cookie_set_promo_claim")
+                            
+                            # 6. Wacht even zodat cookies landen
+                            time.sleep(1)
+                            
+                            # 7. Verwijder de payment parameter en ga naar dashboard
+                            st.query_params.clear()
+                            st.rerun()
+                    else:
+                        st.warning("Vul alle velden in om je toegang te claimen.")
+        
+        st.stop()
+
+# --- ONE-TIME OFFER (DE BRIEF) ---
+def show_welcome_letter():
+    # 1. VEILIGHEIDSCHECK: Is gebruiker al ingelogd?
+    # Als 'user' in session state zit en een email heeft, is hij ingelogd. 
+    # Dan hoeft hij de brief NOOIT meer te zien.
+    if "user" in st.session_state and st.session_state.user.get('email'):
+        return
+
+    # 2. Check Cookie
+    has_seen = cookie_manager.get("seen_promo_v1")
+    if has_seen: return
+
+    # 3. Check sessie klik (snelle UI fix)
+    if st.session_state.get("promo_popup_closed", False):
+        return
+
+    # ... (Rest van de functie blijft hetzelfde: plaatje laden, CSS, HTML etc.)
+    # ...
+    # Plaatje laden
+    file_path = "assets/Promobrief.png"
+    if not os.path.exists(file_path): 
+        if os.path.exists("assets/promobrief.png"): file_path = "assets/promobrief.png"
+        else: return 
+
+    import base64
+    def get_img_as_base64(path):
+        with open(path, "rb") as f: return base64.b64encode(f.read()).decode()
+    img_b64 = get_img_as_base64(file_path)
+
+    # HTML Overlay
+    st.markdown(f"""
+    <style>
+        .promo-overlay {{
+            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 999990;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(5px);
+        }}
+        .promo-container {{
+            position: relative; width: auto; max-width: 90%; max-height: 85vh;
+            margin-bottom: 70px;
+        }}
+        .promo-img {{
+            max-width: 100%; max-height: 80vh; border-radius: 8px;
+            box-shadow: 0 0 60px rgba(0,0,0,1);
+            display: block;
+        }}
+        .promo-link {{
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
+            cursor: pointer;
+        }}
+        div.stButton > button[kind="secondary"] {{
+            position: fixed !important; bottom: 30px !important; left: 50% !important;
+            transform: translateX(-50%) !important; z-index: 9999999 !important;
+            background-color: #FFFFFF !important; color: #000000 !important;
+            border: 2px solid #FFFFFF !important; border-radius: 50px !important;
+            padding: 12px 35px !important; font-weight: 700 !important;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.5) !important;
+        }}
+        div.stButton > button[kind="secondary"]:hover {{
+            background-color: #F1F5F9 !important; transform: translateX(-50%) scale(1.05) !important;
+        }}
+    </style>
+
+    <div class="promo-overlay">
+        <div class="promo-container">
+            <a href="{STRATEGY_CALL_URL}" target="_blank" class="promo-link"></a>
+            <img src="data:image/png;base64,{img_b64}" class="promo-img">
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    if st.button("Nee bedankt, ga naar de app", key="promo_close_final", type="secondary"):
+        cookie_manager.set("seen_promo_v1", "true", expires_at=datetime.now() + timedelta(days=30))
+        st.session_state.promo_popup_closed = True
+        time.sleep(0.3)
+        st.rerun()
+
+    st.stop()
+
+# --- AANROEPEN (Direct hier!) ---
+# Alleen tonen als we niet op de 'bedankt' pagina zijn of net een magic link gebruiken
+if "page" not in st.query_params and "autologin" not in st.query_params and "payment" not in st.query_params:
+    show_welcome_letter()
+
 # 1. Check op Magic Link (Autologin via email link)
 if "autologin" in st.query_params and "user" in st.query_params:
     token = st.query_params["autologin"]
@@ -692,41 +871,6 @@ if user.get('id') != 'temp' and auth.supabase:
     except Exception as e:
         # Als database faalt, gebruik wat we hebben (geen crash)
         pass 
-# ==============================================================================
-# 💰 PAYPRO BETALING VERWERKEN (SUCCESS PAGE OVERLAY)
-# ==============================================================================
-if "payment" in st.query_params and st.query_params["payment"] == "success":
-    # 1. Update database & Sessie
-    if not user.get('is_pro'):
-        db.set_user_pro(user['email'])
-        st.session_state.user['is_pro'] = True
-        user['is_pro'] = True
-
-    # 2. Toon de "Success" UI (Full Screen Overlay)
-    st.markdown("""
-        <div style="position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: white; z-index: 99999; display: flex; justify-content: center; align-items: center; text-align: center; padding: 20px;">
-            <div style="max-width: 500px; padding: 40px; border-radius: 24px; box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #E2E8F0; background: white;">
-                <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
-                <h1 style="color: #0F172A; font-size: 2.2rem; margin-bottom: 10px; font-weight: 800;">Welkom bij de Elite!</h1>
-                <p style="color: #64748B; font-size: 1.1rem; line-height: 1.6; margin-bottom: 30px;">
-                    Je betaling is geslaagd. Je hebt nu onbeperkt toegang tot alle <b>PRO Tools</b>, de <b>Academy</b> en de <b>Daily Winners</b>.
-                </p>
-                <div style="background: #F0FDF4; border: 1px solid #BBF7D0; padding: 15px; border-radius: 12px; margin-bottom: 30px;">
-                    <p style="margin: 0; color: #166534; font-weight: 700; font-size: 0.95rem;">
-                        ✅ PRO STATUS: ACTIEF
-                    </p>
-                </div>
-                <a href="/" target="_self" style="text-decoration: none;">
-                    <div style="background: #2563EB; color: white; padding: 16px 32px; border-radius: 12px; font-weight: 800; font-size: 1.1rem; cursor: pointer; box-shadow: 0 10px 20px rgba(37, 99, 235, 0.2); transition: transform 0.2s;">
-                        Naar mijn Dashboard 🚀
-                    </div>
-                </a>
-            </div>
-        </div>
-    """, unsafe_allow_html=True)
-    
-    st.balloons()
-    st.stop() # Dit zorgt dat de rest van de pagina niet laadt achter de overlay
 
 is_pro_license = user.get('is_pro', False)
 # ⚠️ TEST MODE AAN (Zet hier een # voor als je live gaat!)
