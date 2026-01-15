@@ -220,3 +220,33 @@ def update_password(email, new_password):
         return True
     except:
         return False
+
+# --- BONUS: EERSTE 100 STUDENTEN LOGICA ---
+def claim_founder_bonus(email):
+    """
+    Checkt of er nog plek is bij de eerste 100.
+    Zo ja: zet 'is_academy_student' op True.
+    Geeft terug: (True/False, overgebleven_plekken)
+    """
+    if not supabase: return False, 0
+    
+    try:
+        # 1. Tel hoeveel studenten er al zijn
+        # We selecteren 1 kolom om data te besparen, count='exact' telt de rijen
+        res = supabase.table('users').select("id", count="exact").eq("is_academy_student", True).execute()
+        current_count = res.count
+        
+        limit = 100
+        
+        if current_count < limit:
+            # 2. Er is plek! Ken de status toe
+            supabase.table('users').update({"is_academy_student": True}).eq("email", email).execute()
+            spots_left = limit - (current_count + 1)
+            return True, spots_left
+        else:
+            # 3. Helaas, vol.
+            return False, 0
+            
+    except Exception as e:
+        print(f"Bonus Error: {e}")
+        return False, 0
