@@ -411,209 +411,221 @@ def render_auth_footer(key_suffix):
                     else:
                         st.error("Onjuiste gegevens. Probeer het opnieuw.")
 # ==============================================================================
-# 🚀 PUBLIC LANDING PAGE (PREMIUM & COMPACT)
+# 🚀 PUBLIC LANDING PAGE (V8.0: PIXEL PERFECT NO-SCROLL)
 # ==============================================================================
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     
-    # CSS: Ultra Compact & Premium Styling
+    # 1. CSS: EXTREME COMPACTHEID
     st.markdown("""
     <style>
-        /* 1. DE GROTE WITRUIMTE FIX */
+        /* A. LAYOUT (TREK ALLES OMHOOG) */
+        .stApp { background-color: #F8FAFC !important; }
         .block-container {
-            padding-top: 0px !important; /* Trekt alles naar boven */
-            margin-top: -40px !important;
-            padding-bottom: 2rem !important;
+            padding-top: 0rem !important;
+            margin-top: -15px !important; /* MAXIMALE LIFT */
+            padding-bottom: 0rem !important;
             max-width: 950px !important;
         }
-        
-        /* 2. Titel Styling */
-        .landing-title { 
-            font-size: 2.4rem !important; 
-            font-weight: 800 !important; 
-            color: #0F172A; 
-            line-height: 1.1; 
-            text-align: center !important; 
-            letter-spacing: -0.5px;
-            margin-bottom: 8px !important;
-            padding-top: 0px !important;
-        }
-        
-        /* 3. Subtitel Styling */
-        .landing-sub { 
-            font-size: 1.05rem !important; 
-            color: #64748B; 
-            text-align: center !important; 
-            margin-bottom: 20px; 
-            max-width: 600px; 
-            margin-left: auto !important; 
-            margin-right: auto !important; 
-            line-height: 1.5;
-        }
-        
-        /* 4. Trust Badges (Onder de tekst) */
-        .trust-badge {
-            background: #F8FAFC; border: 1px solid #E2E8F0; 
-            padding: 4px 12px; border-radius: 50px; 
-            font-size: 0.75rem; color: #475569; font-weight: 600;
-            display: inline-flex; align-items: center; gap: 6px;
+        header, footer { display: none !important; }
+
+        /* B. CARD STYLING (DUNNERE RANDEN) */
+        div[data-testid="stVerticalBlockBorderWrapper"] {
+            background: #FFFFFF;
+            border-radius: 12px; /* Iets strakker */
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05);
+            padding: 15px 25px !important; /* Minder interne padding */
         }
 
-        /* 5. Tabs Styling (RM Blauw) */
-        .stTabs { margin-top: -5px; }
-        .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: center; }
+        /* C. HEADER & TEKST (IETS KLEINER = MEER RUIMTE) */
+        .landing-title { 
+            font-size: 2.2rem !important; /* Was 2.2rem */
+            font-weight: 800; color: #0F172A; 
+            margin-bottom: 2px !important; letter-spacing: -0.5px; text-align: center;
+        }
+        .landing-sub { 
+            font-size: 0.9rem; color: #64748B; margin-bottom: 10px; 
+            text-align: center; line-height: 1.3;
+        }
+        
+        /* D. INPUTS (COMPACTE HOOGTE) */
+        /* Verklein de verticale ruimte tussen alle elementen */
+        div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
+        div[data-testid="stVerticalBlock"] > div { margin-bottom: 0.7rem !important; }
+        
+        .stTextInput input, .stSelectbox div[data-baseweb="select"] {
+            border-radius: 6px !important; 
+            min-height: 38px !important; height: 38px !important; /* Slankere inputs */
+            font-size: 0.9rem;
+        }
+        
+        /* Labels strak op de input */
+        .compact-label {
+            font-size: 0.7rem; font-weight: 700; color: #475569; 
+            margin-bottom: -2px; margin-top: 4px; display: block; letter-spacing: 0.5px;
+        }
+        
+        /* E. TABS & BADGES */
+        .badge-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .trust-badge {
+            padding: 3px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px; border: 1px solid;
+        }
+        .stTabs { margin-top: 5px; }
+        .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: center; margin-bottom: 5px; }
         .stTabs [data-baseweb="tab"] { 
-            border-radius: 50px; 
-            padding: 6px 20px; 
-            background-color: white; 
-            border: 1px solid #E2E8F0; 
-            height: auto !important;
+            border-radius: 50px; padding: 2px 14px; 
+            background-color: white; border: 1px solid #E2E8F0; 
+            height: auto !important; font-size: 0.8rem;
         }
         .stTabs [aria-selected="true"] { 
-            background-color: #2563EB !important; 
-            color: white !important; 
-            border-color: #2563EB !important;
-            font-weight: 600;
+            background-color: #2563EB !important; color: white !important; border-color: #2563EB !important;
         }
     </style>
     """, unsafe_allow_html=True)
 
-    # 1. HEADER: BRANDING & TITEL
-    # We halen de inspringing weg in de HTML string om code-blokken te voorkomen
+    # --- 2. HEADER (SUPER COMPACT) ---
     st.markdown("""
-<div style="text-align:center;">
-<div style="
-display: inline-flex; 
-align-items: center; 
-gap: 8px; 
-background: white; 
-border: 1px solid #E2E8F0; 
-padding: 6px 16px; 
-border-radius: 30px; 
-margin-bottom: 10px;
-box-shadow: 0 2px 5px rgba(0,0,0,0.03);
-">
-<span style="font-size: 1.2rem;">⚡</span>
-<span style="font-weight: 700; color: #0F172A; font-size: 0.9rem;">RM Tools</span>
-<span style="color: #CBD5E1;">|</span>
-<span style="color: #64748B; font-size: 0.85rem;">Creative Suite v2.0</span>
-</div>
-    
-<h1 class="landing-title">Geef je idee een gezicht.</h1>
-<p class="landing-sub">
-De professionele toolkit voor makers en starters.<br>
-Ontwerp je merkidentiteit in seconden. Zonder kosten.
-</p>
-    
-<div style="display:flex; justify-content:center; gap:10px; margin-bottom:25px; flex-wrap: wrap;">
-<span class="trust-badge" style="color:#166534; background:#F0FDF4; border-color:#BBF7D0;">🛡️ Geen account nodig</span>
-<span class="trust-badge">💸 100% Gratis</span>
-<span class="trust-badge">🚀 Powered by AI</span>
+    <div style="text-align:center;">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:white; padding:3px 10px; border-radius:30px; border:1px solid #E2E8F0; margin-bottom:5px;">
+            <span style="font-size: 12px;">⚡</span>
+            <span style="font-weight: 700; color: #0F172A; font-size: 10px;">RM TOOLS</span>
+            <span style="color: #CBD5E1;">|</span>
+            <span style="color: #64748B; font-size: 10px;">Creative Suite v2.0</span>
+        </div>
+        <h1 class="landing-title">Geef je idee een gezicht.</h1>
+        <p class="landing-sub">Professioneel design met één klik. Gratis & Anoniem.</p>
+        
+<div class="badge-row">
+<span class="trust-badge" style="background:#ECFDF5; color:#047857; border-color:#A7F3D0;">🛡️ Geen account nodig</span>
+<span class="trust-badge" style="background:#F0F9FF; color:#0369A1; border-color:#BAE6FD;">💎 100% Gratis</span>
+<span class="trust-badge" style="background:#FFF1F2; color:#BE123C; border-color:#FECDD3;">🚀 Powered by AI</span>
 </div>
 </div>
-""", unsafe_allow_html=True)
+    """, unsafe_allow_html=True)
 
-    # 2. DE TOOLS
-    tab_brand, tab_idea = st.tabs(["Merk Studio", "Idee Generator"])
+    # --- 3. TABS ---
+    tab_brand, tab_idea, tab_auth = st.tabs(["🎨 Merk Studio", "💡 Idee Generator", "👤 Opslaan / Inloggen"])
     
-    # === TAB 1: BRAND STUDIO ===
+    # === TAB 1: MERK STUDIO ===
     with tab_brand:
         with st.container(border=True):
-            c1, c2 = st.columns([1, 1], gap="medium")
-            with c1:
-                st.markdown("#### 🛠️ Ontwerp je Merk")
+            c_tool, c_preview = st.columns([1, 1.2], gap="large")
+            with c_tool:
+                st.markdown('<span class="compact-label">1. NAAM VAN JE PROJECT:</span>', unsafe_allow_html=True)
+                b_name = st.text_input("Naam", placeholder="Bijv. Studio Nova", label_visibility="collapsed", key="pub_brand_name")
                 
-                b_name = st.text_input("Naam van je project", placeholder="Bijv. Studio Nova", key="pub_brand_name")
-                b_topic = st.text_input("Onderwerp", placeholder="Bijv. Koffie, Tech", key="pub_brand_topic")
-                b_style = st.selectbox("Stijl", ["Minimalistisch", "Luxe", "Speels", "Vintage"], key="pub_brand_style")
+                st.markdown('<span class="compact-label">2. WAT DOE JE? (ONDERWERP):</span>', unsafe_allow_html=True)
+                b_topic = st.text_input("Onderwerp", placeholder="Bijv. Koffie, Tech", label_visibility="collapsed", key="pub_brand_topic")
+                
+                st.markdown('<span class="compact-label">3. UITSTRALING (STIJL):</span>', unsafe_allow_html=True)
+                b_style = st.selectbox("Stijl", ["Minimalistisch (Apple stijl)", "Luxe (Goud & Zwart)", "Speels (Kleuren)", "Vintage (Retro)"], label_visibility="collapsed", key="pub_brand_style")
                 
                 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-                if st.button("✨ Genereer je Merk", type="primary", use_container_width=True):
+                if st.button("✨ Genereer Ontwerp (Gratis)", type="primary", use_container_width=True):
                     if b_name and b_topic:
                         st.session_state.is_generating_brand = True
                     else:
                         st.warning("Vul een naam in.")
 
-            with c2:
-                # Placeholder
-                if not st.session_state.get("generated_logos"):
+            with c_preview:
+                if not st.session_state.get("generated_logos") and not st.session_state.get("is_generating_brand"):
                     st.markdown("""
-                    <div style="background:#F8FAFC; border-radius:12px; height:280px; display:flex; align-items:center; justify-content:center; text-align:center; color:#94A3B8; border: 2px dashed #E2E8F0;">
-                        <div style="font-size:0.9rem;">
-                            <div style="font-size:30px; margin-bottom:10px;">🎨</div>
-                            Je designs verschijnen hier<br>klaar om te downloaden.
+                    <div style="background:#F8FAFC; border: 2px dashed #E2E8F0; border-radius:12px; height:240px; display:flex; align-items:center; justify-content:center; text-align:center; color:#94A3B8;">
+                        <div>
+                            <div style="font-size:30px; margin-bottom:5px;">🎨</div>
+                            <span style="font-size:0.8rem;">Je designs verschijnen hier</span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
                 
-                # LOGICA
                 if st.session_state.get("is_generating_brand"):
-                    with st.spinner("Schetsen..."):
+                    with st.spinner(".."):
                         try:
                             new_logos = []
-                            url1 = ai_coach.generate_logo(b_name, b_topic, b_style, "Zwart wit")
-                            if url1: new_logos.append({"url": url1, "name": "logo_1.png"})
-                            url2 = ai_coach.generate_logo(b_name, b_topic, b_style, "Kleur")
-                            if url2: new_logos.append({"url": url2, "name": "logo_2.png"})
-                            
+                            style_clean = b_style.split(" ")[0]
+                            url1 = ai_coach.generate_logo(b_name, b_topic, style_clean, "Zwart wit")
+                            if url1: new_logos.append({"url": url1})
                             st.session_state.generated_logos = new_logos
                             st.session_state.is_generating_brand = False
                             st.rerun()
-                        except:
-                            st.session_state.is_generating_brand = False
+                        except: st.session_state.is_generating_brand = False
 
-                # RESULTATEN
                 if st.session_state.get("generated_logos"):
-                    st.success("✅ Klaar! Klik rechtsboven op de foto om op te slaan.")
-                    for logo in st.session_state.generated_logos:
-                        st.image(logo["url"], use_container_width=True)
+                    st.image(st.session_state.generated_logos[0]["url"], use_container_width=True)
+                    st.success("Tip: Ga naar 'Opslaan' om dit te bewaren.")
 
-        render_auth_footer("brand_tab")
-
-    # === TAB 2: IDEA GENERATOR ===
+    # === TAB 2: IDEE GENERATOR ===
     with tab_idea:
-        ideas = ["Duurzame Koffiebekers", "Handgemaakte Keramiek", "Digitale Art Prints", "Smart Home Gadgets", "Vintage Kleding", "Houten Speelgoed", "Plantenverzorging Apps"]
-        
-        col_i1, col_i2, col_i3 = st.columns([1, 2, 1])
-        with col_i2:
-            st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-            
-            # De Slot Machine Box
-            display_text = st.session_state.get("niche_roulette_result", "? ? ?")
-            border_col = "#16A34A" if st.session_state.get("niche_roulette_result") else "#E2E8F0"
-            bg_col = "#F0FDF4" if st.session_state.get("niche_roulette_result") else "#FFFFFF"
-            
-            st.markdown(f"""
-            <div style="background:{bg_col}; border:2px solid {border_col}; border-radius:16px; padding:30px; text-align:center; margin-bottom:20px;">
-                <div style="font-size: 0.8rem; text-transform: uppercase; color: #64748B; margin-bottom: 5px; font-weight: 700;">Jouw volgende project:</div>
-                <div style="font-size: 1.4rem; font-weight: 800; color: #0F172A;">{display_text}</div>
+        with st.container(border=True):
+            ideas = ["Duurzame Koffiebekers", "Handgemaakte Keramiek", "Digitale Art Prints", "Smart Home Gadgets"]
+            c_i1, c_i2 = st.columns([1, 2])
+            with c_i2:
+                st.markdown("#### 🧠 Brainstormen")
+                display_text = st.session_state.get("niche_roulette_result", "Druk op de knop 👇")
+                st.markdown(f"""<div style="text-align:center; padding:20px; background:#F0F9FF; border-radius:12px; margin-bottom:15px; font-weight:800; color:#0F172A; font-size:1.1rem;">{display_text}</div>""", unsafe_allow_html=True)
+                if st.button("💡 Geef me een idee", type="primary", use_container_width=True):
+                    placeholder = st.empty()
+                    for _ in range(5):
+                        placeholder.text(random.choice(ideas))
+                        time.sleep(0.1)
+                    st.session_state.niche_roulette_result = random.choice(ideas)
+                    st.rerun()
+
+    # === TAB 3: ACCOUNT (EXTREEM COMPACT) ===
+    with tab_auth:
+        with st.container(border=True):
+            st.markdown("""
+            <div style="text-align:center; margin-bottom:10px;">
+                <h5 style="margin:0; color:#0F172A; font-size:1rem;">💾 Sla je voortgang op en krijg gratis toegang tot het volledige dashboard</h5>
             </div>
             """, unsafe_allow_html=True)
             
-            if st.button("💡 Geef me inspiratie", type="primary", use_container_width=True):
-                placeholder = st.empty()
-                for _ in range(8):
-                    temp_idea = random.choice(ideas)
-                    st.markdown(f"""
-                        <div style="background:#FFFFFF; border:2px solid #E2E8F0; border-radius:16px; padding:30px; text-align:center; margin-bottom:20px;">
-                             <div style="font-size: 0.8rem; text-transform: uppercase; color: #64748B; margin-bottom: 5px; font-weight: 700;">Brainstormen...</div>
-                            <div style="font-size: 1.4rem; font-weight: 800; color: #94A3B8;">{temp_idea}</div>
-                        </div>
-                    """, unsafe_allow_html=True)
-                    time.sleep(0.05)
+            c_auth1, c_auth2 = st.columns(2, gap="large")
+            
+            # LINKS: NIEUW ACCOUNT
+            with c_auth1:
+                st.markdown('<div style="background:#F0FDF4; padding:3px 8px; border-radius:4px; color:#166534; font-weight:700; font-size:0.7rem; margin-bottom:5px;">✨ NIEUW ACCOUNT (GRATIS)</div>', unsafe_allow_html=True)
                 
-                st.session_state.niche_roulette_result = random.choice(ideas)
-                st.rerun()
+                st.markdown('<span class="compact-label">NAAM:</span>', unsafe_allow_html=True)
+                r_name = st.text_input("Naam", placeholder="Voornaam", label_visibility="collapsed", key="tab_reg_name")
+                
+                st.markdown('<span class="compact-label">EMAIL:</span>', unsafe_allow_html=True)
+                r_email = st.text_input("Email", placeholder="Email", label_visibility="collapsed", key="tab_reg_email")
+                
+                st.markdown('<span class="compact-label">WACHTWOORD:</span>', unsafe_allow_html=True)
+                r_pass = st.text_input("Wachtwoord", type="password", label_visibility="collapsed", key="tab_reg_pass")
+                
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                if st.button("🚀 Opslaan & Starten", type="primary", use_container_width=True):
+                    if r_email and r_name and r_pass:
+                        status = db.create_user(r_email, r_pass, r_name)
+                        if status in ["SUCCESS", "EXISTS"]:
+                            if status == "SUCCESS": auth.send_welcome_email(r_email, r_name, r_pass)
+                            auth.login_or_register(r_email, name_input=r_name)
+                            cookie_manager.set("rmecom_user_email", r_email, expires_at=datetime.now() + timedelta(days=30), path="/")
+                            st.query_params["page"] = "bedankt"
+                            st.rerun()
+                    else: st.warning("Vul alles in.")
 
-        render_auth_footer("idea_tab")
-
-    # Footer tekst
-    st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown("""
-    <div style="text-align:center; font-size:0.8rem; color:#94A3B8;">
-        Deze tools zijn gratis en anoniem. Wij verkopen je data niet.
-    </div>
-    """, unsafe_allow_html=True)
+            # RECHTS: INLOGGEN
+            with c_auth2:
+                st.markdown('<div style="background:#F1F5F9; padding:3px 8px; border-radius:4px; color:#475569; font-weight:700; font-size:0.7rem; margin-bottom:5px;">🔑 BESTAAND ACCOUNT</div>', unsafe_allow_html=True)
+                
+                st.markdown('<span class="compact-label">EMAIL:</span>', unsafe_allow_html=True)
+                l_email = st.text_input("Email", label_visibility="collapsed", key="tab_log_email")
+                
+                st.markdown('<span class="compact-label">WACHTWOORD:</span>', unsafe_allow_html=True)
+                l_pass = st.text_input("Wachtwoord", type="password", label_visibility="collapsed", key="tab_log_pass")
+                
+                st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
+                if st.button("Inloggen", use_container_width=True):
+                    if db.verify_user(l_email, l_pass):
+                        auth.login_or_register(l_email)
+                        cookie_manager.set("rmecom_user_email", l_email, expires_at=datetime.now() + timedelta(days=30), path="/")
+                        st.rerun()
+                    else: st.error("Onjuist.")
 
     st.stop()
 
