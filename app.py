@@ -45,6 +45,33 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # AANGEPAST: Standaard ingeklapt voor focus op tools
 )
 
+# --- TRACKING ENGINE ---
+# We checken of deze bezoeker in deze sessie al geteld is
+if "traffic_logged" not in st.session_state:
+    try:
+        # Probeer te bepalen of het een mobiel of desktop is (simpel)
+        # Dit is niet 100% waterdicht in Streamlit, maar geeft een indicatie
+        device = "desktop"
+        try:
+            query_params = st.query_params.to_dict()
+            # Soms geven browsers hints mee, maar in Streamlit is dit lastig. 
+            # We loggen het voor nu als 'unknown' of 'web-visitor'
+        except: pass
+
+        # Loggen naar Supabase
+        if auth.supabase:
+            log_data = {
+                "page": "landing", # Of dynamisch: st.session_state.get('view', 'landing')
+                "user_email": st.session_state.user.get('email') if "user" in st.session_state else None
+            }
+            auth.supabase.table('app_traffic').insert(log_data).execute()
+            
+        # Zet vlag op True zodat we niet bij elke knopdruk opnieuw tellen
+        st.session_state.traffic_logged = True
+        
+    except Exception as e:
+        print(f"Tracking error: {e}")
+
 # --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
 logo_b64 = get_base64_image(logo_path)
 if logo_b64:
@@ -2236,7 +2263,7 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
 
     elif pg == "Instellingen":
         st.markdown("<h1><i class='bi bi-gear-fill'></i> Instellingen</h1>", unsafe_allow_html=True)
-        tab1, tab2, tab3, tab4, tab5 = st.tabs(["Mijn Profiel", "Geld verdienen", "Koppeling Shopify", "Hulp nodig?", "Feedback"])
+        tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs(["Mijn Profiel", "Geld verdienen", "Koppeling Shopify", "Hulp nodig?", "Feedback", "Admin 🔒"])
         
         with tab1:
             # --- 1. PREMIUM HEADER (Met extra info) ---
@@ -2524,6 +2551,66 @@ De volledige RM Ecom methodiek met 74 lessen, alle winnende templates en 1-op-1 
                                 st.warning("Je feedback is te kort of onduidelijk. Vertel ons iets meer om de beloning te unlocken!")
                     else:
                         st.warning("Vertel ons iets meer (minimaal 20 tekens) om je 24u PRO toegang te claimen.")
+
+        with tab6:
+            # ALLEEN VOOR JOUW EMAIL ZICHTBAAR MAKEN
+            # Vervang dit door jouw inlog-email
+            ADMIN_EMAILS = ["davitsio@gmail.com", "info@rmacademy.nl"] 
+            
+            current_email = user.get('email', '')
+            
+            if current_email in ADMIN_EMAILS:
+                st.markdown("### 🕵️‍♂️ Traffic Monitor")
+                
+                if st.button("🔄 Ververs Data"):
+                    st.cache_data.clear()
+                    st.rerun()
+                
+                # Data ophalen
+                try:
+                    # Haal laatste 500 bezoekers op
+                    res = auth.supabase.table('app_traffic').select("*").order('created_at', desc=True).limit(500).execute()
+                    df_traffic = pd.DataFrame(res.data)
+                    
+                    if not df_traffic.empty:
+                        # Datum conversie
+                        df_traffic['created_at'] = pd.to_datetime(df_traffic['created_at'])
+                        df_traffic['datum'] = df_traffic['created_at'].dt.strftime('%Y-%m-%d')
+                        df_traffic['tijd'] = df_traffic['created_at'].dt.strftime('%H:%M')
+                        
+                        # Statistieken
+                        total_visits = len(df_traffic)
+                        unique_days = df_traffic['datum'].nunique()
+                        avg_per_day = round(total_visits / unique_days) if unique_days > 0 else total_visits
+                        
+                        # Aantal geregistreerde gebruikers in de logs
+                        registered_hits = df_traffic[df_traffic['user_email'].notnull()].shape[0]
+                        
+                        # KPI's
+                        k1, k2, k3 = st.columns(3)
+                        k1.metric("Totaal Bezoekers (Laatste 500)", total_visits)
+                        k2.metric("Gem. per dag", avg_per_day)
+                        k3.metric("Ingelogde hits", registered_hits)
+                        
+                        st.markdown("#### 📅 Laatste bezoekers")
+                        # Laat een tabel zien (zonder technische ID's)
+                        st.dataframe(
+                            df_traffic[['datum', 'tijd', 'user_email']].rename(columns={'user_email': 'Gebruiker (indien ingelogd)'}),
+                            use_container_width=True
+                        )
+                        
+                        # Grafiekje per dag
+                        st.markdown("#### 📈 Trend")
+                        daily_counts = df_traffic.groupby('datum').size()
+                        st.bar_chart(daily_counts)
+                        
+                    else:
+                        st.info("Nog geen data gevonden.")
+                        
+                except Exception as e:
+                    st.error(f"Fout bij ophalen data: {e}")
+            else:
+                st.error("⛔ Geen toegang. Alleen voor admins.")
 
     # --- DE FOOTER (STAAT ONDERAAN ELKE PAGINA) ---
     render_footer()
