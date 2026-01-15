@@ -45,51 +45,38 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # AANGEPAST: Standaard ingeklapt voor focus op tools
 )
 
-# --- 1.2 COOKIE MANAGER (MOET HIER STAAN VOOR TRACKING) ---
-cookie_manager = stx.CookieManager()
-
-# --- TRACKING ENGINE (MET REFRESH BESCHERMING) ---
-# We gebruiken een cookie om te zien of deze browser sessie al geteld is
-try:
-    # Probeer cookie op te halen (kan even duren bij eerste load)
-    # We gebruiken een unieke sessie ID cookie
-    session_cookie = cookie_manager.get("rmecom_session_id")
-    
-    # Als er GEEN cookie is, en we hebben het in deze run nog niet gelogd:
-    if not session_cookie and "traffic_logged" not in st.session_state:
-        
-        # 1. Haal marketing data
+# --- TRACKING ENGINE (GEAVANCEERD) ---
+if "traffic_logged" not in st.session_state:
+    try:
+        # 1. Haal marketing data uit de URL (Bv. ?utm_source=facebook)
         q_params = st.query_params.to_dict()
         source = q_params.get("utm_source", "direct")
         campaign = q_params.get("utm_campaign", None)
+        
+        # 2. Probeer browser info te gokken (Simpel)
+        # (Streamlit geeft beperkte toegang tot headers, dit is een veilige gok)
         browser_info = "web-visitor"
 
-        # 2. Opslaan in Supabase
+        # 3. Opslaan in Supabase
         if auth.supabase:
             log_data = {
                 "page": "landing",
                 "utm_source": source,
                 "utm_campaign": campaign,
                 "browser_info": browser_info,
-                "user_email": None 
+                "user_email": None # Nog niet bekend!
             }
+            # We slaan het resultaat op om het ID te krijgen
             response = auth.supabase.table('app_traffic').insert(log_data).execute()
             
-            # Bewaar ID voor later (email koppeling)
+            # BEWAAR HET ID IN DE SESSIE!
             if response.data:
                 st.session_state.traffic_id = response.data[0]['id']
-        
-        # 3. ZET DE COOKIE (Zodat F5 niet meer telt)
-        # Deze cookie verloopt na 30 minuten inactiviteit
-        new_session_id = str(random.randint(100000, 999999))
-        cookie_manager.set("rmecom_session_id", new_session_id, key="set_tracking_cookie", expires_at=datetime.now() + timedelta(minutes=30))
-        
-        # Zet sessie state
+            
         st.session_state.traffic_logged = True
-
-except Exception as e:
-    # Cookie manager laadt soms traag in Streamlit, negeer eerste error
-    print(f"Tracking init: {e}")
+        
+    except Exception as e:
+        print(f"Tracking error: {e}")
 
 # --- 1.5 META TAGS & PWA ICON FIX (BASE64) ---
 logo_b64 = get_base64_image(logo_path)
@@ -270,6 +257,8 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
+# --- 2. COOKIE MANAGER & AUTHENTICATIE ---
+cookie_manager = stx.CookieManager()
 
 # ==============================================================================
 # 💰 PAYPRO BETALING VERWERKEN (MET 100-STUDENTEN BONUS)
@@ -389,9 +378,11 @@ De <b>Full Academy & 1-op-1 Coaching</b> is aan je account toegevoegd.
         
         st.stop()
 
-# --- ONE-TIME OFFER (DE BRIEF: COMPACTE KNOP) ---
+# --- ONE-TIME OFFER (DE BRIEF) ---
 def show_welcome_letter():
     # 1. VEILIGHEIDSCHECK: Is gebruiker al ingelogd?
+    # Als 'user' in session state zit en een email heeft, is hij ingelogd. 
+    # Dan hoeft hij de brief NOOIT meer te zien.
     if "user" in st.session_state and st.session_state.user.get('email'):
         return
 
@@ -403,6 +394,8 @@ def show_welcome_letter():
     if st.session_state.get("promo_popup_closed", False):
         return
 
+    # ... (Rest van de functie blijft hetzelfde: plaatje laden, CSS, HTML etc.)
+    # ...
     # Plaatje laden
     file_path = "assets/Promobrief.png"
     if not os.path.exists(file_path): 
@@ -426,7 +419,7 @@ def show_welcome_letter():
         }}
         .promo-container {{
             position: relative; width: auto; max-width: 90%; max-height: 85vh;
-            margin-bottom: 70px; /* Ruimte voor de knop */
+            margin-bottom: 70px;
         }}
         .promo-img {{
             max-width: 100%; max-height: 80vh; border-radius: 8px;
@@ -437,37 +430,16 @@ def show_welcome_letter():
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
             cursor: pointer;
         }}
-
-        /* DE KNOP STYLING (COMPACT) */
         div.stButton > button[kind="secondary"] {{
-            position: fixed !important;
-            bottom: 30px !important;
-            left: 50% !important;
-            transform: translateX(-50%) !important;
-            z-index: 9999999 !important;
-            
-            /* HIER ZIT DE FIX VOOR DE BREEDTE: */
-            width: fit-content !important;
-            min-width: unset !important;
-            max-width: 90% !important;
-            
-            background-color: #FFFFFF !important;
-            color: #0F172A !important; /* Donkerblauw voor beter contrast */
-            border: none !important;
-            border-radius: 50px !important;
-            
-            padding: 10px 25px !important; /* Iets strakker */
-            font-size: 0.9rem !important;
-            font-weight: 700 !important;
+            position: fixed !important; bottom: 30px !important; left: 50% !important;
+            transform: translateX(-50%) !important; z-index: 9999999 !important;
+            background-color: #FFFFFF !important; color: #000000 !important;
+            border: 2px solid #FFFFFF !important; border-radius: 50px !important;
+            padding: 12px 35px !important; font-weight: 700 !important;
             box-shadow: 0 5px 20px rgba(0,0,0,0.5) !important;
-            opacity: 1 !important;
         }}
-        
-        /* Hover */
         div.stButton > button[kind="secondary"]:hover {{
-            background-color: #F1F5F9 !important;
-            transform: translateX(-50%) scale(1.05) !important;
-            color: #000000 !important;
+            background-color: #F1F5F9 !important; transform: translateX(-50%) scale(1.05) !important;
         }}
     </style>
 
@@ -479,7 +451,6 @@ def show_welcome_letter():
     </div>
     """, unsafe_allow_html=True)
 
-    # De Knop (GEEN use_container_width=True gebruiken hier!)
     if st.button("Nee bedankt, ga naar de app", key="promo_close_final", type="secondary"):
         cookie_manager.set("seen_promo_v1", "true", expires_at=datetime.now() + timedelta(days=30))
         st.session_state.promo_popup_closed = True
