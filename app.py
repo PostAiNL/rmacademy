@@ -83,35 +83,19 @@ st.markdown("""
         /* ==============================================
            ANTI-LAAD SCHERM & SNELHEID FIXES
            ============================================== */
+        [data-testid="stStatusWidget"] { display: none !important; }
+        [data-testid="stDecoration"] { display: none !important; }
+        [data-testid="stOverlay"], .stOverlay { display: none !important; opacity: 0 !important; pointer-events: none !important; }
         
-        /* Verberg de 'Running Man' / Wielrenner rechtsboven */
-        [data-testid="stStatusWidget"] {
-            visibility: hidden !important;
-            height: 0px !important;
-            width: 0px !important;
-            display: none !important;
-        }
-
-        /* Verberg de gekleurde regenboogbalk bovenaan */
-        [data-testid="stDecoration"] {
-            display: none !important;
-        }
-
-        /* CRUCIAAL: Verberg de grijze waas/blur tijdens het laden */
-        [data-testid="stOverlay"], .stOverlay {
-            display: none !important;
-            opacity: 0 !important;
-            pointer-events: none !important;
-        }
-        
-        /* Zorg dat de header transparant blijft */
+        /* HEADER WEGHALEN/VERKLEINEN VOOR MEER RUIMTE */
         header[data-testid="stHeader"] {
             background-color: transparent !important;
+            height: 0px !important; /* Maak header onzichtbaar qua ruimte */
             z-index: 1 !important;
         }
 
         /* ==============================================
-           ALGEMENE CONFIGURATIE
+           ALGEMENE CONFIGURATIE & RUIMTE BESPARING
            ============================================== */
         :root {
             --primary: #2563EB;
@@ -127,74 +111,65 @@ st.markdown("""
             color: var(--text-dark) !important;
         }
 
+        /* --- 1. HOOFDPAGINA OMHOOG TREKKEN --- */
+        .block-container {
+            padding-top: 1rem !important; /* Was 2rem */
+            margin-top: -40px !important; /* Trek alles omhoog over de header heen */
+            padding-bottom: 5rem !important;
+            max-width: 1000px;
+        }
+
+        /* --- 2. SIDEBAR OMHOOG TREKKEN --- */
+        section[data-testid="stSidebar"] .block-container {
+            padding-top: 1rem !important; /* Was 1.5rem */
+            margin-top: -30px !important; /* Trek sidebar inhoud omhoog */
+            padding-left: 1rem !important; 
+            padding-right: 1rem !important;
+        }
+
+        /* Achtergrond sidebar */
+        section[data-testid="stSidebar"] {
+            background-color: #FFFFFF !important;
+            border-right: 1px solid #E2E8F0 !important;
+        }
+
         .bi { margin-right: 6px; vertical-align: -0.125em; }
         h1, h2, h3 { color: #0F172A !important; }
         p, .stMarkdown, .stCaption, [data-testid="stCaptionContainer"], small { color: #0F172A !important; }
         * { -webkit-tap-highlight-color: transparent !important; }
 
         /* ==============================================
-           LANDING PAGE STYLES (NIEUW)
+           LANDING PAGE STYLES (VOOR DE PUBLIC PAGE)
            ============================================== */
         .landing-title { font-size: 2.2rem !important; font-weight: 800 !important; color: #0F172A; line-height: 1.2; text-align: center; }
         .landing-sub { font-size: 1.0rem !important; color: #64748B; text-align: center; margin-bottom: 25px; }
-        
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .roulette-box { background: #F0F9FF; border: 2px solid #BAE6FD; border-radius: 16px; padding: 20px; text-align: center; margin-bottom: 20px; }
 
         /* ==============================================
            UI ELEMENTEN
            ============================================== */
-        /* De Hamburger Knop */
+        /* Hamburger Knop Styling */
         button[kind="header"] {
-            background-color: #EFF6FF !important; 
-            border: 1px solid #DBEAFE !important; 
-            border-radius: 8px !important;
+            background-color: transparent !important; 
             color: #0F172A !important;
-            opacity: 1 !important;
             margin-top: 2px !important;
-            height: 40px !important;
-            width: 40px !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
         }
-        button[kind="header"] svg {
-            fill: #2563EB !important;
-            stroke: #2563EB !important;
-            width: 24px !important;
-            height: 24px !important;
+        
+        /* H1 Titel Styling (Dashboard) */
+        h1 { 
+            font-size: 1.8rem !important; 
+            font-weight: 800 !important; 
+            color: #0F172A !important; 
+            margin-top: 0px !important; /* Geen marge boven titels */
+            padding-top: 0px !important;
+            margin-bottom: 10px !important;
         }
 
         /* Mobiele Sidebar Fixes */
         @media (max-width: 992px) {
-            section[data-testid="stSidebar"] {
-                background-color: #FFFFFF !important;
-                border-right: 1px solid #E2E8F0 !important;
-            }
             [data-testid="stSidebarCollapseButton"] {
-                background-color: #F1F5F9 !important;
-                border-radius: 50% !important;
-                border: 1px solid #E2E8F0 !important;
+                top: 10px !important; /* Zorg dat knop niet wegvalt */
                 color: #0F172A !important;
-                width: 36px !important;
-                height: 36px !important;
-                margin-right: 10px !important;
-                margin-top: 10px !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-                z-index: 999999 !important;
-            }
-            [data-testid="stSidebarCollapseButton"] svg {
-                fill: #0F172A !important;
-                stroke: #0F172A !important;
-            }
-            [data-testid="stSidebarCollapsedControl"] {
-                color: #0F172A !important;
-                background-color: white !important;
-                display: block !important;
-                z-index: 999999 !important;
-                border: 1px solid #000 !important;
             }
         }
         
@@ -202,34 +177,11 @@ st.markdown("""
         #MainMenu { visibility: hidden !important; }
         footer { visibility: hidden !important; }
 
-        .block-container {
-            padding-top: 2rem !important; 
-            padding-bottom: 5rem !important;
-            max-width: 1000px;
-        }
-        
-        h1 { 
-            font-size: 1.8rem !important; 
-            font-weight: 800 !important; 
-            letter-spacing: 0px !important; 
-            color: #0F172A !important; 
-            margin-top: 3px !important; 
-            padding-top: 0px !important;
-            margin-bottom: 10px !important;
-        }
-
-        [data-testid="stSidebar"] .block-container {
-            padding-top: 1.5rem !important; 
-            padding-left: 1rem !important; 
-            padding-right: 1rem !important;
-        }
-
         /* Inputs & Knoppen */
         input, textarea, select, .stTextInput > div > div > input {
             background-color: #FFFFFF !important;
             color: #0F172A !important;
             border: 1px solid #CBD5E1 !important;
-            -webkit-text-fill-color: #0F172A !important;
             opacity: 1 !important;
         }
         .stTextInput label, .stNumberInput label, .stSelectbox label, .stTextarea label, label p {
@@ -241,52 +193,16 @@ st.markdown("""
         div.stButton > button[kind="primary"]:hover { background-color: #1D4ED8 !important; border-color: #1D4ED8 !important; }
         div.stButton > button:not([kind="primary"]) { background-color: #FFFFFF !important; color: #0F172A !important; border: 1px solid #CBD5E1 !important; }
         div.stButton > button:not([kind="primary"]):hover { border-color: #2563EB !important; color: #2563EB !important; background-color: #F8FAFC !important; }
-        
-        /* Klik effect voor sneller gevoel */
         div.stButton > button:active { transform: scale(0.98); }
 
         /* EXPANDER FIX: Ronde hoeken zonder dubbele strepen */
-        div[data-testid="stExpander"] {
-            border: none !important;
-            box-shadow: none !important;
-            background-color: transparent !important;
-        }
-
-        details {
-            border-radius: 20px !important;
-            overflow: hidden;
-            border: 1px solid #BAE6FD !important; /* De hoofdrand */
-            margin-bottom: 15px;
-            background-color: white !important;
-        }
-
-        details > summary {
-            background-color: #EFF6FF !important;
-            border: none !important;
-            padding: 10px 20px !important;
-            color: #0F172A !important;
-            list-style: none;
-        }
-
-        details > summary:hover {
-            background-color: #E0F2FE !important;
-        }
-
-        /* DE FIX: Verwijder de automatische streep van Streamlit tussen kop en inhoud */
-        details[open] > summary {
-            border-bottom: none !important;
-        }
-
-        /* Target de interne container van de expander content */
-        div[data-testid="stExpanderDetails"] {
-            border-top: none !important; /* Verwijdert de irritante streep */
-            padding-top: 15px !important;
-        }
-
-        .streamlit-expanderContent {
-            border: none !important;
-            background-color: white !important;
-        }
+        div[data-testid="stExpander"] { border: none !important; box-shadow: none !important; background-color: transparent !important; }
+        details { border-radius: 20px !important; overflow: hidden; border: 1px solid #BAE6FD !important; margin-bottom: 15px; background-color: white !important; }
+        details > summary { background-color: #EFF6FF !important; border: none !important; padding: 10px 20px !important; color: #0F172A !important; list-style: none; }
+        details > summary:hover { background-color: #E0F2FE !important; }
+        details[open] > summary { border-bottom: none !important; }
+        div[data-testid="stExpanderDetails"] { border-top: none !important; padding-top: 15px !important; }
+        .streamlit-expanderContent { border: none !important; background-color: white !important; }
 
         /* STATS GRID */
         div[data-testid="stVerticalBlockBorderWrapper"] {
@@ -299,71 +215,12 @@ st.markdown("""
         .stat-value { font-size: 1.4rem; font-weight: 800; color: #0F172A; line-height: 1.2; }
         .stat-sub { font-size: 0.7rem; color: #94A3B8; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
 
-/* Verbeterde Mobiele Optimalisatie */
-    @media (max-width: 600px) {
-        /* 1. Meer ruimte onderin de uitklap-vakken (Fases & Uitleg) */
-        div[data-testid="stExpanderDetails"] {
-            padding-bottom: 30px !important; /* Dit zorgt voor witruimte onder de knop */
-            padding-left: 15px !important;
-            padding-right: 15px !important;
-        }
-
-        /* 2. De Gouden Knop extra ruimte geven */
-        div[style*="background: linear-gradient(135deg, #FFD700"] {
-            margin-top: 20px !important;
-            margin-bottom: 10px !important; /* Ruimte tussen knop en de rand van het witte vlak */
-            padding: 16px !important;
-        }
-
-        /* 3. De blauwe aanbevelingskaart ("Wat ga je verkopen?") */
-        div[style*="background: linear-gradient(135deg, #2563EB"] {
-            padding: 20px !important;
-            border-radius: 15px !important;
-        }
-
-/* Maak specifieke knoppen rood (Danger Zone) */
-    div[data-testid="stPopover"] button {
-        background-color: #EF4444 !important; /* Rood */
-        border-color: #DC2626 !important;
-        color: white !important;
-    }
-    div[data-testid="stPopover"] button:hover {
-        background-color: #DC2626 !important;
-        border-color: #B91C1C !important;
-    }
-
-        /* 4. Lettergrootte van de titel in de blauwe kaart iets verkleinen voor mobiel */
-        div[style*="font-size: 1.8rem"] {
-            font-size: 1.4rem !important;
-            line-height: 1.2 !important;
-        }
-
-        /* 5. De tekst in de 'Daily Habit' (groene balk) */
-        .stAlert div {
-            font-size: 0.85rem !important;
-        }
-    }
-
-        /* LEVEL UP OVERLAY */
-        @keyframes popIn { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
-        .levelup-overlay {
-            position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-            background: rgba(15, 23, 42, 0.9); z-index: 9999;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            animation: popIn 0.5s ease-out forwards;
-        }
-        .levelup-card {
-            background: white; padding: 40px; border-radius: 20px; text-align: center; max-width: 400px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3); border: 2px solid #FBBF24;
-        }
-        
         /* VISUAL ROADMAP */
         .progress-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; position: relative; padding: 0 10px; width: 100%; }
         .progress-line { position: absolute; top: 15px; left: 0; width: 100%; height: 3px; background: #E2E8F0; z-index: 1; }
         .progress-step { width: 32px; height: 32px; border-radius: 50%; display: flex; justify-content: center; align-items: center; z-index: 2; position: relative; background: white; border: 2px solid #E2E8F0; color: #94A3B8; font-weight: bold; font-size: 0.8rem; transition: all 0.3s; }
         .progress-step.active { border-color: #2563EB; color: white; background: #2563EB; box-shadow: 0 0 0 4px rgba(37,99,235,0.1) !important; }
         .progress-step.completed { background: #10B981; border-color: #10B981; color: white; }
-        .progress-label { position: absolute; bottom: -25px; left: 50%; transform: translateX(-50%); font-size: 0.7rem; white-space: nowrap; color: #64748B; font-weight: 600; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -657,7 +514,7 @@ Ontwerp je merkidentiteit in seconden. Zonder kosten.
 """, unsafe_allow_html=True)
 
     # 2. DE TOOLS
-    tab_brand, tab_idea = st.tabs(["Brand Studio", "Idea Generator"])
+    tab_brand, tab_idea = st.tabs(["Merk Studio", "Idee Generator"])
     
     # === TAB 1: BRAND STUDIO ===
     with tab_brand:
@@ -671,7 +528,7 @@ Ontwerp je merkidentiteit in seconden. Zonder kosten.
                 b_style = st.selectbox("Stijl", ["Minimalistisch", "Luxe", "Speels", "Vintage"], key="pub_brand_style")
                 
                 st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
-                if st.button("✨ Genereer Brand Identity", type="primary", use_container_width=True):
+                if st.button("✨ Genereer je Merk", type="primary", use_container_width=True):
                     if b_name and b_topic:
                         st.session_state.is_generating_brand = True
                     else:
