@@ -378,11 +378,9 @@ De <b>Full Academy & 1-op-1 Coaching</b> is aan je account toegevoegd.
         
         st.stop()
 
-# --- ONE-TIME OFFER (DE BRIEF) ---
+# --- ONE-TIME OFFER (DE BRIEF: COMPACTE KNOP FIX) ---
 def show_welcome_letter():
     # 1. VEILIGHEIDSCHECK: Is gebruiker al ingelogd?
-    # Als 'user' in session state zit en een email heeft, is hij ingelogd. 
-    # Dan hoeft hij de brief NOOIT meer te zien.
     if "user" in st.session_state and st.session_state.user.get('email'):
         return
 
@@ -394,8 +392,6 @@ def show_welcome_letter():
     if st.session_state.get("promo_popup_closed", False):
         return
 
-    # ... (Rest van de functie blijft hetzelfde: plaatje laden, CSS, HTML etc.)
-    # ...
     # Plaatje laden
     file_path = "assets/Promobrief.png"
     if not os.path.exists(file_path): 
@@ -407,7 +403,7 @@ def show_welcome_letter():
         with open(path, "rb") as f: return base64.b64encode(f.read()).decode()
     img_b64 = get_img_as_base64(file_path)
 
-    # HTML Overlay
+    # HTML Overlay & CSS
     st.markdown(f"""
     <style>
         .promo-overlay {{
@@ -419,10 +415,10 @@ def show_welcome_letter():
         }}
         .promo-container {{
             position: relative; width: auto; max-width: 90%; max-height: 85vh;
-            margin-bottom: 70px;
+            margin-bottom: 80px; /* Ruimte voor de knop */
         }}
         .promo-img {{
-            max-width: 100%; max-height: 80vh; border-radius: 8px;
+            max-width: 100%; max-height: 75vh; border-radius: 8px;
             box-shadow: 0 0 60px rgba(0,0,0,1);
             display: block;
         }}
@@ -430,16 +426,35 @@ def show_welcome_letter():
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10;
             cursor: pointer;
         }}
+
+        /* DE KNOP STYLING (COMPACT GEMAAKT) */
         div.stButton > button[kind="secondary"] {{
-            position: fixed !important; bottom: 30px !important; left: 50% !important;
-            transform: translateX(-50%) !important; z-index: 9999999 !important;
-            background-color: #FFFFFF !important; color: #000000 !important;
-            border: 2px solid #FFFFFF !important; border-radius: 50px !important;
-            padding: 12px 35px !important; font-weight: 700 !important;
-            box-shadow: 0 5px 20px rgba(0,0,0,0.5) !important;
+            position: fixed !important;
+            bottom: 40px !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+            z-index: 9999999 !important;
+            
+            /* HIER ZIT DE FIX: */
+            width: fit-content !important;  /* Past zich aan aan de tekst */
+            min-width: 200px !important;    /* Maar niet te smal */
+            
+            background-color: #FFFFFF !important;
+            color: #0F172A !important;
+            border: none !important;
+            border-radius: 50px !important;
+            
+            padding: 12px 30px !important;
+            font-size: 1rem !important;
+            font-weight: 700 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5) !important;
+            opacity: 1 !important;
         }}
+        
         div.stButton > button[kind="secondary"]:hover {{
-            background-color: #F1F5F9 !important; transform: translateX(-50%) scale(1.05) !important;
+            background-color: #F1F5F9 !important;
+            transform: translateX(-50%) scale(1.05) !important;
+            box-shadow: 0 10px 40px rgba(255,255,255,0.2) !important;
         }}
     </style>
 
@@ -451,6 +466,7 @@ def show_welcome_letter():
     </div>
     """, unsafe_allow_html=True)
 
+    # De Knop (GEEN use_container_width gebruiken!)
     if st.button("Nee bedankt, ga naar de app", key="promo_close_final", type="secondary"):
         cookie_manager.set("seen_promo_v1", "true", expires_at=datetime.now() + timedelta(days=30))
         st.session_state.promo_popup_closed = True
