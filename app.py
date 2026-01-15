@@ -1163,28 +1163,36 @@ else:
             col_vid, col_info = st.columns([0.25, 0.75], gap="medium")
 
             with col_vid:
-                if os.path.exists(COACH_VIDEO_PATH):
-                    # OUDE MANIER (te groot op mobiel):
-                    # st.video(COACH_VIDEO_PATH)
-                    
-                    # NIEUWE MANIER (HTML speler met hoogte limiet):
-                    try:
-                        with open(COACH_VIDEO_PATH, "rb") as f:
-                            video_bytes = f.read()
-                            video_b64 = base64.b64encode(video_bytes).decode()
-                            
-                        st.markdown(f"""
-                            <div style="display: flex; justify-content: center; align-items: center; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                <video controls style="width: 100%; max-height: 270px; object-fit: cover;">
-                                    <source src="data:video/mp4;base64,{video_b64}" type="video/mp4">
-                                    Je browser ondersteunt deze video niet.
-                                </video>
-                            </div>
-                        """, unsafe_allow_html=True)
-                    except Exception as e:
-                        st.error("Video kon niet geladen worden.")
-                else:
-                    st.info("Video wordt geladen...")
+                # 👇 Vul hier alleen de ID in (het stukje achter /shorts/)
+                SHORT_ID = "JOUW_SHORT_ID_HIER" 
+                
+                # We gebruiken een 9:16 verhouding (Verticaal, zoals TikTok)
+                st.markdown(f"""
+                <div style="
+                    position: relative; 
+                    width: 100%; 
+                    /* Dit percentage zorgt voor de verticale TikTok-vorm (9:16) */
+                    padding-top: 177.77%; 
+                    border-radius: 12px; 
+                    overflow: hidden; 
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                    background: #000;
+                ">
+                    <iframe 
+                        src="https://www.youtube.com/embed/{SHORT_ID}?rel=0&modestbranding=1&loop=1&playlist={SHORT_ID}" 
+                        frameborder="0" 
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                        allowfullscreen 
+                        style="
+                            position: absolute; 
+                            top: 0; 
+                            left: 0; 
+                            width: 100%; 
+                            height: 100%;
+                        ">
+                    </iframe>
+                </div>
+                """, unsafe_allow_html=True)
 
             with col_info:
                 st.markdown("""
