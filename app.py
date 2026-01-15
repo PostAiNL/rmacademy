@@ -261,11 +261,10 @@ st.markdown("""
 cookie_manager = stx.CookieManager()
 
 # ==============================================================================
-# 💰 PAYPRO BETALING VERWERKEN (CLAIM SCHERM - BOVENAAN!)
+# 💰 PAYPRO BETALING VERWERKEN (MET 100-STUDENTEN BONUS)
 # ==============================================================================
 if "payment" in st.query_params and st.query_params["payment"] == "success":
     
-    # CSS voor dit scherm
     st.markdown("""
     <style>
         .claim-card {
@@ -274,32 +273,56 @@ if "payment" in st.query_params and st.query_params["payment"] == "success":
             box-shadow: 0 20px 50px rgba(0,0,0,0.1); border: 1px solid #E2E8F0;
             text-align: center;
         }
+        .bonus-box {
+            background: #FFFBEB; border: 2px solid #F59E0B; 
+            padding: 15px; border-radius: 12px; margin-top: 20px;
+            color: #92400E; font-weight: 700;
+        }
         .stApp { background-color: #F8FAFC !important; }
         header, footer { display: none !important; }
         [data-testid="stSidebar"] { display: none !important; }
     </style>
     """, unsafe_allow_html=True)
 
-    # SCENARIO A: Gebruiker is al ingelogd (Bestaande klant upgrade)
-    # We checken of er een email bekend is in de sessie
+    # --- SCENARIO A: BESTAANDE GEBRUIKER (UPGRADE) ---
     if "user" in st.session_state and st.session_state.user.get('email') and st.session_state.user.get('id') != 'temp':
+        email = st.session_state.user['email']
+        
+        # 1. Zet PRO
         if not st.session_state.user.get('is_pro'):
-            db.set_user_pro(st.session_state.user['email'])
+            db.set_user_pro(email)
             st.session_state.user['is_pro'] = True
-            
+        
+        # 2. Check Bonus (Eerste 100)
+        got_bonus, spots_left = db.claim_founder_bonus(email)
+        
         st.balloons()
-        st.markdown("""
-        <div class="claim-card">
-            <div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
-            <h1 style="color: #0F172A; font-weight:800;">Upgrade Geslaagd!</h1>
-            <p style="color: #64748B;">Je account is succesvol geüpgraded naar PRO.</p>
-            <br>
-            <a href="/" target="_self" style="text-decoration: none; background: #2563EB; color: white; padding: 15px 30px; border-radius: 12px; font-weight: 700;">Naar Dashboard</a>
-        </div>
+        
+        # De Melding
+        bonus_html = ""
+        if got_bonus:
+            st.session_state.user['is_academy_student'] = True
+            bonus_html = f"""
+<div class="bonus-box">
+🏆 GEFELICITEERD! <br>
+Je hebt plekje #{100-spots_left} bemachtigd.<br>
+De <b>Full Academy & 1-op-1 Coaching</b> is aan je account toegevoegd.
+</div>
+            """
+            
+        st.markdown(f"""
+<div class="claim-card">
+<div style="font-size: 80px; margin-bottom: 20px;">🎉</div>
+<h1 style="color: #0F172A; font-weight:800;">Upgrade Geslaagd!</h1>
+<p style="color: #64748B;">Je bent nu officieel PRO lid.</p>
+{bonus_html}
+<br>
+<a href="/" target="_self" style="text-decoration: none; background: #2563EB; color: white; padding: 15px 30px; border-radius: 12px; font-weight: 700;">Naar Dashboard</a>
+</div>
         """, unsafe_allow_html=True)
         st.stop()
 
-    # SCENARIO B: Gebruiker is NIEUW (Komt via de Brief/Promo)
+    # --- SCENARIO B: NIEUWE GEBRUIKER (REGISTREREN) ---
     else:
         st.markdown("""
         <div class="claim-card">
@@ -307,12 +330,11 @@ if "payment" in st.query_params and st.query_params["payment"] == "success":
             <h1 style="color: #0F172A; font-size: 2rem; margin-bottom: 10px; font-weight:800;">Betaling Ontvangen!</h1>
             <p style="color: #64748B; font-size: 1.1rem; margin-bottom: 30px;">
                 We hebben je PRO-aankoop verwerkt.<br>
-                <b>Maak nu je account aan om direct toegang te krijgen.</b>
+                <b>Maak nu je account aan om je bonus te claimen.</b>
             </p>
         </div>
         """, unsafe_allow_html=True)
 
-        # Het formulier (Centraal)
         c1, c2, c3 = st.columns([1, 2, 1])
         with c2:
             with st.container(border=True):
@@ -320,36 +342,39 @@ if "payment" in st.query_params and st.query_params["payment"] == "success":
                 new_email = st.text_input("Email adres", placeholder="Waarop wil je inloggen?", key="claim_email")
                 new_pass = st.text_input("Kies wachtwoord", type="password", key="claim_pass")
                 
-                if st.button("🚀 Account Activeren & Starten", type="primary", use_container_width=True):
+                if st.button("🚀 Account Activeren & Bonus Claimen", type="primary", use_container_width=True):
                     if new_email and new_name and new_pass:
                         with st.spinner("Account wordt geactiveerd..."):
-                            # 1. Maak gebruiker aan
-                            status = db.create_user(new_email, new_pass, new_name)
+                            # 1. Maak gebruiker
+                            db.create_user(new_email, new_pass, new_name)
                             
-                            # 2. Maak DIRECT PRO
+                            # 2. Maak PRO
                             db.set_user_pro(new_email)
 
-                            # 3. Stuur Welkomstmail
+                            # 3. CLAIM BONUS (Eerste 100)
+                            got_bonus, spots_left = db.claim_founder_bonus(new_email)
+
+                            # 4. Mail versturen
                             auth.send_welcome_email(new_email, new_name, new_pass)
                             
-                            # 4. Log in in de sessie
+                            # 5. Inloggen
                             auth.login_or_register(new_email, name_input=new_name)
                             
-                            # 5. ZET COOKIES (CRUCIAAL: Met unieke KEYS om error te voorkomen)
-                            # Cookie A: Blijf ingelogd
+                            # 6. Cookies zetten
                             cookie_manager.set("rmecom_user_email", new_email, expires_at=datetime.now() + timedelta(days=30), key="cookie_set_login_claim")
-                            
-                            # Cookie B: Zorg dat de brief NIET meer komt!
                             cookie_manager.set("seen_promo_v1", "true", expires_at=datetime.now() + timedelta(days=30), key="cookie_set_promo_claim")
                             
-                            # 6. Wacht even zodat cookies landen
                             time.sleep(1)
                             
-                            # 7. Verwijder de payment parameter en ga naar dashboard
+                            # Als bonus gelukt is, tonen we dat even kort met een toast voordat we herladen
+                            if got_bonus:
+                                st.toast(f"🎉 BONUS GECLAIMD! Nog {spots_left} plekken over.", icon="🏆")
+                                time.sleep(2)
+                            
                             st.query_params.clear()
                             st.rerun()
                     else:
-                        st.warning("Vul alle velden in om je toegang te claimen.")
+                        st.warning("Vul alle velden in.")
         
         st.stop()
 
