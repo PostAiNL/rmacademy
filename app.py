@@ -411,73 +411,78 @@ def render_auth_footer(key_suffix):
                     else:
                         st.error("Onjuiste gegevens. Probeer het opnieuw.")
 # ==============================================================================
-# 🚀 PUBLIC LANDING PAGE (V8.0: PIXEL PERFECT NO-SCROLL)
+# 🚀 PUBLIC LANDING PAGE (V9.0: FINAL POLISH & MOBILE FIX)
 # ==============================================================================
 if "user" not in st.session_state:
     if "status" in st.query_params: st.query_params.clear()
     
-    # 1. CSS: EXTREME COMPACTHEID
+    # 1. CSS: AGRESSIEVE RUIMTEBESPARING + MOBIELE VEILIGHEID
     st.markdown("""
     <style>
-        /* A. LAYOUT (TREK ALLES OMHOOG) */
+        /* A. LAYOUT (RESPONSIVE) */
         .stApp { background-color: #F8FAFC !important; }
+        
         .block-container {
-            padding-top: 0rem !important;
-            margin-top: -15px !important; /* MAXIMALE LIFT */
             padding-bottom: 0rem !important;
             max-width: 950px !important;
         }
+
+        /* Desktop: Trek omhoog */
+        @media (min-width: 600px) {
+            .block-container { padding-top: 0rem !important; margin-top: -55px !important; }
+        }
+        /* Mobiel: Iets meer lucht zodat titel niet wegvalt */
+        @media (max-width: 600px) {
+            .block-container { padding-top: 1rem !important; margin-top: -40px !important; }
+            .landing-title { font-size: 1.7rem !important; }
+        }
+
         header, footer { display: none !important; }
 
-        /* B. CARD STYLING (DUNNERE RANDEN) */
+        /* B. CARD STYLING */
         div[data-testid="stVerticalBlockBorderWrapper"] {
             background: #FFFFFF;
-            border-radius: 12px; /* Iets strakker */
+            border-radius: 16px;
             border: 1px solid #E2E8F0;
-            box-shadow: 0 4px 15px -3px rgba(0,0,0,0.05);
-            padding: 15px 25px !important; /* Minder interne padding */
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            padding: 20px 25px !important;
         }
 
-        /* C. HEADER & TEKST (IETS KLEINER = MEER RUIMTE) */
+        /* C. HEADER & TEKST */
         .landing-title { 
-            font-size: 2.2rem !important; /* Was 2.2rem */
-            font-weight: 800; color: #0F172A; 
-            margin-bottom: 2px !important; letter-spacing: -0.5px; text-align: center;
+            font-size: 2.2rem !important; font-weight: 800; color: #0F172A; 
+            margin-bottom: 5px !important; letter-spacing: -0.5px; text-align: center;
         }
         .landing-sub { 
-            font-size: 0.9rem; color: #64748B; margin-bottom: 10px; 
-            text-align: center; line-height: 1.3;
+            font-size: 0.95rem; color: #64748B; margin-bottom: 15px; 
+            text-align: center; line-height: 1.4;
         }
         
-        /* D. INPUTS (COMPACTE HOOGTE) */
-        /* Verklein de verticale ruimte tussen alle elementen */
-        div[data-testid="stVerticalBlock"] { gap: 0rem !important; }
-        div[data-testid="stVerticalBlock"] > div { margin-bottom: 0.7rem !important; }
+        /* D. INPUTS & LABELS (ULTRA STRAK) */
+        div[data-testid="stVerticalBlock"] > div { gap: 0.4rem !important; }
         
         .stTextInput input, .stSelectbox div[data-baseweb="select"] {
-            border-radius: 6px !important; 
-            min-height: 38px !important; height: 38px !important; /* Slankere inputs */
-            font-size: 0.9rem;
+            border-radius: 8px !important; height: 40px !important;
+            font-size: 0.9rem; border: 1px solid #CBD5E1;
         }
         
-        /* Labels strak op de input */
+        /* Labels: Simpel & Schoon */
         .compact-label {
-            font-size: 0.7rem; font-weight: 700; color: #475569; 
-            margin-bottom: -2px; margin-top: 4px; display: block; letter-spacing: 0.5px;
+            font-size: 0.7rem; font-weight: 800; color: #64748B; 
+            text-transform: uppercase; margin-bottom: 2px; display: block; letter-spacing: 0.5px;
         }
         
         /* E. TABS & BADGES */
-        .badge-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; }
+        .badge-row { display: flex; justify-content: center; gap: 8px; margin-bottom: 15px; }
         .trust-badge {
-            padding: 3px 10px; border-radius: 50px; font-size: 0.65rem; font-weight: 600;
+            padding: 4px 10px; border-radius: 50px; font-size: 0.7rem; font-weight: 600;
             display: inline-flex; align-items: center; gap: 4px; border: 1px solid;
         }
-        .stTabs { margin-top: 5px; }
-        .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: center; margin-bottom: 5px; }
+        .stTabs [data-baseweb="tab-list"] { gap: 8px; justify-content: center; margin-bottom: 0px; }
         .stTabs [data-baseweb="tab"] { 
-            border-radius: 50px; padding: 2px 14px; 
+            border-radius: 50px; padding: 4px 16px; 
             background-color: white; border: 1px solid #E2E8F0; 
-            height: auto !important; font-size: 0.8rem;
+            height: auto !important; font-size: 0.85rem;
         }
         .stTabs [aria-selected="true"] { 
             background-color: #2563EB !important; color: white !important; border-color: #2563EB !important;
@@ -485,17 +490,18 @@ if "user" not in st.session_state:
     </style>
     """, unsafe_allow_html=True)
 
-    # --- 2. HEADER (SUPER COMPACT) ---
+    # --- 2. HEADER ---
     st.markdown("""
     <div style="text-align:center;">
-        <div style="display:inline-flex; align-items:center; gap:6px; background:white; padding:3px 10px; border-radius:30px; border:1px solid #E2E8F0; margin-bottom:5px;">
+        <div style="display:inline-flex; align-items:center; gap:6px; background:white; padding:4px 12px; border-radius:30px; border:1px solid #E2E8F0; margin-bottom:8px; box-shadow:0 2px 4px rgba(0,0,0,0.02);">
             <span style="font-size: 12px;">⚡</span>
-            <span style="font-weight: 700; color: #0F172A; font-size: 10px;">RM TOOLS</span>
+            <span style="font-weight: 700; color: #0F172A; font-size: 11px;">RM Tools</span>
             <span style="color: #CBD5E1;">|</span>
-            <span style="color: #64748B; font-size: 10px;">Creative Suite v2.0</span>
+            <span style="color: #64748B; font-size: 11px;">Creative Suite v2.0</span>
         </div>
         <h1 class="landing-title">Geef je idee een gezicht.</h1>
-        <p class="landing-sub">Professioneel design met één klik. Gratis & Anoniem.</p>
+<p class="landing-sub">Professioneel design met één klik. Gratis & Anoniem.<br>
+<span style="font-size:0.8rem; color:#94A3B8;">(Al 70+ logo's gemaakt vandaag)</span></p>
         
 <div class="badge-row">
 <span class="trust-badge" style="background:#ECFDF5; color:#047857; border-color:#A7F3D0;">🛡️ Geen account nodig</span>
@@ -513,16 +519,19 @@ if "user" not in st.session_state:
         with st.container(border=True):
             c_tool, c_preview = st.columns([1, 1.2], gap="large")
             with c_tool:
-                st.markdown('<span class="compact-label">1. NAAM VAN JE PROJECT:</span>', unsafe_allow_html=True)
+                # KORTERE LABELS
+                st.markdown('<span class="compact-label">1. PROJECT NAAM</span>', unsafe_allow_html=True)
                 b_name = st.text_input("Naam", placeholder="Bijv. Studio Nova", label_visibility="collapsed", key="pub_brand_name")
                 
-                st.markdown('<span class="compact-label">2. WAT DOE JE? (ONDERWERP):</span>', unsafe_allow_html=True)
+                st.markdown('<div style="height:5px"></div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">2. ONDERWERP</span>', unsafe_allow_html=True)
                 b_topic = st.text_input("Onderwerp", placeholder="Bijv. Koffie, Tech", label_visibility="collapsed", key="pub_brand_topic")
                 
-                st.markdown('<span class="compact-label">3. UITSTRALING (STIJL):</span>', unsafe_allow_html=True)
+                st.markdown('<div style="height:5px"></div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">3. STIJL</span>', unsafe_allow_html=True)
                 b_style = st.selectbox("Stijl", ["Minimalistisch (Apple stijl)", "Luxe (Goud & Zwart)", "Speels (Kleuren)", "Vintage (Retro)"], label_visibility="collapsed", key="pub_brand_style")
                 
-                st.markdown("<div style='height:10px'></div>", unsafe_allow_html=True)
+                st.markdown("<div style='height:15px'></div>", unsafe_allow_html=True)
                 if st.button("✨ Genereer Ontwerp (Gratis)", type="primary", use_container_width=True):
                     if b_name and b_topic:
                         st.session_state.is_generating_brand = True
@@ -534,8 +543,8 @@ if "user" not in st.session_state:
                     st.markdown("""
                     <div style="background:#F8FAFC; border: 2px dashed #E2E8F0; border-radius:12px; height:240px; display:flex; align-items:center; justify-content:center; text-align:center; color:#94A3B8;">
                         <div>
-                            <div style="font-size:30px; margin-bottom:5px;">🎨</div>
-                            <span style="font-size:0.8rem;">Je designs verschijnen hier</span>
+                            <div style="font-size:35px; margin-bottom:5px; opacity:0.6;">🎨</div>
+                            <span style="font-size:0.85rem; font-weight:500;">Je designs verschijnen hier</span>
                         </div>
                     </div>
                     """, unsafe_allow_html=True)
@@ -564,7 +573,7 @@ if "user" not in st.session_state:
             with c_i2:
                 st.markdown("#### 🧠 Brainstormen")
                 display_text = st.session_state.get("niche_roulette_result", "Druk op de knop 👇")
-                st.markdown(f"""<div style="text-align:center; padding:20px; background:#F0F9FF; border-radius:12px; margin-bottom:15px; font-weight:800; color:#0F172A; font-size:1.1rem;">{display_text}</div>""", unsafe_allow_html=True)
+                st.markdown(f"""<div style="text-align:center; padding:25px; background:#F0F9FF; border-radius:12px; margin-bottom:15px; font-weight:800; color:#0F172A; font-size:1.2rem;">{display_text}</div>""", unsafe_allow_html=True)
                 if st.button("💡 Geef me een idee", type="primary", use_container_width=True):
                     placeholder = st.empty()
                     for _ in range(5):
@@ -573,30 +582,28 @@ if "user" not in st.session_state:
                     st.session_state.niche_roulette_result = random.choice(ideas)
                     st.rerun()
 
-    # === TAB 3: ACCOUNT (EXTREEM COMPACT) ===
+    # === TAB 3: ACCOUNT ===
     with tab_auth:
         with st.container(border=True):
             st.markdown("""
             <div style="text-align:center; margin-bottom:10px;">
-                <h5 style="margin:0; color:#0F172A; font-size:1rem;">💾 Sla je voortgang op en krijg gratis toegang tot het volledige dashboard</h5>
+                <h5 style="margin:0; color:#0F172A; font-size:1rem;">💾 Sla je voortgang op</h5>
             </div>
             """, unsafe_allow_html=True)
             
             c_auth1, c_auth2 = st.columns(2, gap="large")
             
-            # LINKS: NIEUW ACCOUNT
+            # LINKS
             with c_auth1:
-                st.markdown('<div style="background:#F0FDF4; padding:3px 8px; border-radius:4px; color:#166534; font-weight:700; font-size:0.7rem; margin-bottom:5px;">✨ NIEUW ACCOUNT (GRATIS)</div>', unsafe_allow_html=True)
-                
-                st.markdown('<span class="compact-label">NAAM:</span>', unsafe_allow_html=True)
+                st.markdown('<div style="background:#F0FDF4; padding:3px 8px; border-radius:4px; color:#166534; font-weight:700; font-size:0.7rem; margin-bottom:5px;">✨ NIEUW (GRATIS)</div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">NAAM</span>', unsafe_allow_html=True)
                 r_name = st.text_input("Naam", placeholder="Voornaam", label_visibility="collapsed", key="tab_reg_name")
-                
-                st.markdown('<span class="compact-label">EMAIL:</span>', unsafe_allow_html=True)
+                st.markdown('<div style="height:5px"></div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">EMAIL</span>', unsafe_allow_html=True)
                 r_email = st.text_input("Email", placeholder="Email", label_visibility="collapsed", key="tab_reg_email")
-                
-                st.markdown('<span class="compact-label">WACHTWOORD:</span>', unsafe_allow_html=True)
+                st.markdown('<div style="height:5px"></div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">WACHTWOORD</span>', unsafe_allow_html=True)
                 r_pass = st.text_input("Wachtwoord", type="password", label_visibility="collapsed", key="tab_reg_pass")
-                
                 st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                 if st.button("🚀 Opslaan & Starten", type="primary", use_container_width=True):
                     if r_email and r_name and r_pass:
@@ -609,16 +616,14 @@ if "user" not in st.session_state:
                             st.rerun()
                     else: st.warning("Vul alles in.")
 
-            # RECHTS: INLOGGEN
+            # RECHTS
             with c_auth2:
-                st.markdown('<div style="background:#F1F5F9; padding:3px 8px; border-radius:4px; color:#475569; font-weight:700; font-size:0.7rem; margin-bottom:5px;">🔑 BESTAAND ACCOUNT</div>', unsafe_allow_html=True)
-                
-                st.markdown('<span class="compact-label">EMAIL:</span>', unsafe_allow_html=True)
+                st.markdown('<div style="background:#F1F5F9; padding:3px 8px; border-radius:4px; color:#475569; font-weight:700; font-size:0.7rem; margin-bottom:5px;">🔑 BESTAAND</div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">EMAIL</span>', unsafe_allow_html=True)
                 l_email = st.text_input("Email", label_visibility="collapsed", key="tab_log_email")
-                
-                st.markdown('<span class="compact-label">WACHTWOORD:</span>', unsafe_allow_html=True)
+                st.markdown('<div style="height:5px"></div>', unsafe_allow_html=True)
+                st.markdown('<span class="compact-label">WACHTWOORD</span>', unsafe_allow_html=True)
                 l_pass = st.text_input("Wachtwoord", type="password", label_visibility="collapsed", key="tab_log_pass")
-                
                 st.markdown("<div style='height:8px'></div>", unsafe_allow_html=True)
                 if st.button("Inloggen", use_container_width=True):
                     if db.verify_user(l_email, l_pass):
