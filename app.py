@@ -1164,7 +1164,7 @@ else:
 
             with col_vid:
                 # 👇 Vul hier alleen de ID in (het stukje achter /shorts/)
-                SHORT_ID = "JOUW_SHORT_ID_HIER" 
+                SHORT_ID = "fDY0wbUEPDk" 
                 
                 # We gebruiken een 9:16 verhouding (Verticaal, zoals TikTok)
                 st.markdown(f"""
