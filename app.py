@@ -45,28 +45,34 @@ st.set_page_config(
     initial_sidebar_state="collapsed" # AANGEPAST: Standaard ingeklapt voor focus op tools
 )
 
-# --- TRACKING ENGINE ---
-# We checken of deze bezoeker in deze sessie al geteld is
+# --- TRACKING ENGINE (GEAVANCEERD) ---
 if "traffic_logged" not in st.session_state:
     try:
-        # Probeer te bepalen of het een mobiel of desktop is (simpel)
-        # Dit is niet 100% waterdicht in Streamlit, maar geeft een indicatie
-        device = "desktop"
-        try:
-            query_params = st.query_params.to_dict()
-            # Soms geven browsers hints mee, maar in Streamlit is dit lastig. 
-            # We loggen het voor nu als 'unknown' of 'web-visitor'
-        except: pass
+        # 1. Haal marketing data uit de URL (Bv. ?utm_source=facebook)
+        q_params = st.query_params.to_dict()
+        source = q_params.get("utm_source", "direct")
+        campaign = q_params.get("utm_campaign", None)
+        
+        # 2. Probeer browser info te gokken (Simpel)
+        # (Streamlit geeft beperkte toegang tot headers, dit is een veilige gok)
+        browser_info = "web-visitor"
 
-        # Loggen naar Supabase
+        # 3. Opslaan in Supabase
         if auth.supabase:
             log_data = {
-                "page": "landing", # Of dynamisch: st.session_state.get('view', 'landing')
-                "user_email": st.session_state.user.get('email') if "user" in st.session_state else None
+                "page": "landing",
+                "utm_source": source,
+                "utm_campaign": campaign,
+                "browser_info": browser_info,
+                "user_email": None # Nog niet bekend!
             }
-            auth.supabase.table('app_traffic').insert(log_data).execute()
+            # We slaan het resultaat op om het ID te krijgen
+            response = auth.supabase.table('app_traffic').insert(log_data).execute()
             
-        # Zet vlag op True zodat we niet bij elke knopdruk opnieuw tellen
+            # BEWAAR HET ID IN DE SESSIE!
+            if response.data:
+                st.session_state.traffic_id = response.data[0]['id']
+            
         st.session_state.traffic_logged = True
         
     except Exception as e:
@@ -404,6 +410,12 @@ def render_auth_footer(key_suffix):
                             auth.login_or_register(r_email, ref_code_input=ref_code, name_input=r_name)
                             cookie_manager.set("rmecom_user_email", r_email, expires_at=datetime.now() + timedelta(days=30), path="/")
                             st.balloons()
+                        if "traffic_id" in st.session_state and auth.supabase:
+                            try:
+                                auth.supabase.table('app_traffic').update({
+                                    "user_email": r_email # Of l_email bij inloggen
+                                }).eq('id', st.session_state.traffic_id).execute()
+                            except: pass
                             time.sleep(1)
                             st.rerun()
                         else:
